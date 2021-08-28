@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>The Orange Button — Keep Talking and Nobody Explodes Mod</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/normalize.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel='stylesheet' type='text/css' href='css/font.css'>
+	<script src="js/ktane-utils.js"></script>
+	<script src="js/ruleseed.js"></script>
+	<script>
+		function setDefaultRules(rnd) {
+			setRules(rnd);
+		}
+		
+		function setRules(rnd)
+        {
+			rnd.next(0,2);
+			rnd.next(0,2);
+			let letterTable = [];
+			for (let ix = 0; ix < 9; ix++) {
+				let letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
+				rnd.shuffleFisherYates(letters);
+				for (let jx = 0; jx < 9; jx++) {
+					letterTable.push(letters[jx]);
+				}
+			}
+			
+			let tds = Array.from(document.querySelectorAll(`.orange-button-table td`));
+			for (let i = 0; i < 81; i++) {
+				tds[i].innerHTML = letterTable[i];
+			}
+			
+			let positions = ["first", "second", "third", "fourth", "fifth", "sixth"];
+			rnd.shuffleFisherYates(positions);
+			let spans = Array.from(document.querySelectorAll(`.orange-button-list span`));
+			for (let i = 0; i < 6; i++) {
+				spans[i].innerHTML = positions[i];
+			}
+		}
+	</script>
+	<style>
+		.corner {
+			border: none;
+		}
+		
+		.orange-button-table {
+			margin-left: auto;
+			margin-right: auto;
+		}
+		
+		.orange-button-table td {
+			text-align: center;
+			font-size: 12pt;
+		}
+		
+		.orange-button-table th {
+			width: 25px;
+			height: 25px;
+			font-size: 16pt;
+		}
+		
+		body.ruleseed-active .rule {
+            text-decoration: underline;
+            font-weight: bold;
+        }
+		
+		.manual {
+			font-size: 11pt;
+		}
+	</style>
+</head>
+<body>
+	<div class="section">
+		<div class="page page-bg-05">
+			<div class="page-header">
+				<span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+				<span class="page-header-section-title">The Orange Button</span>
+			</div>
+			<div class="page-content">
+				<img src="img/Component/OrangeButton.svg" class="diagram">
+				<h2>On the Subject of The Orange Button</h2>
+				<p class="flavour-text">This is a button. It is orange.</p>
+				<span class="manual">
+				<p>The module contains an orange button with a digit from 0-8 written on it and a screen consisting of letters from A-I.</p>
+				<p>Take the serial number characters, and split them up into three pairs of two:</p>
+				<ul class="orange-button-list">
+					<li>The <span class="rule"></span> and <span class="rule"></span> serial number characters as the first pair.</li>
+					<li>The <span class="rule"></span> and <span class="rule"></span> serial number characters as the second pair.</li>
+					<li>The <span class="rule"></span> and <span class="rule"></span> serial number characters as the third pair.</li>
+				</ul>
+				<p>Convert any letters into their base-36 value. (A=10, B=11, ..., Z=35) Then, take each character serial number, and repeatedly subtract 9 until your number is between 0 and 8.</p>
+				<p>The first value in each pair represents which column in the table below you have to use.  The second value represents the row. Find the letter found at the intersection.</p>
+				<p>Then, with the number written on the button, move these many squares right from the discovered intersection, wrapping around to the beginning of the row if necessary.  The three letters found at each new square is what needs to be submitted.</p>
+				<p>To change the letter in the display, tap the button when the letter's color is cyan.  This will shift it forward <i>n</i> times, where <i>n</i> is the position of the green LED from top to bottom.</p>
+				<p>To submit your answer, hold the button over any timer tick.</p>
+				</span>
+				<table class="orange-button-table corner">
+					<tr>
+						<th class="corner"></th>
+						<th>0</th>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
+						<th>5</th>
+						<th>6</th>
+						<th>7</th>
+						<th>8</th>
+					</tr>
+					<tr>
+						<th>0</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>1</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>2</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>3</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>4</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>5</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>6</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>7</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+					<tr>
+						<th>8</th>
+						<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+					</tr>
+				</table>
+			</div>
+			<div class="page-footer relative-footer">Page 1 of 1
+		</div>
+	</div>
+</body>
+</html>
