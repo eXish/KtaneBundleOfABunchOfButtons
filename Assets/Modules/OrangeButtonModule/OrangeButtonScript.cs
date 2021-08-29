@@ -178,6 +178,7 @@ public class OrangeButtonScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+        OrangeButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
     private void SetLights()
