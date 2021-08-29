@@ -203,8 +203,10 @@ public class RedButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
+#pragma warning disable 0649
     private readonly string TwitchHelpMessage = "!{0} hold 1 5 [hold on 1, release on 5] | !{0} tap";
     private bool ZenModeActive; // set by TP via Reflection
+#pragma warning restore 0649
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
