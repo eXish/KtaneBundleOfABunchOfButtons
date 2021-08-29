@@ -57,7 +57,7 @@ public class GreenButtonScript : MonoBehaviour
 
         _targetWord = _displayedString = _words.PickRandom();
         while (_displayedString.Length < 7)
-            _displayedString = _displayedString.Insert(RNG.Range(0, _displayedString.Length), ((char)('A' + RNG.Range(0, 26))).ToString());
+            _displayedString = _displayedString.Insert(RNG.Range(0, _displayedString.Length), ((char) ('A' + RNG.Range(0, 26))).ToString());
 
         Debug.LogFormat("[The Green Button #{0}] The letters that will play are: {1}", _moduleId, _displayedString);
         Debug.LogFormat("[The Green Button #{0}] A word that can be made from this is: {1}", _moduleId, _targetWord);
@@ -163,7 +163,7 @@ public class GreenButtonScript : MonoBehaviour
         if (_moduleSolved)
             yield break;
 
-        if (Regex.IsMatch(command.ToLowerInvariant().Trim(), "^press|tap|push|submit|play$"))
+        if (Regex.IsMatch(command, @"^\s*(?:press|tap|push|submit|play)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             if (_playing)
             {
@@ -175,8 +175,8 @@ public class GreenButtonScript : MonoBehaviour
             yield break;
         }
 
-        string[] chunks = command.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-        if (Regex.IsMatch(chunks[0], "^press|tap|push|submit|play$"))
+        string[] chunks = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (Regex.IsMatch(chunks[0], @"^\s*(?:press|tap|push|submit|play)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             if (_playing)
             {
@@ -187,7 +187,7 @@ public class GreenButtonScript : MonoBehaviour
             int[] answers = new int[chunks.Length - 1];
             for (int i = 1; i < chunks.Length; i++)
             {
-                if (!int.TryParse(chunks[i], out answers[i - 1]))
+                if (!int.TryParse(chunks[i].Trim(), out answers[i - 1]))
                     yield break;
                 if (i != 1 && (answers[i - 1] <= 0 || answers[i - 1] > _displayedString.SelectMany(c => c.ToNewYorkPoint()).Count() || answers[i - 1] <= answers[i - 2]))
                     yield break;

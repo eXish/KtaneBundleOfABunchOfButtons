@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using BlueButton;
 using KModkit;
 using UnityEngine;
@@ -127,11 +128,30 @@ public class BlueButtonScript : MonoBehaviour
 
     public IEnumerator ProcessTwitchCommand(string command)
     {
-        yield break;
+        Match m;
+        int sec;
+        if ((m = Regex.Match(command, @"^\s*(?:press|tap|push|submit|click)*\s+(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success
+                && int.TryParse(m.Groups[1].Value, out sec) && sec >= 0 && sec <= 59)
+        {
+            yield return null;
+            while ((int) BombInfo.GetTime() % 60 != sec)
+                yield return "trycancel";
+            BlueButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            BlueButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        if (_moduleSolved)
+            yield break;
+        while ((int) BombInfo.GetTime() % 60 != _solution && (int) BombInfo.GetTime() != _solution / 10)
+            yield return true;
+        BlueButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        BlueButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
     }
 }
