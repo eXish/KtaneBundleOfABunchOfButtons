@@ -28,7 +28,6 @@ public class RedButtonScript : MonoBehaviour
     private string _solution = "";
     private readonly string[] _logicGatesWords = { "AND", "OR", "XOR", "NAND", "NOR", "XNOR", "LEFT IMPLIES RIGHT", "RIGHT IMPLIES LEFT" };
 
-
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -38,7 +37,6 @@ public class RedButtonScript : MonoBehaviour
         _buttonSymbol = Rnd.Range(0, 8);
         _buttonText.text = _logicGates.Substring(_buttonSymbol, 1);
         Debug.LogFormat("[The Red Button #{0}] The logic gate written on the button is {1}", _moduleId, _logicGatesWords[_buttonSymbol]);
-
 
         for (int i = 0; i < 10; i++)
         {
@@ -132,7 +130,9 @@ public class RedButtonScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+        RedButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
+
     private void Update()
     {
         var seconds = (int) BombInfo.GetTime() % 10;
