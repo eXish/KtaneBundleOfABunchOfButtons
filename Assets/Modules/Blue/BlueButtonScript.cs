@@ -36,7 +36,7 @@ public class BlueButtonScript : MonoBehaviour
         // END RULE SEED
 
         var sn = BombInfo.GetSerialNumber();
-        var startPos = convert(sn[0]) % 10 + 10 * (convert(sn[1]) % 10);
+        var startPos = convert(sn[2]) % 10 + 10 * (convert(sn[5]) % 10);
 
         tryAgain:
         var symbol = Rnd.Range(0, 9);
