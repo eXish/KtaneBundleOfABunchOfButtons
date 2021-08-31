@@ -18,6 +18,7 @@ public class YellowButtonScript : MonoBehaviour
     public TextMesh _screenTextLeft, _screenTextRight;
     public Material LedOn, LedOff;
     public MeshRenderer[] Leds;
+    public Light[] Lights;
     public Transform LedParent;
 
     private static int _moduleIdCounter = 1;
@@ -36,6 +37,9 @@ public class YellowButtonScript : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         YellowButtonSelectable.OnInteract += YellowButtonPress;
         YellowButtonSelectable.OnInteractEnded += YellowButtonRelease;
+
+        foreach(Light l in Lights)
+            l.range *= transform.lossyScale.x;
 
         tryAgain:
         _denom = Rnd.Range(2, 10);
@@ -79,14 +83,14 @@ public class YellowButtonScript : MonoBehaviour
             var ledState = (int) (Time.time / ledChangePeriod);
             if (ledState != prevLedState)
             {
-                for (var i = 0; i < Leds.Length; i++)
-                    Leds[i].sharedMaterial = Rnd.Range(0, 2) != 0 ? LedOn : LedOff;
+                for(var i = 0; i < Leds.Length; i++)
+                    SetLightState(i, Rnd.Range(0, 2) != 0);
                 prevLedState = ledState;
             }
         }
 
-        for (var i = 0; i < Leds.Length; i++)
-            Leds[i].sharedMaterial = LedOff;
+        for(var i = 0; i < Leds.Length; i++)
+            SetLightState(i, false);
 
         var duration = 3.5f;
         var elapsed = 0f;
@@ -97,6 +101,12 @@ public class YellowButtonScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+    }
+
+    private void SetLightState(int ix, bool on)
+    {
+        Leds[ix].sharedMaterial = on ? LedOn : LedOff;
+        Lights[ix].gameObject.SetActive(on);
     }
 
     private bool YellowButtonPress()
