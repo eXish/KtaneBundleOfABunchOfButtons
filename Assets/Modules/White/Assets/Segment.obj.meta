@@ -1,19 +1,19 @@
 fileFormatVersion: 2
-guid: fd20d45b6e02c084fa606553843768c6
+guid: b0b20154523911445ad23853c0eb7af7
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
-    100000: Button
+    100000: Annulus
     100002: //RootNode
-    400000: Button
+    400000: Annulus
     400002: //RootNode
-    2100000: ButtonMat
-    2300000: Button
-    3300000: Button
-    4300000: Button
+    2100000: AnnulusMat
+    2300000: Annulus
+    3300000: Annulus
+    4300000: Annulus
   externalObjects: {}
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
