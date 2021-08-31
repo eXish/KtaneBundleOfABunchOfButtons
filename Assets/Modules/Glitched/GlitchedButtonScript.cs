@@ -84,8 +84,8 @@ public class GlitchedButtonScript : MonoBehaviour
         _target = Array.IndexOf(_dataSplit, _chosenData);
         Text.text = _modifiedData;
 
-        Debug.LogFormat("[Glitched Button #{0}] The display is \"{1}\", modified from \"{2}\".", _moduleId, _chosenData, _modifiedData);
-        Debug.LogFormat("[Glitched Button #{0}] This is id {1}. Tap on XX:{1} or XX:{2}.", _moduleId, _target < 10 ? "0" + _target : _target.ToString(), _target + 30);
+        Debug.LogFormat("[The Glitched Button #{0}] The display is \"{1}\", modified from \"{2}\".", _moduleId, _modifiedData, _chosenData);
+        Debug.LogFormat("[The Glitched Button #{0}] This is id {1}. Tap on XX:{1} or XX:{2}.", _moduleId, _target < 10 ? "0" + _target : _target.ToString(), _target + 30);
     }
 
     private bool GlitchedButtonPress()
@@ -98,14 +98,14 @@ public class GlitchedButtonScript : MonoBehaviour
 
         if((int)(Info.GetTime() % 30f) == _target)
         {
-            Debug.LogFormat("[Glitched Button #{0}] Good job! Module solved.", _moduleId);
+            Debug.LogFormat("[The Glitched Button #{0}] Good job! Module solved.", _moduleId);
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
             _moduleSolved = true;
             Module.HandlePass();
         }
         else
         {
-            Debug.LogFormat("[Glitched Button #{0}] You pressed at XX:{1}. Strike!", _moduleId, (int)(Info.GetTime() % 60) < 10 ? "0" + (int)(Info.GetTime() % 60) : ((int)(Info.GetTime() % 60)).ToString());
+            Debug.LogFormat("[The Glitched Button #{0}] You pressed at XX:{1}. Strike!", _moduleId, (int)(Info.GetTime() % 60) < 10 ? "0" + (int)(Info.GetTime() % 60) : ((int)(Info.GetTime() % 60)).ToString());
             Module.HandleStrike();
         }
 
