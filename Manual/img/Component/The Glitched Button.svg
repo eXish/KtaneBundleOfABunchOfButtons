@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="The Glitched Button.svg"
+   id="svg24"
+   version="1.1"
+   viewBox="0 0 348 348"
+   fill="none">
+  <metadata
+     id="metadata30">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs28" />
+  <sodipodi:namedview
+     inkscape:current-layer="svg24"
+     inkscape:window-maximized="1"
+     inkscape:window-y="-9"
+     inkscape:window-x="2391"
+     inkscape:cy="172.13709"
+     inkscape:cx="176.67252"
+     inkscape:zoom="1.6864903"
+     showgrid="false"
+     id="namedview26"
+     inkscape:window-height="1001"
+     inkscape:window-width="1920"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <path
+     id="path2"
+     d="M5.08 5.78h336.91v337.67H5.08z"
+     stroke-width="2"
+     stroke="#000" />
+  <path
+     id="path4"
+     d="M282.73 40.55c0-8.37 6.97-15.16 15.56-15.16 4.13 0 8.09 1.6 11 4.44a14.97 14.97 0 014.56 10.72c0 8.38-6.96 15.17-15.56 15.17-8.59 0-15.56-6.8-15.56-15.17z"
+     stroke-width="2"
+     stroke="#000" />
+  <path
+     id="path6"
+     d="M140 190l35 80 35-80"
+     stroke-width="10"
+     stroke="#000" />
+  <path
+     id="path8"
+     d="M30 30h215v70H30z"
+     stroke-width="10.22"
+     stroke="#646464"
+     fill="#000" />
+  <circle
+     id="circle10"
+     stroke-width="5"
+     stroke="#000"
+     fill="#969696"
+     r="105"
+     cy="225"
+     cx="175" />
+  <text
+     id="text857"
+     y="79.662651"
+     x="46.959034"
+     style="font-size:8.00001px;line-height:1.25;font-family:Bahnschrift;-inkscape-font-specification:Bahnschrift"
+     xml:space="preserve"><tspan
+       style="font-size:42.6667px;fill:#ffffff;fill-opacity:1"
+       y="79.662651"
+       x="46.959034"
+       id="tspan855"
+       sodipodi:role="line">00000000</tspan></text>
+</svg>
