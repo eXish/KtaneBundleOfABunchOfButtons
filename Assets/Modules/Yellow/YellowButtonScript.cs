@@ -103,8 +103,12 @@ public class YellowButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        _holding = true;
-        _heldWhen = (int) Bomb.GetTime() % 10;
+
+        if (!_moduleSolved)
+        {
+            _holding = true;
+            _heldWhen = (int) Bomb.GetTime() % 10;
+        }
         return false;
     }
 
@@ -112,19 +116,23 @@ public class YellowButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        _holding = false;
-        var releasedWhen = (int) Bomb.GetTime() % 10;
 
-        if (_heldWhen != _holdWhen || releasedWhen != _releaseWhen)
+        if (!_moduleSolved)
         {
-            Debug.LogFormat(@"[The Yellow Button #{0}] You held on {1} and released on {2}. Strike!", _moduleId, _heldWhen, releasedWhen);
-            Module.HandleStrike();
-        }
-        else
-        {
-            Debug.LogFormat(@"[The Yellow Button #{0}] Module solved.", _moduleId);
-            Module.HandlePass();
-            _moduleSolved = true;
+            _holding = false;
+            var releasedWhen = (int) Bomb.GetTime() % 10;
+
+            if (_heldWhen != _holdWhen || releasedWhen != _releaseWhen)
+            {
+                Debug.LogFormat(@"[The Yellow Button #{0}] You held on {1} and released on {2}. Strike!", _moduleId, _heldWhen, releasedWhen);
+                Module.HandleStrike();
+            }
+            else
+            {
+                Debug.LogFormat(@"[The Yellow Button #{0}] Module solved.", _moduleId);
+                Module.HandlePass();
+                _moduleSolved = true;
+            }
         }
     }
 
