@@ -5,15 +5,21 @@ ModelImporter:
   fileIDToRecycleName:
     100000: Annulus
     100002: //RootNode
+    100004: Segment
     400000: Annulus
     400002: //RootNode
+    400004: Segment
     2100000: AnnulusMat
+    2100002: SegmentMat
     2300000: Annulus
+    2300002: Segment
     3300000: Annulus
+    3300002: Segment
     4300000: Annulus
+    4300002: Segment
   externalObjects: {}
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 1
