@@ -1115,7 +1115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: BlueButtonModule
   ModuleDisplayName: The Blue Button
-  RequiresTimerVisibility: 0
+  RequiresTimerVisibility: 1
 --- !u!114 &114629248889334494
 MonoBehaviour:
   m_ObjectHideFlags: 1

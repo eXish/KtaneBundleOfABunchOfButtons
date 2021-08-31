@@ -1266,7 +1266,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: YellowButtonModule
   ModuleDisplayName: The Yellow Button
-  RequiresTimerVisibility: 0
+  RequiresTimerVisibility: 1
 --- !u!114 &114162412536798468
 MonoBehaviour:
   m_ObjectHideFlags: 1
