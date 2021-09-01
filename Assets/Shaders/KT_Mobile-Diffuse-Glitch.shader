@@ -49,7 +49,7 @@ Shader "KT/Custom/Glitch" {
 
 			fixed4 frag (vert2frag i, UNITY_VPOS_TYPE screenPos : VPOS) : SV_Target
             {
-                fixed4 c = random(screenPos).xxxx;
+                fixed4 c = random(screenPos / 10.0).xxxx;
 				c.a = 1;
                 return c;
             }
