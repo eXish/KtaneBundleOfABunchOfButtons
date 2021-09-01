@@ -3,71 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 using UnityEngine;
-using RNG = UnityEngine.Random;
+
+using Rnd = UnityEngine.Random;
 
 public class GlitchedButtonScript : MonoBehaviour
 {
-    /*
-    [UnityEditor.MenuItem("Glitched Button/Generate Data")]
-    private static void DoStuff()
-    {
-        List<string> possibilities = new List<string>();
-        foreach(char a in "01")
-            foreach(char b in "01")
-                foreach(char c in "01")
-                    foreach(char d in "01")
-                        foreach(char e in "01")
-                            foreach(char f in "01")
-                                foreach(char g in "01")
-                                    foreach(char h in "01")
-                                        possibilities.Add(a.ToString() + b + c + d + e + f + g + h);
-        int best = 0;
-        for(int iter = 0; iter < 100000; iter++)
-        {
-            List<string> chosenPossibilities = possibilities.Shuffle().Take(8).ToList();
-            string total = chosenPossibilities.Aggregate("", (a, b) => a + b);
-            List<string> possible = new List<string>();
-            for(int i = 0; i < total.Length - 8; i++)
-                possible.Add(total.Substring(i, 8));
-            possible = possible.Where(test => possible.Where(s => CheckFuzzy(s, test)).Count() == 1).ToList();
-            if(possible.Count <= best)
-                continue;
-            Debug.Log(total);
-            Debug.Log(possible.Count);
-            Debug.Log(possible.Join(" "));
-            best = possible.Count;
-        }
-    }
-
-    private static bool CheckFuzzy(string a, string b)
-    {
-        if(a.Length != b.Length)
-            return false;
-        int count = 0;
-        for(int i = 0; i < a.Length; i++)
-            if(a[i] == b[i])
-                count++;
-        return count >= a.Length - 1;
-    }
-    */
-
     public KMBombModule Module;
     public KMAudio Audio;
+    public KMRuleSeedable RuleSeedable;
+
     public KMSelectable GlitchedButtonSelectable;
     public GameObject GlitchedButtonCap;
     public TextMesh Text;
-    public KMBombInfo Info;
+    public KMBombInfo Bomb;
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private bool _moduleSolved;
 
-    //private const string DATA = "1001110000000100110101110110001011011110101001111100110011111011";
-    private static readonly string[] _dataSplit = "10011100 00111000 01110000 00000010 00000100 00100110 10011010 00110101 11010111 10101110 10111011 01110110 11011000 10110001 01100010 11000101 10001011 00010110 00101101 11011110 10111101 01111010 11110101 11101010 11010100 10101001 11111001 11110011 11100110 10011001".Split(' ');
-
-    private string _chosenData, _modifiedData;
-    private int _target;
+    private string _cyclingBits;
+    private int _solution;
 
     private void Start()
     {
@@ -75,17 +32,66 @@ public class GlitchedButtonScript : MonoBehaviour
         GlitchedButtonSelectable.OnInteract += GlitchedButtonPress;
         GlitchedButtonSelectable.OnInteractEnded += GlitchedButtonRelease;
 
-        _chosenData = _dataSplit.PickRandom();
-        int ix = RNG.Range(0, 8);
-        char[] d = _chosenData.ToCharArray();
-        d[ix] = d[ix] == '1' ? '0' : '1';
-        _modifiedData = d.Aggregate("", (s, c) => s + c);
+        // RULE SEED STARTS HERE
+        var rnd = RuleSeedable.GetRNG();
+        Debug.LogFormat("[The Glitched Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
 
-        _target = Array.IndexOf(_dataSplit, _chosenData);
-        Text.text = _modifiedData;
+        const int bitLength = 12;
+        var results = new List<int>();
+        while (results.Count < 15)
+        {
+            var all = Enumerable.Range(0, 1 << bitLength)
+                .Where(v =>
+                {
+                    for (var cycle = 1; cycle < bitLength; cycle++)
+                    {
+                        var cycled = ((v << cycle) & ((1 << bitLength) - 1)) | (v >> (bitLength - cycle));
+                        var nb = countBits(cycled ^ v);
+                        if (nb == 0 || nb == 2)
+                            return false;
+                    }
+                    return true;
+                })
+                .ToList();
+            results.Clear();
+            while (all.Count > 0 && results.Count < 15)
+            {
+                var rndIx = rnd.Next(0, all.Count);
+                var bits = all[rndIx];
+                for (var cycle = 0; cycle < bitLength; cycle++)
+                {
+                    var compare = ((bits << cycle) & ((1 << bitLength) - 1)) | (bits >> (bitLength - cycle));
+                    all.RemoveAll(v => { var nb = countBits(compare ^ v); return nb == 0 || nb == 2; });
+                }
+                results.Add(bits);
+            }
+        }
+        // END RULE SEED
 
-        Debug.LogFormat("[The Glitched Button #{0}] The display is \"{1}\", modified from \"{2}\".", _moduleId, _modifiedData, _chosenData);
-        Debug.LogFormat("[The Glitched Button #{0}] This is id {1}. Tap on XX:{1} or XX:{2}.", _moduleId, _target < 10 ? "0" + _target : _target.ToString(), _target + 30);
+
+        var seqIx = Rnd.Range(0, results.Count);
+        var seq = results[seqIx];
+        Debug.LogFormat("[The Glitched Button #{0}] Selected bit sequence “{1}” (#{2}).", _moduleId, Convert.ToString(seq, 2).PadLeft(bitLength, '0'), seqIx);
+
+        var flippedBit = Rnd.Range(0, bitLength);
+        _cyclingBits = Convert.ToString(seq ^ (1 << flippedBit), 2).PadLeft(bitLength, '0');
+        Debug.LogFormat("[The Glitched Button #{0}] Showing bit sequence “{1}” (flipped bit is #{2}).", _moduleId, _cyclingBits, 12 - flippedBit);
+
+        _solution = (seqIx + 12 - flippedBit) % 15;
+        Debug.LogFormat("[The Glitched Button #{0}] Tap on XX:{1:00} or XX:{2:00} or XX:{3:00} or XX:{4:00}.", _moduleId, _solution, _solution + 15, _solution + 30, _solution + 45);
+
+        Text.text = _cyclingBits;
+    }
+
+    private int countBits(int v)
+    {
+        var bits = 0;
+        while (v > 0)
+        {
+            bits++;
+            v &= v - 1;
+        }
+        return bits;
     }
 
     private bool GlitchedButtonPress()
@@ -93,10 +99,10 @@ public class GlitchedButtonScript : MonoBehaviour
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
 
-        if(_moduleSolved)
+        if (_moduleSolved)
             return false;
 
-        if((int)(Info.GetTime() % 30f) == _target)
+        if ((int) (Bomb.GetTime() % 15f) == _solution)
         {
             Debug.LogFormat("[The Glitched Button #{0}] Good job! Module solved.", _moduleId);
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
@@ -105,7 +111,7 @@ public class GlitchedButtonScript : MonoBehaviour
         }
         else
         {
-            Debug.LogFormat("[The Glitched Button #{0}] You pressed at XX:{1}. Strike!", _moduleId, (int)(Info.GetTime() % 60) < 10 ? "0" + (int)(Info.GetTime() % 60) : ((int)(Info.GetTime() % 60)).ToString());
+            Debug.LogFormat("[The Glitched Button #{0}] You pressed at XX:{1:00}. Strike!", _moduleId, (int) Bomb.GetTime() % 15);
             Module.HandleStrike();
         }
 
@@ -122,7 +128,7 @@ public class GlitchedButtonScript : MonoBehaviour
     {
         float duration = 0.1f;
         float elapsed = 0f;
-        while(elapsed < duration)
+        while (elapsed < duration)
         {
             GlitchedButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
@@ -137,30 +143,30 @@ public class GlitchedButtonScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if(_moduleSolved)
+        if (_moduleSolved)
             yield break;
 
-        Match m;
-        if((m = Regex.Match(command, @"^\s*(?:press|tap|push|submit)?\s*(?:on|at)?\s*(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
-        {
-            int i;
-            if(!int.TryParse(m.Groups[1].Value, out i))
-                yield break;
-            if(i > 59 || i < 0)
-                yield break;
-            yield return null;
-            while((int)(Info.GetTime() % 60f) != i)
-                yield return "trycancel";
-            GlitchedButtonSelectable.OnInteract();
-            GlitchedButtonSelectable.OnInteractEnded();
-        }
+        var m = Regex.Match(command, @"^\s*(?:press|tap|push|submit)?\s*(?:on|at)?\s*(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!m.Success)
+            yield break;
+
+        int i;
+        if (!int.TryParse(m.Groups[1].Value, out i) || i < 0 || i >= 60)
+            yield break;
+        yield return null;
+        while ((int) Bomb.GetTime() % 60 != i)
+            yield return "trycancel";
+        GlitchedButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        GlitchedButtonSelectable.OnInteractEnded();
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        while((int)(Info.GetTime() % 30f) != _target)
+        while ((int) Bomb.GetTime() % 15f != _solution)
             yield return true;
         GlitchedButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
         GlitchedButtonSelectable.OnInteractEnded();
     }
 }
