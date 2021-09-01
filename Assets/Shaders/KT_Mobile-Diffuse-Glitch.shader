@@ -15,7 +15,7 @@ Shader "KT/Custom/Glitch" {
 			uniform float4 _Color;
 
 			struct vert2frag {
-				float4 pos : SV_POSITION;
+				//float4 pos : SV_POSITION;
 				float2 texcoord : TEXCOORD0;
 				float2 screenPos : TEXCOORD1;
 			};
@@ -35,28 +35,24 @@ Shader "KT/Custom/Glitch" {
 				return abs(OUT) - floor(abs(OUT));
 			}
 
-			vert2frag vert(input IN) {
-				vert2frag o;
-				o.pos = UnityObjectToClipPos(IN.pos);
-				//o.texcoord = MultiplyUV(UNITY_MATRIX_TEXTURE0, IN.uv);
-				o.screenPos = ComputeScreenPos(o.pos);
+			vert2frag vert (
+                float4 vertex : POSITION, // vertex position input
+                float2 uv : TEXCOORD0, // texture coordinate input
+                out float4 outpos : SV_POSITION // clip space position output
+                )
+            {
+                vert2frag o;
+                o.texcoord = uv;
+                outpos = UnityObjectToClipPos(vertex);
+                return o;
+            }
 
-				return o;
-			}
-
-			frag2screen frag(vert2frag IN)
-			{
-				frag2screen outVar;
-				//float2 uv = IN.texcoord.xy;
-				
-				//float4 tex = tex2D(_MainTex,uv); 
-				float2 worldpos = IN.screenPos * _ScreenParams.xy;
-				//float2 fixedpos = float2(worldpos.x / _Data.x, worldpos.y / _Data.y);
-				//float2 fixedpos = float2(IN.screenPos.x / _Data.x, IN.screenPos.y / _Data.y);
-
-				outVar.color = _Color * random(worldpos / 2.0); 
-				return outVar;
-			} 
+			fixed4 frag (vert2frag i, UNITY_VPOS_TYPE screenPos : VPOS) : SV_Target
+            {
+                fixed4 c = random(screenPos).xxxx;
+				c.a = 1;
+                return c;
+            }
 			ENDCG
 		}
 	}

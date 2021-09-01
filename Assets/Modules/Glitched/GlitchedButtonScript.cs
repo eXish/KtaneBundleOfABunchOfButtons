@@ -81,6 +81,25 @@ public class GlitchedButtonScript : MonoBehaviour
         Debug.LogFormat("[The Glitched Button #{0}] Tap on XX:{1:00} or XX:{2:00} or XX:{3:00} or XX:{4:00}.", _moduleId, _solution, _solution + 15, _solution + 30, _solution + 45);
 
         Text.text = _cyclingBits;
+        StartCoroutine(CycleBits());
+    }
+
+    private IEnumerator CycleBits()
+    {
+        while(true)
+        {
+            float time = Time.time;
+            Vector3 start = Text.transform.localPosition;
+            Vector3 end = Text.transform.localPosition + new Vector3(-.016f, 0f, 0f);
+            while(time + 0.25f > Time.time)
+            {
+                Text.transform.localPosition = Vector3.Lerp(start, end, (Time.time - time) / 0.25f);
+                yield return null;
+            }
+            Text.transform.localPosition = start;
+            Text.text = Text.text.Skip(1).Join("") + Text.text[0];
+            yield return null;
+        }
     }
 
     private int countBits(int v)
