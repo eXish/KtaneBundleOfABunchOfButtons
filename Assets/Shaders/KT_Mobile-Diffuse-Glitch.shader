@@ -17,7 +17,6 @@ Shader "KT/Custom/Glitch" {
 			struct vert2frag {
 				//float4 pos : SV_POSITION;
 				float2 texcoord : TEXCOORD0;
-				float2 screenPos : TEXCOORD1;
 			};
 		
 			struct frag2screen {
