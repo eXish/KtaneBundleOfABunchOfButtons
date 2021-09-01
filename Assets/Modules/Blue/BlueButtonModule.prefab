@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 4235524690940098}
   - component: {fileID: 33128123155965862}
   - component: {fileID: 23266399715825526}
+  - component: {fileID: 114461128958556938}
   m_Layer: 0
   m_Name: BlueButtonSymbol
   m_TagString: Untagged
@@ -1089,6 +1090,19 @@ MonoBehaviour:
   m_Script: {fileID: 2144496390, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114461128958556938
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1213668648579616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1005838349, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShaderNames:
+  - KT/Transparent/Mobile Diffuse Underlay200
 --- !u!114 &114508536626833284
 MonoBehaviour:
   m_ObjectHideFlags: 1

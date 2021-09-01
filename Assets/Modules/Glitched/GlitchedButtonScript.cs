@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
 using UnityEngine;
 
 using Rnd = UnityEngine.Random;
@@ -86,19 +85,35 @@ public class GlitchedButtonScript : MonoBehaviour
 
     private IEnumerator CycleBits()
     {
-        while(true)
+        var isSolved = false;
+        var solveStartTime = 0f;
+        var fadeDuration = 4.7f;
+
+        while (!isSolved || (Time.time - solveStartTime) < fadeDuration)
         {
             float time = Time.time;
             Vector3 start = Text.transform.localPosition;
             Vector3 end = Text.transform.localPosition + new Vector3(-.016f, 0f, 0f);
-            while(time + 0.25f > Time.time)
+            while (time + 0.25f > Time.time)
             {
                 Text.transform.localPosition = Vector3.Lerp(start, end, (Time.time - time) / 0.25f);
                 yield return null;
             }
             Text.transform.localPosition = start;
-            Text.text = Text.text.Skip(1).Join("") + Text.text[0];
+            Text.text = Text.text.Substring(1) + Text.text[0];
             yield return null;
+
+            if (_moduleSolved && !isSolved)
+            {
+                solveStartTime = Time.time;
+                isSolved = true;
+            }
+
+            if (isSolved)
+            {
+                var v = 1 - ((Time.time - solveStartTime) / fadeDuration);
+                Text.color = new Color(v, v, v, 1);
+            }
         }
     }
 
