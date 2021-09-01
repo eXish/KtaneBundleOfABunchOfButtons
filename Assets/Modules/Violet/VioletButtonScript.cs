@@ -18,7 +18,7 @@ public class VioletButtonScript : MonoBehaviour
     public KMBombInfo Info;
 
     private int _id;
-    private static int _counter;
+    private static int _counter = 1;
 
     private bool _blinkOn;
     private List<float> _delays = new List<float>();
