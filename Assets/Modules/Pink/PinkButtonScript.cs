@@ -91,8 +91,14 @@ public class PinkButtonScript : MonoBehaviour
     {
         if (Answer == input)
         {
+            if(_moduleSolved)
+                return;
+            Debug.LogFormat("[The Pink Button #{0}] Valid.", _moduleId);
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+
             Module.HandlePass();
-            StopCoroutine(_textFlash);
+            _moduleSolved = true;
+            //StopCoroutine(_textFlash);
             Texts[0] = "WOW";
             Texts[1] = "YOU";
             Texts[2] = "DID";
@@ -103,10 +109,7 @@ public class PinkButtonScript : MonoBehaviour
             Colors[2] = 6;
             Colors[3] = 4;
             Colors[4] = 5;
-            _moduleSolved = true;
             StartCoroutine(FlashSolve());
-
-            Debug.LogFormat("[The Pink Button #{0}] Valid.", _moduleId);
         }
         else
         {
@@ -166,6 +169,8 @@ public class PinkButtonScript : MonoBehaviour
             for (int i = 0; i < 5; i++)
             {
                 yield return new WaitForSeconds(.5f);
+                if(_moduleSolved)
+                    break;
                 PinkButtonText.text = Texts[i];
                 StartCoroutine(ColorFade(Colors[i]));
             }
@@ -196,6 +201,7 @@ public class PinkButtonScript : MonoBehaviour
             StartCoroutine(ColorFade(Colors[i]));
             yield return new WaitForSeconds(0.5f);
         }
+        PinkButtonText.text = "";
     }
     public IEnumerator ColorFade(int Colors)
     {
@@ -204,13 +210,14 @@ public class PinkButtonScript : MonoBehaviour
         if (Colors % 2 == 0) r = 255;
         if (Colors == 1 || Colors == 2 || Colors == 5 || Colors == 6) g = 255;
         if (Colors > 2) b = 255;
+        float time = Time.time;
         while (g > 0 || r > 0 || b > 0)
         {
-            if (r != 0) r -= 3;
-            if (g != 0) g -= 3;
-            if (b != 0) b -= 3;
+            if (r != 0) r = (byte)((1f - (Time.time - time) * 2f) * 255f);
+            if (g != 0) g = (byte)((1f - (Time.time - time) * 2f) * 255f);
+            if (b != 0) b = (byte)((1f - (Time.time - time) * 2f) * 255f);
             PinkButtonText.color = new Color32(r, g, b, 255);
-            yield return new WaitForSeconds(0.005f);
+            yield return null;
         }
     }
 
