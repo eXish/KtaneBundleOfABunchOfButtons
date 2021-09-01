@@ -1,15 +1,28 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CameraScript : MonoBehaviour {
 
     public Camera CameraObj;
-    public MeshFilter[] MeshFilters;
+    public Transform Parent;
     public Material WallMat;
+
+    private CustomMaterialInfo[] _filters;
+
+    private void Awake()
+    {
+        _filters = new CustomMaterialInfo[0];
+    }
+
+    public void UpdateChildren()
+    {
+        _filters = Parent.GetComponentsInChildren<CustomMaterialInfo>();
+    }
+
     private void LateUpdate()
     {
-        foreach (var f in MeshFilters)
-            Graphics.DrawMesh(f.sharedMesh, f.transform.localToWorldMatrix, WallMat, 10, CameraObj);
+        foreach (CustomMaterialInfo f in _filters)
+        {
+            Graphics.DrawMesh(f.MeshFilter.sharedMesh, f.transform.localToWorldMatrix, f.Color, 10, CameraObj);
+        }
     }
 }
