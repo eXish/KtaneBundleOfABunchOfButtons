@@ -79,7 +79,6 @@ public class VioletButtonScript : MonoBehaviour
         _required.Add(c);
         _delays.AddRange(GetSequence(c));
         Debug.LogFormat("[The Violet Button #{0}] Next flashes are: {1}", _id, c);
-        Debug.Log(_entered.Join(" "));
     }
 
     private IEnumerable<float> GetSequence(int v)
