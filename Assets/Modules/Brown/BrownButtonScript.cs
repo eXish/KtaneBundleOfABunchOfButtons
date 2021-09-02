@@ -5,6 +5,7 @@ using UnityEngine;
 using BrownButton;
 using Rnd = UnityEngine.Random;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class BrownButtonScript : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class BrownButtonScript : MonoBehaviour
     public GameObject WallTemplate;
     public GameObject Camera;
     public Material[] Materials;
+    public TextMesh TPText;
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
@@ -27,6 +29,7 @@ public class BrownButtonScript : MonoBehaviour
     private Vector3 _currentRotation;
     private Vector3Int _currentPosition, _correctCell;
     private Coroutine _moveRoutine = null;
+    private Dictionary<Vector3Int, string> _TPLetters = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) }.ToDictionary(v => v, v => "");
 
     private void Start()
     {
@@ -261,12 +264,19 @@ public class BrownButtonScript : MonoBehaviour
 
     private IEnumerator RotateCamera()
     {
+        yield return null;
         Vector3Int[] dirs = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
+        if(TwitchPlaysActive)
+        {
+            string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToList().Shuffle().Join("");
+            _TPLetters = dirs.ToDictionary(v => v, v => letters[Array.IndexOf(dirs, v)].ToString());
+        }
         while(true)
         {
             foreach(Vector3Int dir in dirs)
             {
                 _currentRotation = dir;
+                TPText.text = _TPLetters[dir];
                 Vector3 rot = DirectionToEuler(dir);
                 Quaternion start = Camera.transform.localRotation;
                 Quaternion target = Quaternion.Euler(rot.x, rot.y, rot.z);
@@ -367,9 +377,11 @@ public class BrownButtonScript : MonoBehaviour
         while(Time.time - time < 5f)
         {
             WideMazeScreen.material.color = Color.Lerp(new Color(1f, 1f, 1f), new Color(0f, 0f, 0f), (Time.time - time) / 5f);
+            TPText.color = WideMazeScreen.material.color;
             yield return null;
         }
         WideMazeScreen.material.color = new Color(0f, 0f, 0f);
+        TPText.color = WideMazeScreen.material.color;
     }
 
     private void BrownButtonRelease()
@@ -425,17 +437,82 @@ public class BrownButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold 1 5 [hold on 1, release on 5] | !{0} tap";
+    private readonly string TwitchHelpMessage = "!{0} tap jq r [Taps while those letters are displayed, in order]";
+    bool TwitchPlaysActive;
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if(!_moduleSolved)
+        if(_moduleSolved)
             yield break;
+        string allLetters = _TPLetters.Values.Join("");
+        Match m = Regex.Match(command.Trim().ToUpperInvariant(), @"^(?:(?:TAP|PRESS|GO|MOVE|SUBMIT)\s*)?((?:[" + allLetters + @"]\s*)*)$");
+        if(m.Success)
+        {
+            yield return null;
+            string[] presses = m.Groups[1].Value.Where(c => allLetters.Contains(c)).Select(c => c.ToString()).ToArray();
+            foreach(string press in presses)
+            {
+                while(TPText.text != press)
+                    yield return null;
+                BrownButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(0.1f);
+                BrownButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        if(_moduleSolved)
+            yield break;
+
+        Vector3Int[] changes = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
+
+        Queue<Vector3Int> bfsToSearch = new Queue<Vector3Int>();
+        Dictionary<Vector3Int, Vector3Int> backtrack = new Dictionary<Vector3Int, Vector3Int>();
+        bfsToSearch.Enqueue(_currentPosition);
+        List<Vector3Int> bfsSeen = new List<Vector3Int>();
+        Vector3Int result = new Vector3Int(-100, -100, -100);
+        while(bfsToSearch.Count > 0)
+        {
+            Vector3Int bfsCur = bfsToSearch.Dequeue();
+            bfsSeen.Add(bfsCur);
+            if(bfsCur == _correctCell)
+            {
+                result = bfsCur;
+                break;
+            }
+            foreach(Vector3Int change in changes)
+            {
+                if(_chosenNet.Contains(bfsCur + change) && !bfsSeen.Contains(bfsCur + change))
+                {
+                    bfsToSearch.Enqueue(bfsCur + change);
+                    backtrack.Add(bfsCur + change, bfsCur);
+                }
+            }
+        }
+        if(!_chosenNet.Contains(result))
+            throw new Exception();
+        List<Vector3Int> path = new List<Vector3Int> { result };
+        while(!path.Contains(_currentPosition))
+            path.Add(backtrack[path.Last()]);
+        path.Reverse();
+        for(int i = 1; i < path.Count; i++)
+        {
+            while(_currentRotation != path[i] - _currentPosition)
+                yield return true;
+            BrownButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(0.1f);
+            BrownButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(0.1f);
+        }
+        while(_chosenNet.Select(v => new Vector3(v.x, v.y, v.z)).Contains(new Vector3(_currentPosition.x, _currentPosition.y, _currentPosition.z) + _currentRotation))
+            yield return true;
+        BrownButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(0.1f);
+        BrownButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(0.1f);
     }
 }
