@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: BlueButtonSymbol8
+  m_Name: GrayButtonSymbol3
   m_Shader: {fileID: 4800000, guid: db65a87c61b3b064b8afb136c20c065d, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -39,7 +39,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: d60ee8dadec1e46458c34f80716d83b2, type: 3}
+        m_Texture: {fileID: 2800000, guid: 74539e6041cbe7549b9bf17aad8fe2d0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
