@@ -6,7 +6,6 @@ using BrownButton;
 using Rnd = UnityEngine.Random;
 using System.Collections.Generic;
 
-// TODO: The color generation algorithm is currently bugged. It will generate mirrored colors sometimes.
 public class BrownButtonScript : MonoBehaviour
 {
     public KMBombModule Module;
@@ -90,7 +89,66 @@ public class BrownButtonScript : MonoBehaviour
             if(!_chosenNet.Contains(result))
                 throw new Exception();
             taken.Add(chosenAxis);
-            Direction4D dir = new Direction4D(chosenAxis, Rnd.Range(0, 2) == 0);
+            bool pos;
+            if(taken.Count != 0)
+                pos = Rnd.Range(0, 2) == 0; // Choose any orientation for the first three axes, as a rotation will always exist
+            else
+            {
+                // Choose the orientation for the last axis that will result in no mirroring
+                Dictionary<Vector3Int, Dictionary<Vector3Int, Vector3Int>> CellToDirectionToCell = new Dictionary<Vector3Int, Dictionary<Vector3Int, Vector3Int>>();
+                foreach(Vector3Int cell in _chosenNet)
+                {
+                    Dictionary<Vector3Int, Vector3Int> DirectionToCell = new Dictionary<Vector3Int, Vector3Int>();
+                    foreach(Vector3Int d2cdir in changes)
+                    {
+                        if(_chosenNet.Contains(cell + d2cdir))
+                            DirectionToCell.Add(d2cdir, cell + d2cdir);
+                    }
+                    while(DirectionToCell.Count < 6)
+                    {
+                        Vector3Int a = DirectionToCell.PickRandom().Key;
+                        Vector3Int b;
+                        try
+                        {
+                            b = changes.Where(c => c != a && c != new Vector3Int(-a.x, -a.y, -a.z) && _chosenNet.Contains(cell + a + c)).PickRandom();
+                        }
+                        catch(InvalidOperationException) { continue; }
+                        if(DirectionToCell.ContainsKey(b))
+                            continue;
+                        DirectionToCell.Add(b, cell + a + b);
+                    }
+
+                    CellToDirectionToCell.Add(cell, DirectionToCell);
+                }
+
+                Vector3Int dirToX = CellToDirectionToCell[chosenAdjacent].FirstOrDefault(kvp => cubeAssignments[kvp.Value] == 4).Key;
+                Vector3Int dirToY = CellToDirectionToCell[chosenAdjacent].FirstOrDefault(kvp => cubeAssignments[kvp.Value] == 3).Key;
+                Vector3Int dirToZ = CellToDirectionToCell[chosenAdjacent].FirstOrDefault(kvp => cubeAssignments[kvp.Value] == 5).Key;
+                Vector3Int dirToW = CellToDirectionToCell[chosenAdjacent].FirstOrDefault(kvp => cubeAssignments[kvp.Value] == 8).Key;
+
+                pos = false;
+
+                switch(chosenAxis)
+                {
+                    case Direction4D.Axis4d.W:
+                        // DirToX is right, DirToY is up => DirToZ is front => -W
+                        pos = DirectionToPositivity(dirToX) ^ DirectionToPositivity(dirToY) ^ !DirectionToPositivity(dirToZ);
+                        break;
+                    case Direction4D.Axis4d.X:
+                        // DirToW is right, DirToY is up => DirToZ is front => X
+                        pos = DirectionToPositivity(dirToW) ^ DirectionToPositivity(dirToY) ^ DirectionToPositivity(dirToZ);
+                        break;
+                    case Direction4D.Axis4d.Y:
+                        // DirToX is right, DirToW is up => DirToZ is front => Y
+                        pos = DirectionToPositivity(dirToX) ^ DirectionToPositivity(dirToW) ^ DirectionToPositivity(dirToZ);
+                        break;
+                    case Direction4D.Axis4d.Z:
+                        // DirToX is right, DirToY is up => DirToW is front => Z
+                        pos = DirectionToPositivity(dirToX) ^ DirectionToPositivity(dirToY) ^ DirectionToPositivity(dirToW);
+                        break;
+                }
+            }
+            Direction4D dir = new Direction4D(chosenAxis, pos);
             cubeAssignments.Add(chosenAdjacent, Axis4DToInt(dir.Axis, dir.Positive));
             cubeAssignments.Add(result, Axis4DToInt(dir.Axis, !dir.Positive));
             notVisited.Remove(chosenAdjacent);
@@ -124,10 +182,17 @@ public class BrownButtonScript : MonoBehaviour
 
         for(int vix = 0; vix < _chosenNet.Count; vix++)
         {
+            Vector3Int[] shuf = changes.Shuffle();
+            bool displayed = false;
             Vector3Int v = _chosenNet[vix];
-            foreach(Vector3Int c in changes)
+            foreach(Vector3Int c in shuf)
+            {
                 if(!_chosenNet.Any(t => t == v + c))
-                    AddWall(v, c, mats[v]);
+                {
+                    AddWall(v, c, displayed ? Materials[0] : mats[v]);
+                    displayed = true;
+                }
+            }
         }
 
         _currentPosition = _chosenNet.PickRandom();
@@ -138,6 +203,15 @@ public class BrownButtonScript : MonoBehaviour
         GetComponentInChildren<CameraScript>().UpdateChildren();
 
         StartCoroutine(RotateCamera());
+    }
+
+    private bool DirectionToPositivity(Vector3Int dir)
+    {
+        if(dir.x == 1 || dir.y == 1 || dir.z == 1)
+            return true;
+        if(dir.x == -1 || dir.y == -1 || dir.z == -1)
+            return false;
+        throw new Exception();
     }
 
     private int Axis4DToInt(Direction4D.Axis4d chosenAxis, bool pos)
