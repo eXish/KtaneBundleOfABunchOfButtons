@@ -113,7 +113,7 @@ public class BrownButtonScript : MonoBehaviour
             int l = Axis4DToInt(a, numPos > 0);
             numPos--;
             Vector3Int key = cubeAssignments.First(kvp => kvp.Value == l).Key;
-            mats[key] = Materials[l + 1 + 8 * viewId];
+            mats[key] = Materials[l + 8 * viewId];
             viewId++;
             Debug.LogFormat("[The Brown Button #{0}] Cube {1} is displaying {2}.", _moduleId, key, mats[key].name.Substring(7));
         }
@@ -275,6 +275,7 @@ public class BrownButtonScript : MonoBehaviour
                     Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
                     Module.HandlePass();
                     _moduleSolved = true;
+                    StartCoroutine(FadeScreen());
                 }
                 else
                 {
@@ -284,6 +285,17 @@ public class BrownButtonScript : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private IEnumerator FadeScreen()
+    {
+        float time = Time.time;
+        while(Time.time - time < 5f)
+        {
+            WideMazeScreen.material.color = Color.Lerp(new Color(1f, 1f, 1f), new Color(0f, 0f, 0f), (Time.time - time) / 5f);
+            yield return null;
+        }
+        WideMazeScreen.material.color = new Color(0f, 0f, 0f);
     }
 
     private void BrownButtonRelease()
