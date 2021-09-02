@@ -1269,6 +1269,12 @@ MonoBehaviour:
   Materials:
   - {fileID: 2100000, guid: 4322530b7fb5bce4c957788a8cc7e265, type: 2}
   - {fileID: 2100000, guid: 1b33fc72cf373fc4183870994fcc430d, type: 2}
+  - {fileID: 2100000, guid: c0fe0cff99d583c4697fcf72913ff21a, type: 2}
+  - {fileID: 2100000, guid: 408c8178cfb2d2745b63eecc0ddd224b, type: 2}
+  - {fileID: 2100000, guid: 3c360241b6087ae4aa37f24ac03765df, type: 2}
+  - {fileID: 2100000, guid: 736771c3ff1d19f40b4afb11e89c0875, type: 2}
+  - {fileID: 2100000, guid: b579511d4ee7e06489c611c24259afcd, type: 2}
+  - {fileID: 2100000, guid: 1a01e9527ce29724eaf2cbb84f47fe1c, type: 2}
 --- !u!114 &114945745978774044
 MonoBehaviour:
   m_ObjectHideFlags: 1
