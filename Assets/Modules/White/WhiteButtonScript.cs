@@ -185,6 +185,8 @@ public class WhiteButtonScript : MonoBehaviour
 
     private IEnumerator CheckLogic(bool c)
     {
+        if(_moduleSolved)
+            yield break;
         if (c)
         {
             Module.HandlePass();
