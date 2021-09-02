@@ -557,7 +557,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1840890350980998}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.025, y: 0.039, z: -0.025}
+  m_LocalPosition: {x: 0, y: 0.039, z: -0.025}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children:
   - {fileID: 4228661099058134}
@@ -1267,6 +1267,7 @@ MonoBehaviour:
   WallTemplate: {fileID: 1612145456202008}
   Camera: {fileID: 1543246239599200}
   Materials:
+  - {fileID: 2100000, guid: 81842c791f9c6c748b1721aba62fc0a3, type: 2}
   - {fileID: 2100000, guid: 4322530b7fb5bce4c957788a8cc7e265, type: 2}
   - {fileID: 2100000, guid: 1b33fc72cf373fc4183870994fcc430d, type: 2}
   - {fileID: 2100000, guid: c0fe0cff99d583c4697fcf72913ff21a, type: 2}
@@ -1275,6 +1276,22 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 736771c3ff1d19f40b4afb11e89c0875, type: 2}
   - {fileID: 2100000, guid: b579511d4ee7e06489c611c24259afcd, type: 2}
   - {fileID: 2100000, guid: 1a01e9527ce29724eaf2cbb84f47fe1c, type: 2}
+  - {fileID: 2100000, guid: 99e8857ae86ab5a498c9d553f0ea8c33, type: 2}
+  - {fileID: 2100000, guid: 4e74cd65d349d4045a85fc4f0afc7a71, type: 2}
+  - {fileID: 2100000, guid: 937bb34d1ed8a5e44b5de4ca3113c96a, type: 2}
+  - {fileID: 2100000, guid: c9d72b6736bcdb742ab41057a5e09002, type: 2}
+  - {fileID: 2100000, guid: f0e080f77a19bc5479a8c3e8678649a4, type: 2}
+  - {fileID: 2100000, guid: 9ddb8c7d6864eda48b9789f07d955877, type: 2}
+  - {fileID: 2100000, guid: 26d255b57ac3047479c2d62b615acf11, type: 2}
+  - {fileID: 2100000, guid: 58a8e4833b4f4f34eaa494fb9c628bc8, type: 2}
+  - {fileID: 2100000, guid: b872a463ce5d17c42953fcd6a937b78e, type: 2}
+  - {fileID: 2100000, guid: 1f50c4e8f2bc24148936ad016d3a9640, type: 2}
+  - {fileID: 2100000, guid: 99adbff11ead0d74d84099f21e2c5f45, type: 2}
+  - {fileID: 2100000, guid: d9f50116cfa5a864b82e3b8217aa3ead, type: 2}
+  - {fileID: 2100000, guid: 4ca99439fab3ae746812cd1aa0ed78db, type: 2}
+  - {fileID: 2100000, guid: c7c3a4035a3fc4b488488568084ccb43, type: 2}
+  - {fileID: 2100000, guid: 34d9545d7a2c0094ca635c8d1d712193, type: 2}
+  - {fileID: 2100000, guid: b71923cfd418b034ea9337591081e172, type: 2}
 --- !u!114 &114945745978774044
 MonoBehaviour:
   m_ObjectHideFlags: 1

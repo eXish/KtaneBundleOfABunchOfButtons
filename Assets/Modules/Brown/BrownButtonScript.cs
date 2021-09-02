@@ -26,7 +26,7 @@ public class BrownButtonScript : MonoBehaviour
     private bool _moduleSolved;
     List<Vector3Int> _chosenNet;
     private Vector3 _currentRotation;
-    private Vector3Int _currentPosition;
+    private Vector3Int _currentPosition, _correctCell;
     private Coroutine _moveRoutine = null;
 
     private void Start()
@@ -101,15 +101,39 @@ public class BrownButtonScript : MonoBehaviour
         for(int ix = 0; ix < _chosenNet.Count; ix++)
             Debug.LogFormat("[The Brown Button #{0}] Cube {1} corresponds to {2}.", _moduleId, _chosenNet[ix], cubeAssignments[_chosenNet[ix]]);
 
+        Direction4D.Axis4d submissionAxis = new Direction4D.Axis4d[] { Direction4D.Axis4d.W, Direction4D.Axis4d.X, Direction4D.Axis4d.Y, Direction4D.Axis4d.Z }.PickRandom();
+        int numPos = Rnd.Range(0, 4);
+        bool submissionPos = numPos >= 2;
+        int viewId = 0;
+        Dictionary<Vector3Int, Material> mats = _chosenNet.ToDictionary(v => v, v => Materials[0]);
+        List<Direction4D.Axis4d> axesToDisplay = new Direction4D.Axis4d[] { Direction4D.Axis4d.W, Direction4D.Axis4d.X, Direction4D.Axis4d.Y, Direction4D.Axis4d.Z }.ToList().Shuffle();
+        axesToDisplay.Remove(submissionAxis);
+        foreach(Direction4D.Axis4d a in axesToDisplay)
+        {
+            int l = Axis4DToInt(a, numPos > 0);
+            numPos--;
+            Vector3Int key = cubeAssignments.First(kvp => kvp.Value == l).Key;
+            mats[key] = Materials[l + 1 + 8 * viewId];
+            viewId++;
+            Debug.LogFormat("[The Brown Button #{0}] Cube {1} is displaying {2}.", _moduleId, key, mats[key].name.Substring(7));
+        }
+
+        _correctCell = cubeAssignments.First(kvp => kvp.Value == Axis4DToInt(submissionAxis, submissionPos)).Key;
+        Debug.LogFormat("[The Brown Button #{0}] The correct cell to submit is {1}.", _moduleId, _correctCell);
+
+
         for(int vix = 0; vix < _chosenNet.Count; vix++)
         {
             Vector3Int v = _chosenNet[vix];
             foreach(Vector3Int c in changes)
                 if(!_chosenNet.Any(t => t == v + c))
-                    AddWall(v, c, Materials[cubeAssignments[v] - 1]);
+                    AddWall(v, c, mats[v]);
         }
 
         _currentPosition = _chosenNet.PickRandom();
+        _currentRotation = new Vector3Int(0, 0, 0);
+        Vector3 end = new Vector3(_currentPosition.x, _currentPosition.y, _currentPosition.z) * -0.1f - _currentRotation * 0.1f;
+        WallsParent.localPosition = end;
 
         GetComponentInChildren<CameraScript>().UpdateChildren();
 
@@ -243,6 +267,21 @@ public class BrownButtonScript : MonoBehaviour
                 _moveRoutine = StartCoroutine(MoveMaze());
                 _currentPosition += new Vector3Int((int)_currentRotation.x, (int)_currentRotation.y, (int)_currentRotation.z);
             }
+            else
+            {
+                if(_currentPosition == _correctCell)
+                {
+                    Debug.LogFormat("[The Brown Button #{0}] You submitted correctly. Good job!", _moduleId);
+                    Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+                    Module.HandlePass();
+                    _moduleSolved = true;
+                }
+                else
+                {
+                    Debug.LogFormat("[The Brown Button #{0}] You tried to submit at {1}. That is incorrect. Strike!", _moduleId, _currentPosition);
+                    Module.HandleStrike();
+                }
+            }
         }
         return false;
     }
@@ -266,29 +305,6 @@ public class BrownButtonScript : MonoBehaviour
         BrownButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
-    private struct Layer
-    {
-        public int Axis;
-        public bool Odd;
-
-        public Layer(int a, bool o)
-        {
-            Axis = a;
-            Odd = o;
-        }
-
-        public bool Contains(Vector3Int v)
-        {
-            if(Axis == 0)
-                return Odd ^ ((Math.Abs(v.x) & 1) != 1);
-            if(Axis == 1)
-                return Odd ^ ((Math.Abs(v.y) & 1) != 1);
-            if(Axis == 2)
-                return Odd ^ ((Math.Abs(v.z) & 1) != 1);
-            return false;
-        }
-    }
-
     private struct Direction4D
     {
         public Axis4d Axis;
@@ -297,6 +313,11 @@ public class BrownButtonScript : MonoBehaviour
         public override bool Equals(object obj)
         {
             return obj is Direction4D && ((Direction4D)obj).Axis == Axis && ((Direction4D)obj).Positive == Positive;
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)Axis + (Positive ? 4 : 0);
         }
 
         public static bool operator ==(Direction4D a, Direction4D b) { return a.Equals(b); }
