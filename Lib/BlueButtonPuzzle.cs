@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using RT.Util.ExtensionMethods;
-
-using Rnd = UnityEngine.Random;
 
 namespace BlueButtonLib
 {
@@ -14,26 +13,29 @@ namespace BlueButtonLib
         public int[] ColorStageColors { get; private set; }
         public int[] EquationOffsets { get; private set; }
         public string Word { get; private set; }
+        public int[] Suits { get; private set; }
 
-        public static BlueButtonPuzzle GeneratePuzzle()
+        public static BlueButtonPuzzle GeneratePuzzle(int seed)
         {
+            var rnd = new Random(seed);
+
             tryAgain:
-            var word = _words[Rnd.Range(0, _words.Length)];
-            var result = GenerateRandomPolyominoSolution(word);
+            var word = _words[rnd.Next(0, _words.Length)];
+            var result = GenerateRandomPolyominoSolution(rnd, word);
             if (result == null)
                 goto tryAgain;
 
             var (generatedGrid, generatedPolys, generatedJumps) = result.Value;
-            generatedPolys.Shuffle();
+            generatedPolys.Shuffle(rnd);
 
             // Without loss of generality, assume the first polyomino is a given
             var givenPolyominoPlacement = generatedPolys[0];
             var givenGrid = new int?[_gw * _gh];
-            foreach (var (x, y) in givenPolyominoPlacement.Polyomino.Cells)
-                givenGrid[givenPolyominoPlacement.Place.AddWrap(x, y).Index] = 1;
+            foreach (var cell in givenPolyominoPlacement.Polyomino.Cells)
+                givenGrid[givenPolyominoPlacement.Place.AddWrap(cell).Index] = 1;
             var possiblePlacements = GetAllPolyominoPlacements()
                 .Where(pl =>
-                    pl.Polyomino.Cells.All(c => givenGrid[pl.Place.AddWrap(c.x, c.y).Index] == null) &&
+                    pl.Polyomino.Cells.All(c => givenGrid[pl.Place.AddWrap(c).Index] == null) &&
                     generatedPolys.Skip(1).Any(tup => tup.Polyomino == pl.Polyomino))
                 .ToArray();
 
@@ -47,7 +49,7 @@ namespace BlueButtonLib
                     else if (two == givenPolyominoPlacement.Polyomino)
                         placements.RemoveAll(pl => pl.Polyomino == one && pl.Touches(givenPolyominoPlacement));
 
-                return SolvePolyominoPuzzle(grid, 2, placements, noAllowTouch, debug: false);
+                return SolvePolyominoPuzzle(grid, 2, placements, noAllowTouch);
             }
 
             var notAllowedToTouch = new List<(Polyomino one, Polyomino two)>();
@@ -91,48 +93,53 @@ namespace BlueButtonLib
                         availableColors.Remove(colors[j]);
                 if (availableColors.Count == 0)
                     goto tryAgain;
-                colors[i] = availableColors[Rnd.Range(0, availableColors.Count)];
+                colors[i] = availableColors[rnd.Next(0, availableColors.Count)];
             }
 
             var polyColors = Enumerable.Range(0, generatedPolys.Length).Select(ix => (poly: generatedPolys[ix], color: colors[ix])).ToArray();
 
-            int firstKeyColorIx;
-            var attempts = 0;
-            var keyPoly = polyColors.First(pc => pc.poly.Polyomino.Cells.Any(c => pc.poly.Place.AddWrap(c.x, c.y).Index == 0));
-            do
-            {
-                attempts++;
-                if (attempts > 10)
-                    goto tryAgain;
-                polyColors.Shuffle();
-                firstKeyColorIx = (polyColors.IndexOf(keyPoly) + polyColors.Length - 1) % polyColors.Length;
-            }
-            while (Enumerable.Range(0, polyColors.Length).Any(ix => ix != firstKeyColorIx &&
-                polyColors[ix].color == polyColors[firstKeyColorIx].color &&
-                polyColors[(ix + 1) % polyColors.Length].color == polyColors[(firstKeyColorIx + 1) % polyColors.Length].color &&
-                polyColors[(ix + 2) % polyColors.Length].color == polyColors[(firstKeyColorIx + 2) % polyColors.Length].color));
+            var colorIterations = 0;
+            retryColors:
+            colorIterations++;
+            if (colorIterations > 10)
+                goto tryAgain;
 
-            var eqPolyIx = keyPoly.poly.Polyomino.Cells.IndexOf(tup => keyPoly.poly.Place.AddWrap(tup.x, tup.y).Index == 0);
-            var suitsTargetPermutation = Enumerable.Range(0, 4).ToArray().Shuffle();
+            polyColors.Shuffle(rnd);
+
+            var keyPoly = polyColors.First(pc => pc.poly.Polyomino.Cells.Any(c => pc.poly.Place.AddWrap(c).Index == 0));
+            var firstKeyColorIx = (polyColors.IndexOf(keyPoly) + polyColors.Length - 1) % polyColors.Length;
+
+            var eqPolyIx = keyPoly.poly.Polyomino.Cells.IndexOf(c => keyPoly.poly.Place.AddWrap(c).Index == 0);
+            var suitsTargetPermutation = Enumerable.Range(0, 4).ToArray().Shuffle(rnd);
             while (suitsTargetPermutation.IndexOf(3) == eqPolyIx)
-                suitsTargetPermutation.Shuffle();
+                suitsTargetPermutation.Shuffle(rnd);
             var suitPartialPermutationColor = new[] { "012", "021", "102", "120", "201", "210" }.IndexOf(suitsTargetPermutation.Where(suit => suit != 3).JoinString());
 
             var eqDiamondsIx = suitsTargetPermutation.IndexOf(3);
             var eqColorExtraCandidates = Enumerable.Range(0, 6).Except(new[] { eqPolyIx, eqDiamondsIx }).ToArray();
-            var eqColorExtra = eqColorExtraCandidates[Rnd.Range(0, eqColorExtraCandidates.Length)];
+            var eqColorExtra = eqColorExtraCandidates[rnd.Next(0, eqColorExtraCandidates.Length)];
+
+            var colorStageColors = Ut.NewArray(
+                polyColors[firstKeyColorIx].color,
+                polyColors[(firstKeyColorIx + 1) % polyColors.Length].color,
+                polyColors[(firstKeyColorIx + 2) % polyColors.Length].color,
+                eqColorExtra,
+                suitPartialPermutationColor);
+
+            for (var i = 1; i < colorStageColors.Length; i++)
+                for (var j = 0; j < polyColors.Length; j++)
+                    if (colorStageColors[i] == polyColors[j].color &&
+                        colorStageColors[(i + 1) % colorStageColors.Length] == polyColors[(j + 1) % polyColors.Length].color &&
+                        colorStageColors[(i + 2) % colorStageColors.Length] == polyColors[(j + 2) % polyColors.Length].color)
+                        goto retryColors;
 
             return new BlueButtonPuzzle
             {
                 Polyominoes = polyColors.Select(tup => tup.poly).ToArray(),
                 PolyominoColors = polyColors.Select(tup => tup.color).ToArray(),
-                ColorStageColors = Ut.NewArray(
-                    polyColors[firstKeyColorIx].color,
-                    polyColors[(firstKeyColorIx + 1) % polyColors.Length].color,
-                    polyColors[(firstKeyColorIx + 2) % polyColors.Length].color,
-                    eqColorExtra,
-                    suitPartialPermutationColor),
+                ColorStageColors = colorStageColors,
                 EquationOffsets = new[] { eqColorExtra, eqDiamondsIx, eqPolyIx },
+                Suits = suitsTargetPermutation,
                 Word = word
             };
         }
@@ -148,8 +155,7 @@ namespace BlueButtonLib
             int pieceIx,
             List<PolyominoPlacement> possiblePlacements,
             IEnumerable<(Polyomino one, Polyomino two)> notAllowedToTouch = null,
-            List<PolyominoPlacement> polysSofar = null,
-            bool debug = false)
+            List<PolyominoPlacement> polysSofar = null)
         {
             polysSofar ??= new List<PolyominoPlacement>();
             Coord? bestCell = null;
@@ -186,12 +192,12 @@ namespace BlueButtonLib
                 var (poly, place) = placement;
                 possiblePlacements.RemoveAt(placementIx);
 
-                foreach (var (dx, dy) in poly.Cells)
-                    sofar[place.AddWrap(dx, dy).Index] = pieceIx;
+                foreach (var c in poly.Cells)
+                    sofar[place.AddWrap(c).Index] = pieceIx;
                 polysSofar.Add(new PolyominoPlacement(poly, place));
 
                 var newPlacements = possiblePlacements
-                    .Where(p => p.Polyomino != poly && p.Polyomino.Cells.All(c => sofar[p.Place.AddWrap(c.x, c.y).Index] == null))
+                    .Where(p => p.Polyomino != poly && p.Polyomino.Cells.All(c => sofar[p.Place.AddWrap(c).Index] == null))
                     .ToList();
                 if (notAllowedToTouch != null)
                 {
@@ -202,12 +208,12 @@ namespace BlueButtonLib
                             newPlacements.RemoveAll(pl => pl.Polyomino == one && pl.Touches(placement));
                 }
 
-                foreach (var solution in SolvePolyominoPuzzle(sofar, pieceIx + 1, newPlacements, notAllowedToTouch, polysSofar, debug: debug))
+                foreach (var solution in SolvePolyominoPuzzle(sofar, pieceIx + 1, newPlacements, notAllowedToTouch, polysSofar))
                     yield return solution;
 
                 polysSofar.RemoveAt(polysSofar.Count - 1);
-                foreach (var (dx, dy) in poly.Cells)
-                    sofar[place.AddWrap(dx, dy).Index] = null;
+                foreach (var c in poly.Cells)
+                    sofar[place.AddWrap(c).Index] = null;
             }
         }
 
@@ -248,12 +254,12 @@ namespace BlueButtonLib
                 .SelectMany(p => new[] { p, p.RotateClockwise(), p.RotateClockwise().RotateClockwise(), p.RotateClockwise().RotateClockwise().RotateClockwise() })
                 .SelectMany(p => new[] { p, p.Reflect() })
                 .Distinct()
-                .Where(poly => !poly.Cells.Any(c => c.x >= _gw || c.y >= _gh)
+                .Where(poly => !poly.Cells.Any(c => c.X >= _gw || c.Y >= _gh)
                     && !poly.Cells.Any(c =>
-                        (!poly.Has(c.x + 1, c.y) && poly.Has((c.x + 1) % _gw, c.y)) ||
-                        (!poly.Has(c.x - 1, c.y) && poly.Has((c.x + _gw - 1) % _gw, c.y)) ||
-                        (!poly.Has(c.x, c.y + 1) && poly.Has(c.x, (c.y + 1) % _gh)) ||
-                        (!poly.Has(c.x, c.y - 1) && poly.Has(c.x, (c.y + _gh - 1) % _gh))))
+                        (!poly.Has(c.X + 1, c.Y) && poly.Has((c.X + 1) % _gw, c.Y)) ||
+                        (!poly.Has(c.X - 1, c.Y) && poly.Has((c.X + _gw - 1) % _gw, c.Y)) ||
+                        (!poly.Has(c.X, c.Y + 1) && poly.Has(c.X, (c.Y + 1) % _gh)) ||
+                        (!poly.Has(c.X, c.Y - 1) && poly.Has(c.X, (c.Y + _gh - 1) % _gh))))
                 .ToArray();
         }
 
@@ -290,10 +296,10 @@ namespace BlueButtonLib
             ['Q'] = 0b01000
         };
 
-        private static (int[] solution, PolyominoPlacement[] polys, int jumps)? GenerateRandomPolyominoSolution(string word)
+        private static (int[] solution, PolyominoPlacement[] polys, int jumps)? GenerateRandomPolyominoSolution(Random rnd, string word)
         {
-            var allPlacements = GetAllPolyominoPlacements().Shuffle();
-            var allJumps = Enumerable.Range(0, 1 << 4).ToArray().Shuffle();
+            var allPlacements = GetAllPolyominoPlacements().Shuffle(rnd);
+            var allJumps = Enumerable.Range(0, 1 << 4).ToArray().Shuffle(rnd);
             foreach (var jumps in allJumps)
             {
                 var letterPositions = Enumerable.Range(0, word.Length).Select(i => new Coord(_gw, _gh, i).AddYWrap((jumps & (1 << i)) != 0 ? 2 : 0)).ToArray();

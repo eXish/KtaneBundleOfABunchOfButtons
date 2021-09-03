@@ -29,7 +29,7 @@ namespace BlueButtonLib
         public Polyomino Reflect() => new Polyomino(_w, _h, Ut.NewArray(_w * _h, ix => _arr[_w - 1 - (ix % _w) + _w * (ix / _w)]));
 
         public bool Has(int x, int y) => x >= 0 && x < _w && y >= 0 && y < _h && _arr[x + _w * y];
-        public IEnumerable<(int x, int y)> Cells => _arr.SelectIndexWhere(b => b).Select(ix => (x: ix % _w, y: ix / _w));
+        public IEnumerable<Coord> Cells => _arr.SelectIndexWhere(b => b).Select(ix => new Coord(_w, _h, ix));
 
         public bool Equals(Polyomino other) => other._w == _w && other._h == _h && other._arr.SequenceEqual(_arr);
         public override bool Equals(object obj) => obj is Polyomino other && Equals(other);

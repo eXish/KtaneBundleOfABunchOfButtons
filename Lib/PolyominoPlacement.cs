@@ -34,9 +34,9 @@ namespace BlueButtonLib
 
         public bool Touches(PolyominoPlacement other)
         {
-            foreach (var (x, y) in Polyomino.Cells)
-                foreach (var (ox, oy) in other.Polyomino.Cells)
-                    if (Place.AddWrap(x, y).AdjacentToWrap(other.Place.AddWrap(ox, oy)))
+            foreach (var c in Polyomino.Cells)
+                foreach (var oc in other.Polyomino.Cells)
+                    if (Place.AddWrap(c).AdjacentToWrap(other.Place.AddWrap(oc)))
                         return true;
             return false;
         }

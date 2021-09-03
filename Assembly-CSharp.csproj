@@ -105,6 +105,7 @@
      <None Include="Assets\Shaders\KT_Mobile-Mask.shader" />
      <None Include="Assets\Shaders\KT_3D_Text.shader" />
      <None Include="Assets\Modules\Glitched\Assets\OFL.txt" />
+     <None Include="Assets\Shaders\KT_Mobile-Diffuse-tint-Mask.shader" />
      <None Include="Assets\TestHarness\Shaders\Outline.shader" />
      <None Include="Assets\Shaders\MobileTransparentDiffuseUnderlay.shader" />
      <None Include="Assets\TestHarness\_THIS_FOLDER_IS_EXCLUDED_FROM_BUNDLES.txt" />

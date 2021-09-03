@@ -18,6 +18,7 @@ namespace BlueButtonLib
         public Coord AddXWrap(int dx) => new Coord(Width, Height, ((X + dx) % Width + Width) % Width, Y);
         public Coord AddYWrap(int dy) => new Coord(Width, Height, X, ((Y + dy) % Height + Height) % Height);
         public Coord AddWrap(int dx, int dy) => new Coord(Width, Height, ((X + dx) % Width + Width) % Width, ((Y + dy) % Height + Height) % Height);
+        public Coord AddWrap(Coord c) => AddWrap(c.X, c.Y);
 
         public bool Equals(Coord other) => other.Index == Index && other.Width == Width && other.Height == Height;
         public override bool Equals(object obj) => obj is Coord other && Equals(other);
