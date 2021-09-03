@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using System.Collections;
+using BlueButtonLib;
 using UnityEngine;
-using Rnd = UnityEngine.Random;
 
 public class BlueButtonScript : MonoBehaviour
 {
@@ -12,6 +10,14 @@ public class BlueButtonScript : MonoBehaviour
     public KMSelectable ButtonSelectable;
     public GameObject ButtonCap;
 
+    // Puzzle
+    private PolyominoPlacement[] _polyominoes;
+    private int[] _polyominoColors;
+    private int[] _colorStageColors;
+    private int[] _equationOffsets;
+    private string _word;
+
+    // Internals
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private bool _moduleSolved;
@@ -23,15 +29,22 @@ public class BlueButtonScript : MonoBehaviour
         ButtonSelectable.OnInteractEnded += BlueButtonRelease;
     }
 
+    private void GeneratePuzzle()
+    {
+        var puzzle = BlueButtonPuzzle.GeneratePuzzle();
+        _polyominoes = puzzle.Polyominoes;
+        _polyominoColors = puzzle.PolyominoColors;
+        _colorStageColors = puzzle.ColorStageColors;
+        _equationOffsets = puzzle.EquationOffsets;
+        _word = puzzle.Word;
+    }
 
     private bool BlueButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if (!_moduleSolved)
-        {
-            //code
-        }
+        if (_moduleSolved)
+            return false;
         return false;
     }
 
@@ -39,10 +52,6 @@ public class BlueButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (!_moduleSolved)
-        {
-            //code
-        }
     }
 
     private IEnumerator AnimateButton(float a, float b)

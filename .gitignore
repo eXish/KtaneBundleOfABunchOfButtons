@@ -26,8 +26,11 @@ ExportedObj/
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
 
-*.csproj
 /Assets/Generated.meta
 Assets/Generated
 Gen
 
+Lib/.vs/
+Lib/bin/
+Lib/obj/
+Lib/packages/
