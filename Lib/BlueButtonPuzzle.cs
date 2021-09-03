@@ -117,28 +117,37 @@ namespace BlueButtonLib
 
             var eqDiamondsIx = suitsTargetPermutation.IndexOf(3);
             var eqColorExtraCandidates = Enumerable.Range(0, 6).Except(new[] { eqPolyIx, eqDiamondsIx }).ToArray();
-            var eqColorExtra = eqColorExtraCandidates[rnd.Next(0, eqColorExtraCandidates.Length)];
 
-            var colorStageColors = Ut.NewArray(
+            var colorStageColors = new List<int>
+            {
                 polyColors[firstKeyColorIx].color,
                 polyColors[(firstKeyColorIx + 1) % polyColors.Length].color,
                 polyColors[(firstKeyColorIx + 2) % polyColors.Length].color,
-                eqColorExtra,
-                suitPartialPermutationColor);
+                suitPartialPermutationColor
+            };
+            var numColorsAv = Enumerable.Range(4, 7).Where(n => n != eqDiamondsIx && n != eqPolyIx).ToArray();
+            var numColors = numColorsAv[rnd.Next(0, numColorsAv.Length)];
+            while (colorStageColors.Count < numColors)
+            {
+                var colorsAv = Enumerable.Range(0, 6).ToList();
+                if (colorStageColors[colorStageColors.Count - 2] == colorStageColors[0] && colorStageColors[colorStageColors.Count - 1] == colorStageColors[1])
+                    colorsAv.Remove(colorStageColors[2]);
+                colorStageColors.Add(colorsAv[rnd.Next(0, colorsAv.Count)]);
+            }
 
-            for (var i = 1; i < colorStageColors.Length; i++)
+            for (var i = 1; i < colorStageColors.Count; i++)
                 for (var j = 0; j < polyColors.Length; j++)
                     if (colorStageColors[i] == polyColors[j].color &&
-                        colorStageColors[(i + 1) % colorStageColors.Length] == polyColors[(j + 1) % polyColors.Length].color &&
-                        colorStageColors[(i + 2) % colorStageColors.Length] == polyColors[(j + 2) % polyColors.Length].color)
+                        colorStageColors[(i + 1) % colorStageColors.Count] == polyColors[(j + 1) % polyColors.Length].color &&
+                        colorStageColors[(i + 2) % colorStageColors.Count] == polyColors[(j + 2) % polyColors.Length].color)
                         goto retryColors;
 
             return new BlueButtonPuzzle
             {
                 Polyominoes = polyColors.Select(tup => tup.poly).ToArray(),
                 PolyominoColors = polyColors.Select(tup => tup.color).ToArray(),
-                ColorStageColors = colorStageColors,
-                EquationOffsets = new[] { eqColorExtra, eqDiamondsIx, eqPolyIx },
+                ColorStageColors = colorStageColors.ToArray(),
+                EquationOffsets = new[] { colorStageColors.Count, eqDiamondsIx, eqPolyIx },
                 Suits = suitsTargetPermutation,
                 Word = word
             };

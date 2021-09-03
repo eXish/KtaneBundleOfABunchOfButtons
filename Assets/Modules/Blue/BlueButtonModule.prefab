@@ -91,12 +91,12 @@ GameObject:
   - component: {fileID: 33100724095072312}
   - component: {fileID: 23389531019387684}
   m_Layer: 0
-  m_Name: Cubelet
+  m_Name: TestObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1188350277057092
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,6 +114,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1345514148269860
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4178717031912886}
+  - component: {fileID: 108001465487128978}
+  m_Layer: 0
+  m_Name: ColorsSpotlight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
 --- !u!1 &1437896492631680
 GameObject:
   m_ObjectHideFlags: 1
@@ -223,7 +239,7 @@ GameObject:
   - component: {fileID: 4111650592081796}
   - component: {fileID: 33079662195139682}
   - component: {fileID: 114688671638941096}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: ComponentHighlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -327,7 +343,6 @@ Transform:
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 4532317815840268}
-  - {fileID: 4159681171849716}
   - {fileID: 4631464475650776}
   - {fileID: 4872333174046552}
   m_Father: {fileID: 4270060223130412}
@@ -340,12 +355,25 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1164511252152502}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.0371, z: 0}
+  m_LocalPosition: {x: 0, y: -0.025, z: 0}
   m_LocalScale: {x: 0.04, y: 0.04, z: 0.04}
   m_Children: []
-  m_Father: {fileID: 4158069017626096}
+  m_Father: {fileID: 4872333174046552}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4178717031912886
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1345514148269860}
+  m_LocalRotation: {x: 0, y: 0.9396927, z: -0.3420201, w: 0}
+  m_LocalPosition: {x: 0, y: 0.05, z: 0.1139}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4872333174046552}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 40, y: 180, z: 0}
 --- !u!4 &4191575181592216
 Transform:
   m_ObjectHideFlags: 1
@@ -468,7 +496,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4158069017626096}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4663752110370430
 Transform:
@@ -505,9 +533,11 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 4178717031912886}
+  - {fileID: 4159681171849716}
   m_Father: {fileID: 4158069017626096}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &23064962815927692
 MeshRenderer:
@@ -851,6 +881,42 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1625075889098522}
   m_Mesh: {fileID: 4300008, guid: 8a29834619be7f5499bcd8e6890c1356, type: 3}
+--- !u!108 &108001465487128978
+Light:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1345514148269860}
+  m_Enabled: 1
+  serializedVersion: 8
+  m_Type: 0
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 10
+  m_Range: 0.15
+  m_SpotAngle: 50
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_Lightmapping: 4
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 0
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
 --- !u!114 &114108535298636058
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -892,14 +958,17 @@ MonoBehaviour:
   ButtonSelectable: {fileID: 114303559387390978}
   ButtonCap: {fileID: 1064130632272964}
   PolyominoesParent: {fileID: 4631464475650776}
-  PolyominoCubelet: {fileID: 4300000, guid: 3c1794dc58c47374ca327c0ff93d72b0, type: 3}
-  PolyominoColors:
+  ColorsParent: {fileID: 4872333174046552}
+  DiffuseColorsMasked:
   - {fileID: 2100000, guid: 67bfb6c7cc8cba944a8d9fe3625f4d4f, type: 2}
   - {fileID: 2100000, guid: 051697cdae049d74788da3305272ea75, type: 2}
   - {fileID: 2100000, guid: cb67fdc6bb786004fb58ad0feb01c58c, type: 2}
   - {fileID: 2100000, guid: b3b7e5dfc0189074f981917956b3276c, type: 2}
   - {fileID: 2100000, guid: 6ca43604a167dd442905984d3f169f80, type: 2}
   - {fileID: 2100000, guid: 1b9f6219dbd2bcb429cc897295890113, type: 2}
+  PolyominoCubelet: {fileID: 4300000, guid: 3c1794dc58c47374ca327c0ff93d72b0, type: 3}
+  ColorBlob: {fileID: 4300000, guid: f163d3982766ff848bd5d646c807cb64, type: 3}
+  ColorsSpotlight: {fileID: 108001465487128978}
 --- !u!114 &114227568295516828
 MonoBehaviour:
   m_ObjectHideFlags: 1
