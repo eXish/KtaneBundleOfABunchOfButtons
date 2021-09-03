@@ -33,11 +33,33 @@
                 <img src="img/Component/The Brown Button.svg" class="diagram">
                 <h2>On the Subject of The Brown Button</h2>
                 <p class="flavour-text">This is a button. It is brown.</p>
-                <p>This module will automatically rotate through a 3D net of a 4D hypercube. Tap the button to move forward in the net.</p>
-                <p>Three 3D cells in the net will be marked. One will be marked with a color, one with a shape, and one with a number.</p>
-                <p>Use the marked cells to determine which cell to submit. Each cell is entirely positive or negative on a single axis. 1 axis will be unmarked. Submit a specific cell in this axis.</p>
-                <p>If 2 or 3 of the marked cells are white in the diagram on the left, submit the white cell. Otherwise, submit the gray cell. Note that the non-visible cell is gray.</p>
-                <p>To submit a cell, move into the a wall in that cell. Moving into an incorrect wall will incur a strike.</p>
+                <p>This module will automatically rotate through a 3D net of a 4D hypercube. Tap the button to move
+                    forward in the net.</p>
+                <p>Three 3D cells in the net will be marked. One will be marked with a color, one with a shape, and one
+                    with a number.</p>
+                <p>Use the marked cells to determine which cell to submit. Each cell has a label. In the following
+                    table, tag the cells corresponding to the marked cells. Submit the cell that is in the remaining
+                    untagged row and the column with the majority tags. The non-visible cell is zig.</p>
+                <table>
+                    <tr>
+                        <td>left</td>
+                        <td>right</td>
+                    </tr>
+                    <tr>
+                        <td>back</td>
+                        <td>front</td>
+                    </tr>
+                    <tr>
+                        <td>down</td>
+                        <td>up</td>
+                    </tr>
+                    <tr>
+                        <td>zig</td>
+                        <td>zag</td>
+                    </tr>
+                </table>
+                <p>To submit a cell, move into a wall in that cell. Moving into an incorrect wall will incur a
+                    strike.</p>
                 <p>Note that the hypercube will <strong>never</strong> be mirrored.</p>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="10 20 80 40">
                     <g transform="translate(-20,0)">
@@ -62,6 +84,17 @@
                         <path d="m 50,32 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#fff" />
                         <path d="m 45,35 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
                         <path d="m 45,29 5,-3" stroke="#000" stroke-width=".5" />
+
+                        <path d="m48,44 L 53 48" stroke="#000" stroke-width=".25" />
+                        <g style="font-size:2.5">
+                            <text x="30" y="26" fill="#000">left</text>
+                            <text x="53" y="26" fill="#000">back</text>
+                            <text x="53" y="44" fill="#000">right</text>
+                            <text x="53" y="50" fill="#000">down</text>
+                            <text x="30" y="44" fill="#000">front</text>
+                            <text x="43" y="22" fill="#000">up</text>
+                            <text x="43" y="55" fill="#000">zag</text>
+                        </g>
                     </g>
 
                     <path
@@ -71,30 +104,30 @@
                     <path
                         d="m 70,29.499998 0.881678,1.286475 1.495963,0.440983 -0.951056,1.236068 0.04288,1.559017 L 70,33.499998 l -1.469463,0.522543 0.04288,-1.559017 -0.951056,-1.236068 1.495963,-0.440983 z"
                         stroke="#000" stroke-width=".5" fill="#fff" />
-                    <path
-                        d="m 70,29.499998 2.165064,1.25 -10e-7,2.5 -2.165063,1.25 -2.165064,-1.25 10e-7,-2.5 z"
+                    <path d="m 70,29.499998 2.165064,1.25 -10e-7,2.5 -2.165063,1.25 -2.165064,-1.25 10e-7,-2.5 z"
                         stroke="#000" stroke-width=".5" fill="#ff0" transform="translate(5,9)" />
                     <path
                         d="m 76.217819,33.068148 -0.0036,0.717671 0.717671,-0.0036 v 2.435638 l -0.717671,-0.0036 0.0036,0.717671 h -2.435638 l 0.0036,-0.717671 -0.717671,0.0036 v -2.435638 l 0.717671,0.0036 -0.0036,-0.717671 z"
                         stroke="#000" stroke-width=".5" fill="#0ff" transform="translate(0,-6)" />
-                    <path
-                        d="m 75,44.384022 2.265503,3.923967 -4.531006,0 z"
-                        stroke="#000" stroke-width=".5" fill="#000" />
+                    <path d="m 75,44.384022 2.265503,3.923967 -4.531006,0 z" stroke="#000" stroke-width=".5"
+                        fill="#000" />
                     <g transform="translate(25,-3)">
                         <circle r="2" cx="50" cy="38" stroke="#000" stroke-width=".5" fill="#f0f" />
                         <rect x="43" y="39" width="4" height="4" stroke="#000" stroke-width=".5" fill="#f00" />
-                        <ellipse rx="2.8" ry=2 cx="55" cy="35" stroke="#000" stroke-width=".5" fill="#0f0" transform="rotate(45, 55, 35)" />
-                        <rect x="53" y="39" width="4" height="4" stroke="#000" stroke-width=".5" fill="#00f" transform="rotate(45, 55, 41)" />
+                        <ellipse rx="2.8" ry=2 cx="55" cy="35" stroke="#000" stroke-width=".5" fill="#0f0"
+                            transform="rotate(45, 55, 35)" />
+                        <rect x="53" y="39" width="4" height="4" stroke="#000" stroke-width=".5" fill="#00f"
+                            transform="rotate(45, 55, 41)" />
 
                         <g style="font-size:3" transform="translate(-.85,1)">
                             <text x="50" y="50" fill="#fff">8</text>
-                            <text x="50" y="44" fill="#00f">7</text>
-                            <text x="50" y="38" fill="#0f0">6</text>
-                            <text x="50" y="32" fill="#f00">5</text>
+                            <text x="50" y="44" fill="#000">7</text>
+                            <text x="50" y="38" fill="#000">6</text>
+                            <text x="50" y="32" fill="#000">5</text>
                             <text x="45" y="35" fill="#000">1</text>
-                            <text x="45" y="41" fill="#0ff">2</text>
-                            <text x="55" y="35" fill="#f0f">3</text>
-                            <text x="55" y="41" fill="#ff0">4</text>
+                            <text x="45" y="41" fill="#000">2</text>
+                            <text x="55" y="35" fill="#000">3</text>
+                            <text x="55" y="41" fill="#fff">4</text>
                         </g>
                     </g>
                 </svg>
