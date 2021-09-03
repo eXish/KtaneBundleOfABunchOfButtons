@@ -36,6 +36,7 @@ public class BrownButtonScript : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         BrownButtonSelectable.OnInteract += BrownButtonPress;
         BrownButtonSelectable.OnInteractEnded += BrownButtonRelease;
+        WideMazeScreen.material.mainTexture = new RenderTexture(WideMazeScreen.material.mainTexture as RenderTexture);
         WideMazeCamera.targetTexture = WideMazeScreen.material.mainTexture as RenderTexture;
 
         _chosenNet = CubeNets.AllNets.PickRandom();
