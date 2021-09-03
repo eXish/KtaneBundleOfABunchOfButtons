@@ -20,6 +20,7 @@ public class BlackButtonScript : MonoBehaviour
     private int _moduleId;
     private bool _moduleSolved;
     private double _minTime, _maxTime;
+    private float _lastHeldTime;
 
     private void Start()
     {
@@ -29,7 +30,7 @@ public class BlackButtonScript : MonoBehaviour
 
         tryagain:
         int[] resistences = new int[] { Rnd.Range(0, 1000), Rnd.Range(0, 1000), Rnd.Range(0, 1000) };
-        int[] exponents = new int[] { Rnd.Range(0, 3), Rnd.Range(0, 3), Rnd.Range(0, 3) };
+        int[] exponents = new int[] { Rnd.Range(0, 6), Rnd.Range(0, 6), Rnd.Range(0, 6) };
         double resistence = 1 / (1 / (resistences[1] * Math.Pow(10, exponents[1])) + 1 / (resistences[2] * Math.Pow(10, exponents[2])) + 1 / (resistences[0] * Math.Pow(10, exponents[0])));
 
         float targetTime = Rnd.Range(10f, 35f);
@@ -39,17 +40,19 @@ public class BlackButtonScript : MonoBehaviour
         if(capacitance <= 0.000000001d)
             goto tryagain;
 
+        string capText = "";
+
         if(capacitance >= 0.000001d)
         { // microfareds
             capacitance *= 1000000d;
             int c = (int)Math.Floor(capacitance);
-            CapacitorText.text = c + " μF ±10%";
+            CapacitorText.text = capText = c + " μF ±10%";
         }
         else
         { // nanofareds
             capacitance *= 1000000000d;
             int c = (int)Math.Floor(capacitance);
-            CapacitorText.text = c + " nF ±10%";
+            CapacitorText.text = capText = c + " nF ±10%";
         }
         Resistor1Bands[0].material = BandColors[resistences[0] / 100];
         Resistor2Bands[0].material = BandColors[resistences[1] / 100];
@@ -68,14 +71,14 @@ public class BlackButtonScript : MonoBehaviour
         Resistor3Bands[3].material = BandColors[exponents[2]];
 
         Debug.LogFormat("[The Black Button #{0}] The resistors' values are (from top to bottom): {1}Ω {2}Ω {3}Ω", _moduleId, resistences[0] * Math.Pow(10, exponents[0]), resistences[1] * Math.Pow(10, exponents[1]), resistences[2] * Math.Pow(10, exponents[2]));
-        Debug.LogFormat("[The Black Button #{0}] The capacitor's value is: ", _moduleId, CapacitorText.text.Substring(0, CapacitorText.text.Length - 5));
+        Debug.LogFormat("[The Black Button #{0}] The capacitor's value is: {1}", _moduleId, capText.Substring(0, capText.Length - 5));
 
-        double realCapacitence = int.Parse(CapacitorText.text.Substring(0, CapacitorText.text.Length - 8)) * (CapacitorText.text.Substring(CapacitorText.text.Length - 7, 1) == "μ" ? 0.000001d : 0.000000001d);
-        double minResistence = 1 / (0.9d / (resistences[1] * Math.Pow(10, exponents[1])) + 0.9d / (resistences[2] * Math.Pow(10, exponents[2])) + 0.9d / (resistences[0] * Math.Pow(10, exponents[0])));
-        double maxResistence = 1 / (1.1d / (resistences[1] * Math.Pow(10, exponents[1])) + 1.1d / (resistences[2] * Math.Pow(10, exponents[2])) + 1.1d / (resistences[0] * Math.Pow(10, exponents[0])));
+        double realCapacitence = int.Parse(capText.Substring(0, capText.Length - 8));
+        double minResistence = 1 / (1 / (0.9 * resistences[1] * Math.Pow(10, exponents[1])) + 1 / (0.9 * resistences[2] * Math.Pow(10, exponents[2])) + 1d / (0.9 * resistences[0] * Math.Pow(10, exponents[0])));
+        double maxResistence = 1 / (1 / (1.1 * resistences[1] * Math.Pow(10, exponents[1])) + 1 / (1.1 * resistences[2] * Math.Pow(10, exponents[2])) + 1d / (1.1 * resistences[0] * Math.Pow(10, exponents[0])));
 
-        _minTime = minResistence * realCapacitence * 0.9d;
-        _maxTime = maxResistence * realCapacitence * 1.1d;
+        _minTime = (minResistence * realCapacitence * 0.9d) / (capText.Substring(capText.Length - 7, 1) == "μ" ? 1000000d : 1000000000d);
+        _maxTime = (maxResistence * realCapacitence * 1.1d) / (capText.Substring(capText.Length - 7, 1) == "μ" ? 1000000d : 1000000000d);
 
         Debug.LogFormat("[The Black Button #{0}] Hold for between {1} and {2} seconds.", _moduleId, _minTime, _maxTime);
     }
@@ -85,9 +88,7 @@ public class BlackButtonScript : MonoBehaviour
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
         if(!_moduleSolved)
-        {
-            //code
-        }
+            _lastHeldTime = Time.time;
         return false;
     }
 
@@ -95,6 +96,20 @@ public class BlackButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
+        if(!_moduleSolved)
+        {
+            if(Time.time - _lastHeldTime >= _minTime && Time.time - _lastHeldTime <= _maxTime)
+            {
+                Debug.LogFormat("[The Black Button #{0}] Correct. Module solved.", _moduleId);
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+                Module.HandlePass();
+            }
+            else
+            {
+                Debug.LogFormat("[The Black Button #{0}] You held for {1} seconds. That was incorrect. Strike!", _moduleId, Time.time - _lastHeldTime);
+                Module.HandleStrike();
+            }
+        }
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -111,7 +126,7 @@ public class BlackButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} press 1 [press when the last digit of the timer is a 1]";
+    private readonly string TwitchHelpMessage = "!{0} hold for 12 [holds the button for 12 seconds]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -119,20 +134,25 @@ public class BlackButtonScript : MonoBehaviour
         if(!_moduleSolved)
             yield break;
 
-        var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+)?(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+)?(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if(!m.Success)
             yield break;
 
+        yield return null;
         var v = int.Parse(m.Groups[1].Value);
-        while((int)BombInfo.GetTime() % 10 != v)
-            yield return null;
         BlackButtonSelectable.OnInteract();
-        yield return new WaitForSeconds(.1f);
+        while(Time.time - _lastHeldTime < v)
+            yield return null;
         BlackButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        BlackButtonSelectable.OnInteract();
+        while(Time.time - _lastHeldTime < _minTime)
+            yield return null;
+        BlackButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
     }
 }
