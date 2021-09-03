@@ -70,7 +70,6 @@ public class BrownButtonScript : MonoBehaviour
                 return null;
             }).ToList();
             List<Vector3Int> goalCells = notVisited.Where(c => acceptable.Any(f => f(c))).ToList();
-            Debug.Log(goalCells.Join(", "));
             // Do a BFS for any of these cells.
             Queue<Vector3Int> bfsToSearch = new Queue<Vector3Int>();
             bfsToSearch.Enqueue(chosenAdjacent);
@@ -158,7 +157,6 @@ public class BrownButtonScript : MonoBehaviour
             notVisited.Remove(result);
         }
 
-        Debug.Log(cubeAssignments.Keys.Join(", "));
         for(int ix = 0; ix < _chosenNet.Count; ix++)
             Debug.LogFormat("[The Brown Button #{0}] Cube {1} corresponds to {2}.", _moduleId, _chosenNet[ix], cubeAssignments[_chosenNet[ix]]);
 
