@@ -164,7 +164,6 @@ public class WhiteButtonScript : MonoBehaviour
 
     private void AdjustColor(int channel, int blob, bool add)
     {
-        string prevBlob = COLORNAMES[_blobColors[blob]];
         var r = _blobColors[blob] / 9;
         var g = _blobColors[blob] % 9 / 3;
         var b = _blobColors[blob] % 3;
@@ -180,7 +179,6 @@ public class WhiteButtonScript : MonoBehaviour
             (60 + 70 * ((float)r)) / 255,
             (60 + 70 * ((float)g)) / 255,
             (60 + 70 * ((float)b)) / 255);
-        //Debug.LogFormat("Changed from {0} to {1}", prevBlob, COLORNAMES[_blobColors[blob]]);
     }
 
     private IEnumerator CheckLogic(bool c)
