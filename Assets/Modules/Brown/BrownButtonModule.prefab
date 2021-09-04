@@ -1277,7 +1277,8 @@ MonoBehaviour:
   IsPassThrough: 0
   ChildRowLength: 0
   Highlight: {fileID: 114753172295212628}
-  SelectableColliders: []
+  SelectableColliders:
+  - {fileID: 135760406414933380}
   DefaultSelectableIndex: 0
   AllowSelectionWrapX: 0
   AllowSelectionWrapY: 0

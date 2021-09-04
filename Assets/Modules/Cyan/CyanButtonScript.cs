@@ -75,7 +75,7 @@ public class CyanButtonScript : MonoBehaviour
             (_correctPresses[3] ||
             (!_correctPresses[1] && !_correctPresses[2])));
         _correctPresses[5] =
-            (_buttonPositions[5] != 0 || _buttonPositions[5] != 5) ==
+            (_buttonPositions[5] != 0 && _buttonPositions[5] != 5) ==
             (((_correctPresses[1] && _buttonPositions[1] < 3) ||
             (_correctPresses[4] && _buttonPositions[4] < 3)) &&
             _buttonPositions[0] != 0 &&
