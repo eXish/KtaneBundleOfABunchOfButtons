@@ -2,16 +2,18 @@ Shader "KT/Custom/Mask" {
 Properties {
 }
 SubShader {
-	Tags { "RenderType"="Opaque" }
+	Tags { "RenderType"="Transparent" }
 	ColorMask 0
 	Stencil {
 		ref 1
 		Comp Always
 		Pass replace
-		ZFail replace
+		// ZFail replace
 		WriteMask 1
 	}
 	LOD 150
+
+	ZWrite Off
 
 CGPROGRAM
 // Mobile improvement: noforwardadd

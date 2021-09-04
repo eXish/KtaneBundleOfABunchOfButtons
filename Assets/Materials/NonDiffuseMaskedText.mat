@@ -6,13 +6,13 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: MaskMat
-  m_Shader: {fileID: 4800000, guid: dfaea355a5b8edb4088d52742b6d6a05, type: 3}
+  m_Name: NonDiffuseMaskedText
+  m_Shader: {fileID: 4800000, guid: 5c3ac252c02a6384c915a5a552f881f4, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 1000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -39,7 +39,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 560da91b6b7fbd94894eff204b7bfc41, type: 3}
+        m_Texture: {fileID: 2800000, guid: 690a5cc638e2a204fa1023975d59b3a9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
