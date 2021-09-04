@@ -87,7 +87,7 @@ public class BlueButtonScript : MonoBehaviour
         ColorsSpotlight.range *= transform.lossyScale.x;
 
         GeneratePuzzle();
-        _stage = Stage.Word;
+        _stage = Stage.Polyominoes;
 
         StartCoroutine(AnimationManager(Stage.Polyominoes, PolyominoesParent, AnimatePolyominoSequence));
         StartCoroutine(AnimationManager(Stage.Colors, ColorsParent, AnimateColorSequence, ColorsSpotlight));
