@@ -51,7 +51,7 @@ public class CyanButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (!_moduleSolved && _buttonVisible) 
+        if (!_moduleSolved && _buttonVisible)
             DoButtonLogic(true);
     }
 
@@ -85,8 +85,17 @@ public class CyanButtonScript : MonoBehaviour
             _buttonPositions[4] != 4 &&
             _buttonPositions[5] != 5
             );
-        Debug.LogFormat("{0}", _buttonPositions.Join(", "));
-        Debug.LogFormat("{0}", _correctPresses.Join(", "));
+        string PRESSES = "";
+        for (int i = 0; i < 6; i++)
+        {
+            if (_correctPresses[i])
+            {
+                if (i != 0)
+                    PRESSES = PRESSES + ",";
+                PRESSES = PRESSES + " " + (i + 1);
+            }
+        }
+        Debug.LogFormat("[The Cyan Button #{0}] The buttons that must be pressed are: {1}.", _moduleId, PRESSES);
     }
 
     private IEnumerator StartTimer()
@@ -108,6 +117,10 @@ public class CyanButtonScript : MonoBehaviour
         CyanScreenText.text = "--";
         if (_correctPresses[_currentStage] != pressed)
         {
+            if (pressed)
+                Debug.LogFormat("[The Cyan Button #{0}] You pressed button {1}, when you should have let the timer run out. Strike.", _moduleId, _currentStage + 1);
+            else
+                Debug.LogFormat("[The Cyan Button #{0}] You let the timer run out at button {1}, when you should have pressed it. Strike.", _moduleId, _currentStage + 1);
             Module.HandleStrike();
             GenerateButtonSequence();
             _currentStage = 0;
@@ -125,7 +138,7 @@ public class CyanButtonScript : MonoBehaviour
     {
         if (_moduleSolved)
             yield break;
-        StartCoroutine(OpenDoors(first, false)); 
+        StartCoroutine(OpenDoors(first, false));
         StartCoroutine(MoveButton(first, false));
         _buttonVisible = false;
         yield return new WaitForSeconds(1f);
@@ -136,7 +149,11 @@ public class CyanButtonScript : MonoBehaviour
             StartCoroutine(MoveButton(second.Value, true));
         }
         else
+        {
+            _moduleSolved = true;
             Module.HandlePass();
+            Debug.LogFormat("[The Cyan Button #{0}] You performed all correct button actions. Module solved.", _moduleId);
+        }
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -156,6 +173,7 @@ public class CyanButtonScript : MonoBehaviour
     {
         var duration = 0.2f;
         var elapsed = 0f;
+        Audio.PlaySoundAtTransform("DoorOpen", transform);
         while (elapsed < duration)
         {
             LeftDoors[b].transform.localEulerAngles = new Vector3(0f, 0f, Easing.InOutQuad(elapsed, 0f, 90f, duration));
@@ -175,6 +193,7 @@ public class CyanButtonScript : MonoBehaviour
             yield return null;
             elapsedSecond += Time.deltaTime;
         }
+        Audio.PlaySoundAtTransform("DoorClose", transform);
         if (!isEjecting)
             CyanButtonObj.SetActive(false);
     }
