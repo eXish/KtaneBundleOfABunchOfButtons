@@ -6,12 +6,12 @@ using UnityEngine;
 using RNG = UnityEngine.Random;
 
 // Feel free to change this, the rules are temporary
-public class VioletButtonScript : MonoBehaviour
+public class PurpleButtonScript : MonoBehaviour
 {
     public KMBombModule Module;
     public KMAudio Audio;
-    public KMSelectable VioletButtonSelectable;
-    public GameObject VioletButtonCap;
+    public KMSelectable PurpleButtonSelectable;
+    public GameObject PurpleButtonCap;
     public Material BulbOnMat, BulbOffMat;
     public MeshRenderer Bulb;
     public Light BulbLight;
@@ -54,8 +54,8 @@ public class VioletButtonScript : MonoBehaviour
         SetBulbActive(false);
         BulbLight.range *= transform.lossyScale.x;
 
-        VioletButtonSelectable.OnInteract += ButtonPress;
-        VioletButtonSelectable.OnInteractEnded += ButtonRelease;
+        PurpleButtonSelectable.OnInteract += ButtonPress;
+        PurpleButtonSelectable.OnInteractEnded += ButtonRelease;
 
         GenerateStage();
 
@@ -65,9 +65,9 @@ public class VioletButtonScript : MonoBehaviour
 
     private void GenerateStage()
     {
-        if(_required.Count >= 3)
+        if (_required.Count >= 3)
         {
-            Debug.LogFormat("[The Violet Button #{0}] Good job! Module solved.", _id);
+            Debug.LogFormat("[The Purple Button #{0}] Good job! Module solved.", _id);
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
             Module.HandlePass();
             _isSolved = true;
@@ -78,12 +78,12 @@ public class VioletButtonScript : MonoBehaviour
         _entered.Clear();
         _required.Add(c);
         _delays.AddRange(GetSequence(c));
-        Debug.LogFormat("[The Violet Button #{0}] Next flashes are: {1}", _id, c);
+        Debug.LogFormat("[The Purple Button #{0}] Next flashes are: {1}", _id, c);
     }
 
     private IEnumerable<float> GetSequence(int v)
     {
-        switch(v)
+        switch (v)
         {
             case 0:
                 return new[] { 1f, 0.6f };
@@ -101,12 +101,12 @@ public class VioletButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if(_isSolved)
+        if (_isSolved)
             return false;
 
         _blinkOn = false;
 
-        if(!_isMouseDown)
+        if (!_isMouseDown)
         {
             _events.Add(Event.MouseDown);
             checkEvents();
@@ -119,10 +119,10 @@ public class VioletButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if(_isSolved)
+        if (_isSolved)
             return;
 
-        if(_isMouseDown && _events.Count(e => e == Event.MouseDown) > _events.Count(e => e == Event.MouseUp))
+        if (_isMouseDown && _events.Count(e => e == Event.MouseDown) > _events.Count(e => e == Event.MouseUp))
         {
             _events.Add(Event.MouseUp);
             checkEvents();
@@ -132,22 +132,22 @@ public class VioletButtonScript : MonoBehaviour
 
     private void checkEvents()
     {
-        while(_events.Count >= 2 && _events[0] == Event.Tick && (_events[1] == Event.Tick || _events[1] == Event.MouseUp))
+        while (_events.Count >= 2 && _events[0] == Event.Tick && (_events[1] == Event.Tick || _events[1] == Event.MouseUp))
             _events.RemoveAt(1);
 
         var input = _gestures.IndexOf(list => list.SequenceEqual(_events));
-        if(input != -1)
+        if (input != -1)
         {
             process(input);
             return;
         }
 
-        if(_events.Count(e => e == Event.MouseUp) >= _events.Count(e => e == Event.MouseDown))
+        if (_events.Count(e => e == Event.MouseUp) >= _events.Count(e => e == Event.MouseDown))
         {
             var validPrefix = _gestures.IndexOf(list => list.Take(_events.Count).SequenceEqual(_events));
-            if(validPrefix == -1)
+            if (validPrefix == -1)
             {
-                Debug.LogFormat("[The Violet Button #{0}] You entered {1}, which is not a valid pattern.", _id, _events.Join(", "));
+                Debug.LogFormat("[The Purple Button #{0}] You entered {1}, which is not a valid pattern.", _id, _events.Join(", "));
                 Module.HandleStrike();
                 _events.Clear();
                 _events.Add(Event.Tick);
@@ -158,14 +158,14 @@ public class VioletButtonScript : MonoBehaviour
     private void process(int input)
     {
         _entered.Add(input);
-        if(_required[_entered.Count - 1] == input)
+        if (_required[_entered.Count - 1] == input)
         {
-            if(_required.Count <= _entered.Count)
+            if (_required.Count <= _entered.Count)
                 GenerateStage();
         }
         else
         {
-            Debug.LogFormat("[The Violet Button #{0}] You entered {1}, which wasn't correct. Strike!", _id, input);
+            Debug.LogFormat("[The Purple Button #{0}] You entered {1}, which wasn't correct. Strike!", _id, input);
             Module.HandleStrike();
         }
         _events.Clear();
@@ -174,19 +174,19 @@ public class VioletButtonScript : MonoBehaviour
 
     private IEnumerator Flash()
     {
-        while(true)
+        while (true)
         {
-            if(!_blinkOn)
+            if (!_blinkOn)
             {
                 yield return null;
                 continue;
             }
             yield return new WaitForSeconds(1f);
             bool on = false;
-            foreach(float f in _delays)
+            foreach (float f in _delays)
             {
                 SetBulbActive(on ^= true);
-                if(!_blinkOn)
+                if (!_blinkOn)
                 {
                     SetBulbActive(false);
                     break;
@@ -200,13 +200,13 @@ public class VioletButtonScript : MonoBehaviour
     {
         float duration = 0.1f;
         float elapsed = 0f;
-        while(elapsed < duration)
+        while (elapsed < duration)
         {
-            VioletButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
+            PurpleButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        VioletButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+        PurpleButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
     private void SetBulbActive(bool on)
@@ -226,10 +226,10 @@ public class VioletButtonScript : MonoBehaviour
 
     private void Update()
     {
-        if(!_isSolved)
+        if (!_isSolved)
         {
-            int time = (int)Info.GetTime();
-            if(time != _lastTime)
+            int time = (int) Info.GetTime();
+            if (time != _lastTime)
             {
                 _events.Add(Event.Tick);
                 checkEvents();

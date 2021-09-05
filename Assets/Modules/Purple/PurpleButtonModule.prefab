@@ -40,7 +40,7 @@ GameObject:
   - component: {fileID: 114753185276860178}
   - component: {fileID: 135313468732805300}
   m_Layer: 0
-  m_Name: VioletButton
+  m_Name: PurpleButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 114505224723422028}
   - component: {fileID: 114537909242201506}
   m_Layer: 0
-  m_Name: VioletButtonModule
+  m_Name: PurpleButtonModule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -814,8 +814,8 @@ MonoBehaviour:
   m_Script: {fileID: -119419473, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ModuleType: VioletButtonModule
-  ModuleDisplayName: The Violet Button
+  ModuleType: PurpleButtonModule
+  ModuleDisplayName: The Purple Button
   RequiresTimerVisibility: 0
 --- !u!114 &114046158581184120
 MonoBehaviour:
@@ -918,8 +918,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Module: {fileID: 114003173095464158}
   Audio: {fileID: 114660906553669286}
-  VioletButtonSelectable: {fileID: 114753185276860178}
-  VioletButtonCap: {fileID: 1536051554881550}
+  PurpleButtonSelectable: {fileID: 114753185276860178}
+  PurpleButtonCap: {fileID: 1536051554881550}
   BulbOnMat: {fileID: 2100000, guid: efd69a7947d661d4498a584cddba2fa1, type: 2}
   BulbOffMat: {fileID: 2100000, guid: b2ca1c1e0e8ca744daf7552c25ad638e, type: 2}
   Bulb: {fileID: 23090311959279758}

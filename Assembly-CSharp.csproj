@@ -74,8 +74,8 @@
      <Compile Include="Assets\Modules\Orange\OrangeButtonScript.cs" />
      <Compile Include="Assets\Modules\Orange\OrangeDirection.cs" />
      <Compile Include="Assets\Modules\Pink\PinkButtonScript.cs" />
+     <Compile Include="Assets\Modules\Purple\PurpleButtonScript.cs" />
      <Compile Include="Assets\Modules\Red\RedButtonScript.cs" />
-     <Compile Include="Assets\Modules\Violet\VioletButtonScript.cs" />
      <Compile Include="Assets\Modules\White\WhiteButtonScript.cs" />
      <Compile Include="Assets\Modules\Yellow\YellowButtonScript.cs" />
      <Compile Include="Assets\TestHarness\EdgeworkConfiguration.cs" />
