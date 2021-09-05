@@ -8,8 +8,9 @@ namespace BlueButtonLib
     public class BlueButtonPuzzle
     {
         // PUBLIC
-        public PolyominoPlacement[] Polyominoes { get; private set; }
-        public int[] PolyominoColors { get; private set; }
+        public PolyominoPlacement[] PolyominoSequence { get; private set; }
+        public int[] PolyominoSequenceColors { get; private set; }
+        public int[] PolyominoGrid { get; private set; }
         public int[] ColorStageColors { get; private set; }
         public int[] EquationOffsets { get; private set; }
         public string Word { get; private set; }
@@ -33,7 +34,7 @@ namespace BlueButtonLib
             var givenPolyominoPlacement = generatedPolys[0];
             var givenGrid = new int?[_gw * _gh];
             foreach (var cell in givenPolyominoPlacement.Polyomino.Cells)
-                givenGrid[givenPolyominoPlacement.Place.AddWrap(cell).Index] = 1;
+                givenGrid[givenPolyominoPlacement.Place.AddWrap(cell).Index] = 0;
             var possiblePlacements = GetAllPolyominoPlacements()
                 .Where(pl =>
                     pl.Polyomino.Cells.All(c => givenGrid[pl.Place.AddWrap(c).Index] == null) &&
@@ -50,7 +51,7 @@ namespace BlueButtonLib
                     else if (two == givenPolyominoPlacement.Polyomino)
                         placements.RemoveAll(pl => pl.Polyomino == one && pl.Touches(givenPolyominoPlacement));
 
-                return SolvePolyominoPuzzle(grid, 2, placements, noAllowTouch);
+                return SolvePolyominoPuzzle(grid, 1, placements, noAllowTouch);
             }
 
             var notAllowedToTouch = new List<(Polyomino one, Polyomino two)>();
@@ -125,7 +126,7 @@ namespace BlueButtonLib
                 polyColors[(firstKeyColorIx + 2) % polyColors.Length].color,
                 suitPartialPermutationColor
             };
-            var numColorsAv = Enumerable.Range(4, 7).Where(n => n != eqDiamondsIx + 1 && n != eqPolyIx + 1).ToArray();
+            var numColorsAv = Enumerable.Range(6, 4).Where(n => n != eqDiamondsIx + 1 && n != eqPolyIx + 1).ToArray();
             var numColors = numColorsAv[rnd.Next(0, numColorsAv.Length)];
             while (colorStageColors.Count < numColors)
             {
@@ -142,12 +143,13 @@ namespace BlueButtonLib
                         colorStageColors[(i + 2) % colorStageColors.Count] == polyColors[(j + 2) % polyColors.Length].color)
                         goto retryColors;
 
-            var eqExtraCandidates = Enumerable.Range(1, 10).Except(new[] { colorStageColors.Count, eqDiamondsIx + 1, eqPolyIx + 1 }).ToArray();
+            var eqExtraCandidates = Enumerable.Range(1, 9).Except(new[] { colorStageColors.Count, eqDiamondsIx + 1, eqPolyIx + 1 }).ToArray();
 
             return new BlueButtonPuzzle
             {
-                Polyominoes = polyColors.Select(tup => tup.poly).ToArray(),
-                PolyominoColors = polyColors.Select(tup => tup.color).ToArray(),
+                PolyominoSequence = polyColors.Select(tup => tup.poly).ToArray(),
+                PolyominoSequenceColors = polyColors.Select(tup => tup.color).ToArray(),
+                PolyominoGrid = generatedGrid,
                 ColorStageColors = colorStageColors.ToArray(),
                 EquationOffsets = new[] { colorStageColors.Count, eqDiamondsIx + 1, eqPolyIx + 1, eqExtraCandidates[rnd.Next(0, eqExtraCandidates.Length)] },
                 Suits = suitsTargetPermutation,
@@ -331,7 +333,7 @@ namespace BlueButtonLib
                         (poly.Cells.Count() == 5) == ((encoding & 16) != 0);
                 })).ToList();
 
-                var solutionTup = SolvePolyominoPuzzle(new int?[_gw * _gh], 1, placements).FirstOrNull();
+                var solutionTup = SolvePolyominoPuzzle(new int?[_gw * _gh], 0, placements).FirstOrNull();
                 if (solutionTup != null)
                     return (solutionTup.Value.solution, solutionTup.Value.polys, jumps);
             }

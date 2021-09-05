@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using BlueButtonLib;
-using JetBrains.Annotations;
 using UnityEngine;
 
 using Rnd = UnityEngine.Random;
@@ -40,8 +43,8 @@ public class BlueButtonScript : MonoBehaviour
     public TextMesh WordResultText;
 
     // Puzzle
-    private PolyominoPlacement[] _polyominoes;
-    private int[] _polyominoColors;
+    private PolyominoPlacement[] _polyominoSequence;
+    private int[] _polyominoSequenceColors;
     private int[] _colorStageColors;
     private int[] _equationOffsets;
     private string[] _equations;
@@ -59,7 +62,7 @@ public class BlueButtonScript : MonoBehaviour
     private int _suitTapIx;
     private int _wordHighlight;
     private int _wordSection;
-    private string _wordProgress = "";
+    private int _wordProgress;
 
     // Internals
     private static int _moduleIdCounter = 1;
@@ -103,9 +106,8 @@ public class BlueButtonScript : MonoBehaviour
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
         if (_eqTapTimeout != null)
             StopCoroutine(_eqTapTimeout);
-        if (_stage == Stage.Solved)
-            return false;
-        _pressHandler = StartCoroutine(HandlePress());
+        if (_stage != Stage.Solved)
+            _pressHandler = StartCoroutine(HandlePress());
         return false;
     }
 
@@ -155,9 +157,9 @@ public class BlueButtonScript : MonoBehaviour
             case Stage.Word:
                 if (_wordSection == 0)
                 {
-                    if (_wordHighlight != (_word[_wordProgress.Length] - 'A') / 9)
+                    if (_wordHighlight != (_word[_wordProgress] - 'A') / 9)
                     {
-                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress.Length + 1);
+                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
                         Module.HandleStrike();
                     }
                     else
@@ -165,9 +167,9 @@ public class BlueButtonScript : MonoBehaviour
                 }
                 else if (_wordSection <= 3)
                 {
-                    if (_wordHighlight != ((_word[_wordProgress.Length] - 'A') % 9) / 3)
+                    if (_wordHighlight != ((_word[_wordProgress] - 'A') % 9) / 3)
                     {
-                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress.Length + 1);
+                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
                         Module.HandleStrike();
                         _wordSection = 0;
                     }
@@ -183,15 +185,15 @@ public class BlueButtonScript : MonoBehaviour
                 else
                 {
                     var nextLetter = (char) ('A' + ((_wordSection - 4) * 3 + _wordHighlight));
-                    if (nextLetter != _word[_wordProgress.Length])
+                    if (nextLetter != _word[_wordProgress])
                     {
-                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress.Length + 1);
+                        Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
                         Module.HandleStrike();
                     }
                     else
                     {
-                        _wordProgress += nextLetter;
-                        if (_wordProgress.Length == _word.Length)
+                        _wordProgress++;
+                        if (_wordProgress == _word.Length)
                         {
                             Module.HandlePass();
                             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
@@ -204,7 +206,7 @@ public class BlueButtonScript : MonoBehaviour
 
             case Stage.Reset:
                 _stage = Stage.Polyominoes;
-                _wordProgress = "";
+                _wordProgress = 0;
                 break;
         }
     }
@@ -319,21 +321,21 @@ public class BlueButtonScript : MonoBehaviour
 
         while (width < 20 || numCopies < 2)
         {
-            for (int i = 0; i < _polyominoes.Length; i++)
+            for (int i = 0; i < _polyominoSequence.Length; i++)
             {
                 var polyParent = MakeGameObject(string.Format("Polyomino #{0}", i + 1), scroller.transform);
 
                 var h = 0;
-                foreach (var block in _polyominoes[i].Polyomino.Cells)
+                foreach (var block in _polyominoSequence[i].Polyomino.Cells)
                 {
                     h = Math.Max(block.Y, h);
                     var blockObj = MakeGameObject(string.Format("Block {0}", block), polyParent.transform, position: new Vector3(block.X, 0, -block.Y));
                     blockObj.AddComponent<MeshFilter>().sharedMesh = PolyominoCubelet;
-                    blockObj.AddComponent<MeshRenderer>().sharedMaterial = DiffuseColorsMasked[_polyominoColors[i]];
+                    blockObj.AddComponent<MeshRenderer>().sharedMaterial = DiffuseColorsMasked[_polyominoSequenceColors[i]];
                 }
 
                 polyParent.transform.localPosition = new Vector3(width, 0, h * .5f);
-                width += _polyominoes[i].Polyomino.Cells.Max(cell => cell.X) + 2.5f;
+                width += _polyominoSequence[i].Polyomino.Cells.Max(cell => cell.X) + 2.5f;
             }
             numCopies++;
         }
@@ -490,10 +492,10 @@ public class BlueButtonScript : MonoBehaviour
                 for (var i = 0; i < 3; i++)
                     WordTexts[i].gameObject.SetActive(false);
 
-                yield return Animation(3f, t =>
+                yield return Animation(2.6f, t =>
                 {
                     WordResultText.transform.localPosition = Vector3.Lerp(new Vector3(0, -.02f, -.03f), new Vector3(0, 0, 0), Easing.InOutQuad(t, 0, 1, 1));
-                    WordResultText.transform.localScale = Vector3.Lerp(new Vector3(.015f, .015f, .015f), new Vector3(.02f, .02f, .02f), Easing.InOutQuad(t, 0, 1, 1));
+                    WordResultText.transform.localScale = Vector3.Lerp(new Vector3(.015f, .015f, .015f), new Vector3(.025f, .025f, .025f), Easing.InOutQuad(t, 0, 1, 1));
                     WordResultText.color = Color.Lerp(new Color32(0xE1, 0xE1, 0xE1, 0xFF), new Color32(0x0D, 0xE1, 0x0F, 0xFF), Easing.InOutQuad(t, 0, 1, 1));
                 });
                 yield break;
@@ -506,7 +508,7 @@ public class BlueButtonScript : MonoBehaviour
                     WordTexts[i].gameObject.SetActive(true);
                     WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x9F, 0xB6, 0xE8, 0xFF);
                 }
-                WordResultText.text = _wordProgress + "﹍";
+                WordResultText.text = _word.Substring(0, _wordProgress) + "_";
 
                 if (_wordSection == 0)
                 {
@@ -573,11 +575,12 @@ public class BlueButtonScript : MonoBehaviour
         return obj;
     }
 
+    private static readonly string[] _svgColors = { "#5065DE", "#37923F", "#3F9DA5", "#C33E3E", "#B439AC", "#B8BA3C" };
     private void GeneratePuzzle()
     {
         var puzzle = BlueButtonPuzzle.GeneratePuzzle(Rnd.Range(0, int.MaxValue));
-        _polyominoes = puzzle.Polyominoes;
-        _polyominoColors = puzzle.PolyominoColors;
+        _polyominoSequence = puzzle.PolyominoSequence;
+        _polyominoSequenceColors = puzzle.PolyominoSequenceColors;
         _colorStageColors = puzzle.ColorStageColors;
         _equationOffsets = puzzle.EquationOffsets;
         _equations = _equationOffsets.Select(offset => GenerateEquation(offset)).ToArray();
@@ -586,6 +589,50 @@ public class BlueButtonScript : MonoBehaviour
         _word = puzzle.Word;
 
         _suitsCurrent = Enumerable.Range(0, 4).ToArray().Shuffle();
+
+        var polyominoSeqSvg = new StringBuilder();
+        var polyominoSolutionSvg = new StringBuilder();
+        var x = 0d;
+        var maxHeight = 0;
+        for (var i = 0; i < _polyominoSequence.Length; i++)
+        {
+            var place = _polyominoSequence[i].Place;
+            var height = _polyominoSequence[i].Polyomino.Cells.Max(c => c.Y) + 1;
+            maxHeight = Math.Max(maxHeight, height);
+            foreach (var block in _polyominoSequence[i].Polyomino.Cells)
+            {
+                polyominoSeqSvg.Append(string.Format("<rect fill='{0}' x='{1}' y='{2}' width='1' height='1' />", _svgColors[_polyominoSequenceColors[i]], x + block.X, block.Y - height * .5));
+                polyominoSolutionSvg.Append(string.Format("<rect fill='{0}' x='{1}' y='{2}' width='1' height='1' />", _svgColors[_polyominoSequenceColors[i]], place.AddXWrap(block.X).X, place.AddYWrap(block.Y).Y));
+            }
+            x += _polyominoSequence[i].Polyomino.Cells.Max(c => c.X) + 1.5;
+        }
+
+        Debug.LogFormat(@"[The Blue Button #{0}]=svg[Stage 1 polyominoes:]<svg xmlns='http://www.w3.org/2000/svg' viewBox='-.1 {1} {2} {3}' stroke='black' stroke-width='.06'>{4}</svg>",
+            _moduleId, -maxHeight * .5 - .1, x - .5 + .2, maxHeight + .2, polyominoSeqSvg);
+
+        var segs = new List<Seg>();
+        for (var cellIx = 0; cellIx < 6 * 4; cellIx++)
+        {
+            var cell = new Coord(6, 4, cellIx);
+            if (puzzle.PolyominoGrid[cellIx] != puzzle.PolyominoGrid[cell.AddXWrap(1).Index])
+            {
+                segs.Add(new Seg { d1 = 2, d2 = 0, c = new List<int> { (cell.X + 1) | (cell.Y << 3), (cell.X + 1) | ((cell.Y + 1) << 3) } });
+                if (cell.X == 5)
+                    segs.Add(new Seg { d1 = 2, d2 = 0, c = new List<int> { cell.Y << 3, (cell.Y + 1) << 3 } });
+            }
+            if (puzzle.PolyominoGrid[cellIx] != puzzle.PolyominoGrid[cell.AddYWrap(1).Index])
+            {
+                segs.Add(new Seg { d1 = 1, d2 = 3, c = new List<int> { cell.X | ((cell.Y + 1) << 3), (cell.X + 1) | ((cell.Y + 1) << 3) } });
+                if (cell.Y == 3)
+                    segs.Add(new Seg { d1 = 1, d2 = 3, c = new List<int> { cell.X, cell.X + 1 } });
+            }
+        }
+
+        for (var i = 0; i < 5; i++)
+            polyominoSolutionSvg.AppendFormat("<circle cx='{0}' cy='{1}' r='.4' stroke='white' stroke-width='.1' fill='none' />", i + .5, i == 4 ? .5 : _jumps[i] + .5);
+
+        Debug.LogFormat(@"[The Blue Button #{0}]=svg[Stage 1 solution:]<svg xmlns='http://www.w3.org/2000/svg' viewBox='-.1 -.1 {2} 4.2'>{3}<path stroke='black' stroke-width='.06' fill='none' d='{1}' /></svg>",
+            _moduleId, GeneratePolyominoSolutionSvgPath(segs), x - .5 + .2, polyominoSolutionSvg);
 
         Debug.LogFormat(@"[The Blue Button #{0}] Stage 2: Color sequence is: {1}", _moduleId, _colorStageColors.Select(c => _colorNames[c]).Join(", "));
         Debug.LogFormat(@"[The Blue Button #{0}] Stage 2: Submit on {1} after the {2}.", _moduleId, _colorNames[_colorStageColors[3]], _colorStageColors.Take(3).Select(c => _colorNames[c]).Join(", "));
@@ -596,6 +643,94 @@ public class BlueButtonScript : MonoBehaviour
 
         Debug.LogFormat(@"[The Blue Button #{0}] Stage 4: Suits are shown as {1}. Desired order is {2}.", _moduleId, _suitsCurrent.Select(s => "♠♥♣♦"[s]).Join(""), _suitsGoal.Select(s => "♠♥♣♦"[s]).Join(""));
         Debug.LogFormat(@"[The Blue Button #{0}] Stage 5: The solution word is {1}.", _moduleId, _word);
+    }
+
+    struct Seg
+    {
+        public int d1, d2;
+        public List<int> c;
+    }
+
+    private string GeneratePolyominoSolutionSvgPath(List<Seg> segs)
+    {
+        var svg = new StringBuilder();
+        while (segs.Count > 0)
+        {
+            var seg = segs[segs.Count - 1];
+            segs.RemoveAt(segs.Count - 1);
+
+            while (true)
+            {
+                var extIx = segs.IndexOf(sg =>
+                    ((sg.d1 ^ 2) == seg.d1 && sg.c[0] == seg.c[0]) ||
+                    ((sg.d1 ^ 2) == seg.d2 && sg.c[0] == seg.c[seg.c.Count - 1]) ||
+                    ((sg.d2 ^ 2) == seg.d1 && sg.c[sg.c.Count - 1] == seg.c[0]) ||
+                    ((sg.d2 ^ 2) == seg.d2 && sg.c[sg.c.Count - 1] == seg.c[seg.c.Count - 1]));
+                if (extIx == -1)
+                {
+                    extIx = segs.IndexOf(sg =>
+                        ((sg.c[0] == seg.c[0] || sg.c[0] == seg.c[seg.c.Count - 1]) &&
+                            !segs.Any(s => (s.c[0] == sg.c[0] && (s.d1 ^ 2) == sg.d1) || (s.c[s.c.Count - 1] == sg.c[0] && (s.d2 ^ 2) == sg.d1))) ||
+                        ((sg.c[sg.c.Count - 1] == seg.c[0] || sg.c[sg.c.Count - 1] == seg.c[seg.c.Count - 1]) &&
+                            !segs.Any(s => (s.c[0] == sg.c[sg.c.Count - 1] && (s.d1 ^ 2) == sg.d2) || (s.c[s.c.Count - 1] == sg.c[sg.c.Count - 1] && (s.d2 ^ 2) == sg.d2))));
+                }
+                if (extIx == -1)
+                    break;
+                var ext = segs[extIx];
+                segs.RemoveAt(extIx);
+                if (seg.c[0] == ext.c[0])
+                {
+                    seg.c.Reverse();
+                    seg.c.RemoveAt(seg.c.Count - 1);
+                    if (seg.d1 == (ext.d1 ^ 2))
+                        ext.c.RemoveAt(0);
+                    seg.c.AddRange(ext.c);
+                    seg.d1 = seg.d2;
+                    seg.d2 = ext.d2;
+                }
+                else if (seg.c[0] == ext.c[ext.c.Count - 1])
+                {
+                    ext.c.RemoveAt(ext.c.Count - 1);
+                    if (seg.d1 == (ext.d2 ^ 2))
+                        seg.c.RemoveAt(0);
+                    ext.c.AddRange(seg.c);
+                    ext.d2 = seg.d2;
+                    seg = ext;
+                }
+                else if (seg.c[seg.c.Count - 1] == ext.c[0])
+                {
+                    seg.c.RemoveAt(seg.c.Count - 1);
+                    if (ext.d1 == (seg.d2 ^ 2))
+                        ext.c.RemoveAt(0);
+                    seg.c.AddRange(ext.c);
+                    seg.d2 = ext.d2;
+                }
+                else if (seg.c[seg.c.Count - 1] == ext.c[ext.c.Count - 1])
+                {
+                    ext.c.Reverse();
+                    seg.c.RemoveAt(seg.c.Count - 1);
+                    if (seg.d2 == (ext.d2 ^ 2))
+                        ext.c.RemoveAt(0);
+                    seg.c.AddRange(ext.c);
+                    seg.d2 = ext.d1;
+                }
+            }
+            svg.Append("M");
+            for (var pIx = 0; pIx < seg.c.Count; pIx++)
+            {
+                var p = seg.c[pIx];
+                if (pIx == seg.c.Count - 1 && p == seg.c[0])
+                    svg.Append("z");
+                else
+                {
+                    svg.Append(" ");
+                    svg.Append(p & 7);
+                    svg.Append(" ");
+                    svg.Append(p >> 3);
+                }
+            }
+        }
+        return svg.ToString();
     }
 
     private string GenerateEquation(int offset)
@@ -652,16 +787,190 @@ public class BlueButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold 1 5 [hold on 1, release on 5] | !{0} tap";
+    private readonly string TwitchHelpMessage = "!{0} tap [stage 1] | !{0} tap RGBY [stage 2: wait for RGBY and tap on Y] | !{0} tap 5 [stage 3: tap 5 times] | !{0} tap 1 2 3 [stage 4: tap with relative time intervals] | !{0} tap 1 3 2 3 1 [stage 5: tap when the highlight is in these positions] | !{0} reset";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        yield break;
+        if (Regex.IsMatch(command, @"^\s*reset\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.75f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        if (_stage == Stage.Polyominoes && Regex.IsMatch(command, @"^\s*tap\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        Match m;
+        if (_stage == Stage.Colors && (m = Regex.Match(command, @"^\s*tap\s+([ BGCRMY]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            var colStr = "BGCRMY";
+            var cmd = m.Groups[1].Value.Replace(" ", "").ToUpperInvariant();
+            var ix = Enumerable.Range(0, _colorStageColors.Length).IndexOf(colIx => Enumerable.Range(0, cmd.Length).All(cmdIx => _colorStageColors[(colIx + cmdIx) % _colorStageColors.Length] == colStr.IndexOf(cmd[cmdIx])));
+            if (ix == -1)
+            {
+                yield return "sendtochaterror That sequence of colors is not there.";
+                yield break;
+            }
+            yield return null;
+            while (_colorHighlight != (ix + cmd.Length - 1) % _colorStageColors.Length)
+                yield return null;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        if (_stage == Stage.Equations && (m = Regex.Match(command, @"^\s*tap\s+([1-9])\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            int val;
+            if (!int.TryParse(m.Groups[1].Value, out val))
+            {
+                yield return "sendtochaterror How many times should I tap it?";
+                yield break;
+            }
+            yield return null;
+            for (; val > 0; val--)
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+            yield break;
+        }
+
+        if (_stage == Stage.Suits && (m = Regex.Match(command, @"^\s*tap\s+([0-9])\s*([0-9])\s*([0-9])\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            int len1, len2, len3;
+            if (!int.TryParse(m.Groups[1].Value, out len1) ||
+                !int.TryParse(m.Groups[2].Value, out len2) ||
+                !int.TryParse(m.Groups[3].Value, out len3))
+            {
+                yield return "sendtochaterror Be more specific on the time intervals?";
+                yield break;
+            }
+            yield return null;
+
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len1);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len2);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len3);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        if (_stage == Stage.Word && (m = Regex.Match(command, @"^\s*tap\s+([,; 123]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            yield return null;
+            foreach (var ch in m.Groups[1].Value)
+            {
+                if (ch < '1' || ch > '3')
+                    continue;
+                while (_wordHighlight != ch - '1')
+                    yield return null;
+                ButtonSelectable.OnInteract();
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.2f);
+            }
+            yield break;
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        if (_stage == Stage.Polyominoes)
+        {
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        if (_stage == Stage.Colors)
+        {
+            while (_colorHighlight != 3)
+                yield return true;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        if (_stage == Stage.Equations)
+        {
+            for (var val = _equationOffsets[3] - _eqTaps; val > 0; val--)
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+            yield return new WaitForSeconds(1.4f);
+        }
+
+        while (_stage == Stage.Suits)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                if (i == 3 ? (!_suitsCurrent.SequenceEqual(_suitsGoal)) : (Array.IndexOf(_suitsGoal, _suitsCurrent[i]) <= i))
+                    continue;
+                var len1 = 2;
+                var len2 = i == 0 ? 1 : i == 1 ? 3 : i == 2 ? 1 : 3;
+                var len3 = i == 0 ? 1 : i == 1 ? 1 : i == 2 ? 3 : 3;
+
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f + .2f * len1);
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f + .2f * len2);
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f + .2f * len3);
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(i == 3 ? 1.5f : .1f);
+            }
+        }
+
+        while (_stage == Stage.Word)
+        {
+            var ltr = _word[_wordProgress] - 'A';
+            var requiredHighlight =
+                _wordSection == 0 ? ltr / 9 :
+                _wordSection <= 3 ? (ltr / 3) % 3 : ltr % 3;
+
+            while (_wordHighlight != requiredHighlight)
+                yield return true;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.2f);
+        }
     }
 }
