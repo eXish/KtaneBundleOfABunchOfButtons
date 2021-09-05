@@ -1,59 +1,60 @@
 Shader "KT/Custom/KT 3D Text Mask Diffuse" {
-	Properties{
-		_MainTex("Base (RGB)", 2D) = "white" {}
-	}
-		SubShader{
-			Tags {
-				"Queue" = "Transparent"
-				"IgnoreProjector" = "True"
-				"RenderType" = "Transparent"
-				"PreviewType" = "Plane"
-				"DisableBatching" = "True"
-			}
-			LOD 150
-			Cull Back
-			Blend SrcAlpha OneMinusSrcAlpha
+    Properties {
+        _MainTex("Base (RGB)", 2D) = "white" {}
+    }
 
-            Stencil {
-                ref 1
-                Comp Equal
-                ReadMask 1
-            }
+    SubShader {
+        Tags {
+            "Queue" = "Transparent"
+            "IgnoreProjector" = "True"
+            "RenderType" = "Transparent"
+            "PreviewType" = "Plane"
+            "DisableBatching" = "True"
+        }
+        LOD 150
+        Cull Back
+        Blend SrcAlpha OneMinusSrcAlpha
 
-		CGPROGRAM
-		#pragma surface surf Lambert vertex:vert alpha
+        Stencil {
+            ref 1
+            Comp Equal
+            ReadMask 1
+        }
 
-		sampler2D _MainTex;
+        CGPROGRAM
+        #pragma surface surf Lambert vertex:vert alpha
 
-		struct Output
-		{
-			float4 vertex    : POSITION;
-			float3 normal    : NORMAL;
-			float4 color	 : COLOR;
-			float4 texcoord  : TEXCOORD0;
-			float4 texcoord1 : TEXCOORD1;
-			float4 texcoord2 : TEXCOORD2;
-		};
+        sampler2D _MainTex;
 
-		struct Input {
-			float2 uv_MainTex;
-			float4 color : COLOR;
-		};
+        struct Output
+        {
+            float4 vertex    : POSITION;
+            float3 normal    : NORMAL;
+            float4 color     : COLOR;
+            float4 texcoord  : TEXCOORD0;
+            float4 texcoord1 : TEXCOORD1;
+            float4 texcoord2 : TEXCOORD2;
+        };
 
-		void vert(inout Output o)
-		{
-			// Generate normals for lighting.
-			o.normal = float3(0, 0, -1);
-		}
+        struct Input {
+            float2 uv_MainTex;
+            float4 color : COLOR;
+        };
+
+        void vert(inout Output o)
+        {
+            // Generate normals for lighting.
+            o.normal = float3(0, 0, -1);
+        }
 
 
-		void surf(Input IN, inout SurfaceOutput o) {
-			half4 c = tex2D(_MainTex, IN.uv_MainTex);
-			o.Albedo = IN.color.rgb;
-			o.Alpha = c.a * IN.color.a;
-		}
-		ENDCG
-	}
+        void surf(Input IN, inout SurfaceOutput o) {
+            half4 c = tex2D(_MainTex, IN.uv_MainTex);
+            o.Albedo = IN.color.rgb;
+            o.Alpha = c.a * IN.color.a;
+        }
+        ENDCG
+    }
 
-		Fallback "Mobile/VertexLit"
+    Fallback "Mobile/VertexLit"
 }

@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "GUI/KT 3D Text" {
 	Properties {
 		_MainTex ("Font Texture", 2D) = "white" {}
@@ -16,7 +14,7 @@ Shader "GUI/KT 3D Text" {
 		Lighting Off Cull Back ZTest LEqual ZWrite Off Fog { Mode Off }
 		Blend SrcAlpha OneMinusSrcAlpha
 
-		Pass {	
+		Pass {
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -37,7 +35,7 @@ Shader "GUI/KT 3D Text" {
 
 			sampler2D _MainTex;
 			uniform float4 _MainTex_ST;
-			
+
 			v2f vert (appdata_t v)
 			{
 				v2f o;
@@ -53,7 +51,7 @@ Shader "GUI/KT 3D Text" {
 				col.a *= tex2D(_MainTex, i.texcoord).a;
 				return col;
 			}
-			ENDCG 
+			ENDCG
 		}
 	}
 }
