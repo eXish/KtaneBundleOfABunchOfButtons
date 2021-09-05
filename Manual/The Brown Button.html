@@ -11,17 +11,7 @@
     <link rel='stylesheet' type='text/css' href='css/font.css'>
     <script src="js/ktane-utils.js"></script>
     <script src="js/ruleseed.js"></script>
-    <style>
-        li {
-            margin: 1em 0;
-        }
-
-        ul {
-            margin-top: 2em;
-        }
-    </style>
 </head>
-
 <body>
     <div class="section">
         <div class="page page-bg-05">
@@ -40,7 +30,7 @@
                 <p>Use the marked cells to determine which cell to submit. Each cell has a label. In the following
                     table, tag the cells corresponding to the marked cells. Submit the cell that is in the remaining
                     untagged row and the column with the majority tags. The non-visible cell is zig.</p>
-                <table>
+                <table style='margin: 1em auto'>
                     <tr>
                         <td>left</td>
                         <td>right</td>
@@ -58,79 +48,68 @@
                         <td>zag</td>
                     </tr>
                 </table>
-                <p>To submit a cell, move into a wall in that cell. Moving into an incorrect wall will incur a
-                    strike.</p>
-                <p>Note that the hypercube will <strong>never</strong> be mirrored.</p>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="10 20 80 40">
-                    <g transform="translate(-20,0)">
-                        <path d="m 50,50 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#fff" />
-                        <path d="m 45,53 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 45,47 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 50,44 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#aaa" />
-                        <path d="m 45,47 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 45,41 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 45,35 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#aaa" />
-                        <path d="m 40,38 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 40,32 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 45,41 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#fff" />
-                        <path d="m 40,44 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 40,38 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 55,35 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#aaa" />
-                        <path d="m 50,38 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 50,32 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 55,41 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#fff" />
-                        <path d="m 50,44 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 50,38 5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 50,32 -5,3 -5,-3 0,-6 5,-3 5,3 z" stroke="#000" stroke-width=".5" fill="#fff" />
-                        <path d="m 45,35 0,-6 -5,-3" stroke="#000" stroke-width=".5" />
-                        <path d="m 45,29 5,-3" stroke="#000" stroke-width=".5" />
+                <p>To submit a cell, move into a wall in that cell. Moving into an incorrect wall will incur a strike.</p>
+                <p>Note that the hypercube will <em>never</em> be mirrored.</p>
 
-                        <path d="m48,44 L 53 48" stroke="#000" stroke-width=".25" />
-                        <g style="font-size:2.5">
-                            <text x="30" y="26" fill="#000">left</text>
-                            <text x="53" y="26" fill="#000">back</text>
-                            <text x="53" y="44" fill="#000">right</text>
-                            <text x="53" y="50" fill="#000">down</text>
-                            <text x="30" y="44" fill="#000">front</text>
-                            <text x="43" y="22" fill="#000">up</text>
-                            <text x="43" y="55" fill="#000">zag</text>
-                        </g>
-                    </g>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 267.46 136.18" font-size="10">
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M93.81 67.8l-15-6v-24l15 6zM93.81 67.8v-24l21-5v24z"/>
+                    <path d="M93.81 43.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M57.81 66.8l-15-6v-24l15 6zM57.81 66.8v-24l21-5v24z"/>
+                    <path d="M57.81 42.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M72.81 120.8l-15-6v-24l15 6zM72.81 120.8v-24l21-5v24z"/>
+                    <path d="M72.81 96.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M72.81 96.8l-15-6v-24l15 6zM72.81 96.8v-24l21-5v24z"/>
+                    <path d="M72.81 72.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M87.81 78.8l-15-6v-24l15 6zM87.81 78.8v-24l21-5v24z"/>
+                    <path d="M87.81 54.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M51.81 77.8l-15-6v-24l15 6zM51.81 77.8v-24l21-5v24z"/>
+                    <path d="M51.81 53.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <g fill="#e0e0e0" stroke="#000" stroke-linejoin="round" stroke-width=".5">
+                    <path d="M72.81 48.8l-15-6v-24l15 6zM72.81 48.8v-24l21-5v24z"/>
+                    <path d="M72.81 24.8l-15-6 21-5 15 6z"/>
+                  </g>
+                  <path fill="#fff" stroke="#000" stroke-width=".5" d="M144.33 54.34v3.03h38.38v-3.03zm0-10.94L132.8 55.85l11.52 12.46v-6.79h38.39v6.8l11.5-12.47-11.5-12.45v6.79h-38.4z"/>
+                  <path fill="#d4d4d4" stroke="#000" d="M221.81 48.8l31 12M215.81 59.8l42-10M236.81 30.8v72"/>
+                  <path stroke="#000" stroke-width=".5" d="M236.81 96.88l6.9 11.84h-13.79z"/>
+                  <path fill="#ff0" stroke="#000" stroke-width=".5" d="M236.81 71.25l6.59 3.78v7.54l-6.59 3.78-6.58-3.78v-7.54z"/>
+                  <ellipse cx="236.81" cy="54.8" fill="#f0f" stroke="#000" stroke-width=".5" rx="6.08" ry="6.04"/>
+                  <path fill="#0ff" stroke="#000" stroke-width=".5" d="M240.52 24.97l-.02 2.16h2.19v7.35l-2.19-.01.02 2.16h-7.41l.01-2.16h-2.18v-7.35l2.18.01-.01-2.16z"/>
+                  <ellipse cx="216.99" cy="-146.3" fill="#0f0" stroke="#000" stroke-width=".5" rx="8.48" ry="6.06" transform="scale(1.0036 .99638) rotate(45)"/>
+                  <path fill="#00f" stroke="#000" stroke-width=".5" d="M215.21-141.04h12.12v12.12h-12.12z" transform="scale(1.0036 .99638) rotate(45)"/>
+                  <path fill="#fff" stroke="#000" stroke-width=".5" d="M221.81 41.97l2.68 3.89 4.55 1.33-2.89 3.73.13 4.7-4.47-1.57-4.46 1.58.13-4.71-2.9-3.73 4.55-1.33z"/>
+                  <path fill="red" stroke="#000" stroke-width=".5" d="M209.73 53.76h12.16v12.08h-12.16z"/>
 
-                    <path
-                        d="m175,150v3.65h50v-3.65zm0,-13.175l-15,15l15,15v-8.175h25h25v8.175l15,-15l-15,-15v8.175h-50v-8.175z"
-                        stroke="#000" stroke-width="2" fill="#fff" transform="scale(0.25,0.25)" />
+                  <text x="221.93" y="52.73" stroke-width=".5" text-anchor="middle">1</text>
+                  <text x="216.16" y="63.33" stroke-width=".5" text-anchor="middle">2</text>
+                  <text x="257.9" y="53.3" stroke-width=".5" text-anchor="middle">3</text>
+                  <text x="252.37" y="64.34" fill="#fff" stroke-width=".5" text-anchor="middle">4</text>
+                  <text x="237.01" y="33.94" stroke-width=".5" text-anchor="middle">5</text>
+                  <text x="236.93" y="58.31" stroke-width=".5" text-anchor="middle">6</text>
+                  <text x="236.98" y="82.12" stroke-width=".5" text-anchor="middle">7</text>
+                  <text x="236.96" y="108.18" fill="#fff" stroke-width=".5" text-anchor="middle">8</text>
 
-                    <path
-                        d="m 70,29.499998 0.881678,1.286475 1.495963,0.440983 -0.951056,1.236068 0.04288,1.559017 L 70,33.499998 l -1.469463,0.522543 0.04288,-1.559017 -0.951056,-1.236068 1.495963,-0.440983 z"
-                        stroke="#000" stroke-width=".5" fill="#fff" />
-                    <path d="m 70,29.499998 2.165064,1.25 -10e-7,2.5 -2.165063,1.25 -2.165064,-1.25 10e-7,-2.5 z"
-                        stroke="#000" stroke-width=".5" fill="#ff0" transform="translate(5,9)" />
-                    <path
-                        d="m 76.217819,33.068148 -0.0036,0.717671 0.717671,-0.0036 v 2.435638 l -0.717671,-0.0036 0.0036,0.717671 h -2.435638 l 0.0036,-0.717671 -0.717671,0.0036 v -2.435638 l 0.717671,0.0036 -0.0036,-0.717671 z"
-                        stroke="#000" stroke-width=".5" fill="#0ff" transform="translate(0,-6)" />
-                    <path d="m 75,44.384022 2.265503,3.923967 -4.531006,0 z" stroke="#000" stroke-width=".5"
-                        fill="#000" />
-                    <g transform="translate(25,-3)">
-                        <circle r="2" cx="50" cy="38" stroke="#000" stroke-width=".5" fill="#f0f" />
-                        <rect x="43" y="39" width="4" height="4" stroke="#000" stroke-width=".5" fill="#f00" />
-                        <ellipse rx="2.8" ry=2 cx="55" cy="35" stroke="#000" stroke-width=".5" fill="#0f0"
-                            transform="rotate(45, 55, 35)" />
-                        <rect x="53" y="39" width="4" height="4" stroke="#000" stroke-width=".5" fill="#00f"
-                            transform="rotate(45, 55, 41)" />
-
-                        <g style="font-size:3" transform="translate(-.85,1)">
-                            <text x="50" y="50" fill="#fff">8</text>
-                            <text x="50" y="44" fill="#000">7</text>
-                            <text x="50" y="38" fill="#000">6</text>
-                            <text x="50" y="32" fill="#000">5</text>
-                            <text x="45" y="35" fill="#000">1</text>
-                            <text x="45" y="41" fill="#000">2</text>
-                            <text x="55" y="35" fill="#000">3</text>
-                            <text x="55" y="41" fill="#fff">4</text>
-                        </g>
-                    </g>
+                  <text x="45" y="-20" stroke-width="5" text-anchor="middle" transform="translate(32.81 28.8)">up</text>
+                  <text x="60.26" y="5" stroke-width="5" transform="translate(46.57 28.6)">back</text>
+                  <text x="60.73" y="55" stroke-width="5" transform="translate(50 26)">right</text>
+                  <text x="31.63" y="40" stroke-width="5" text-anchor="end" transform="translate(2.27 28.63)">front</text>
+                  <text x="31.63" y="40" stroke-width="5" text-anchor="end" transform="translate(11.69 -6.37)">left</text>
+                  <text x="75" y="55" stroke-width="5" text-anchor="middle" transform="translate(-2.47 76.31)">zag</text>
+                  <text x="60.73" y="55" stroke-width="5" transform="translate(49.27 48.6)">down</text>
+                  <path fill="#d4d4d4" stroke="#000" d="M108.81 96.8l-20-10"/>
                 </svg>
+
             </div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>

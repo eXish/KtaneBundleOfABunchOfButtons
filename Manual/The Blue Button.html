@@ -32,6 +32,31 @@
             text-align: center;
             font-weight: bold;
         }
+
+        .footnotes {
+            position: relative;
+            margin-top: 1cm;
+            font-size: 10pt;
+        }
+            .footnotes p {
+                margin: .1cm 0;
+            }
+            .footnotes::before {
+                position: absolute;
+                left: 0;
+                top: -.2cm;
+                width: 5cm;
+                border-top: 1px solid black;
+                display: block;
+                content: '';
+            }
+
+        @media screen and (max-width: 900px) {
+            .table-div {
+                float: none;
+                margin: .5cm auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -132,12 +157,17 @@
                     <div class='caption'>Table 4</div>
                 </div>
 
-                <p><strong><em>Stage 1:</em></strong> Note the cyclic sequence C of polyominoes and their colors. Place them on a toroidal 6×4 grid Z such that same-color polyominoes do not touch orthogonally. Tap the button.</p>
+                <p><strong><em>Stage 1:</em></strong> Note the cyclic sequence C of polyominoes and their colors. Place them on a toroidal<sup>1</sup> 6×4 grid Z such that same-color polyominoes do not touch orthogonally. Tap the button.</p>
                 <p><strong><em>Stage 2:</em></strong> Find three consecutive polyominoes J, K, L in C whose colors occur consecutively in this cyclic sequence of N colors. Translate the color Q after the one corresponding to L to a permutation of suits P (table 1). Tap when Q is highlighted.</p>
-                <p><strong><em>Stage 3:</em></strong> The absolute differences between each equation’s true result and the one shown are N, D, X, M in order. Tap the button M times.</p>
-                <p><strong><em>Stage 4:</em></strong> Press the button four times, with time intervals R, A, B, to perform an action (table 2). Swap the suits such that diamonds is at position D and the remaining suits are in order P. Then convert the fillings, left to right, to numbers E, F, G, H (table 3). Submit.</p>
-                <p><strong><em>Stage 5:</em></strong> Find S, the Xth tile in K (reading order), within Z, and T, U, V, W, the next 4 tiles going right from S. Move S, T, U and V down by E, F, G and H, respectively. Translate S, T, U, V, W to letters by noting which of their edges are edges of a polyomino (table 4). Use the underlined letter if a tile is part of a pentomino. Enter the resulting word by tapping the button when the correct sections of the alphabet and individual letters are highlighted.</p>
+                <p><strong><em>Stage 3:</em></strong> The absolute differences between each equation’s true result and the one shown are N, D, X, M (in that order). Tap the button M times.</p>
+                <p><strong><em>Stage 4:</em></strong> Press the button four times, with time intervals R, A, B between presses, to perform an action (table 2). Swap the suits such that diamonds is at position D and the remaining suits are in order P. Then convert the fillings, left to right, to numbers E, F, G, H (table 3). Submit to proceed to the next stage.</p>
+                <p><strong><em>Stage 5:</em></strong> Find S, the Xth tile in K in reading order, within Z, and T, U, V, W, the next 4 tiles going right from S. Move S, T, U and V down by E, F, G and H, respectively. Translate S, T, U, V, W to letters by noting which of their edges are edges of a polyomino (table 4). Use the underlined letter if a tile is part of a pentomino<sup>2</sup>. Enter the resulting word by tapping the button when the correct sections of the alphabet and individual letters are highlighted.</p>
                 <p>Hold the button to return to stage 1.</p>
+
+                <div class='footnotes'>
+                    <p><sup>1</sup> The grid wraps around both horizontally and vertically.</p>
+                    <p><sup>2</sup> A polyomino consisting of exactly 5 tiles.</p>
+                </div>
             </div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>
