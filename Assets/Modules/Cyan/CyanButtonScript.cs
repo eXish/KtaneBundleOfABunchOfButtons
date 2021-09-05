@@ -181,6 +181,8 @@ public class CyanButtonScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+        LeftDoors[b].transform.localEulerAngles = new Vector3(0f, 0f, 90f);
+        RightDoors[b].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
         yield return new WaitForSeconds(0.2f);
         if (!isEjecting)
             yield return new WaitForSeconds(0.2f);
@@ -193,6 +195,8 @@ public class CyanButtonScript : MonoBehaviour
             yield return null;
             elapsedSecond += Time.deltaTime;
         }
+        LeftDoors[b].transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+        RightDoors[b].transform.localEulerAngles = new Vector3(0f, 0f, 0f);
         Audio.PlaySoundAtTransform("DoorClose", transform);
         if (!isEjecting)
             CyanButtonObj.SetActive(false);
