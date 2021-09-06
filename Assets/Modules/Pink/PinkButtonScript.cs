@@ -1,9 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System;
 using System.Text.RegularExpressions;
-using KModkit;
 using UnityEngine;
 
 using Rnd = UnityEngine.Random;
@@ -20,118 +17,89 @@ public class PinkButtonScript : MonoBehaviour
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
-    private bool _moduleSolved, inputting;
-    private string[] CNames = { "RED", "GRN", "BLU", "CYN", "MGT", "YLW", "WHT", "BLK" };
-    private string[] CBinary = { "1z0z0z", "0z1z0z", "0z0z1z", "0z1z1z", "1z0z1z", "1z1z0z", "1z1z1z", "0z0z0z" };
-    private int[] CNums = { 0, 1, 3, 5, 4, 2, 6, 7 };
-    private string[] Binary;
-    private string[] Texts = new string[5];
-    private int[] Colors = new int[5];
-    private string Answer = "", input = "";
-    private Coroutine _textFlash;
+    private bool _moduleSolved;
+    private static readonly string[] _abbreviatedColorNames = { "BLK", "RED", "GRN", "YLW", "BLU", "MGT", "CYN", "WHT" };
+    private static readonly string[] _colorNames = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" };
+    private static readonly string[][] _solveTexts = { new[] { "WOW", "YOU", "DID", "IT!", ":D" }, new[] { "CON", "GRA", "TUL", "ATI", "ONS!" } };
+    private string _solution;
+    private int _solutionProgress;
+    private readonly int[] _words = new int[4];
+    private readonly int[] _colors = new int[4];
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
-        string BinaryTemp = "";
-        for (int i = 0; i < 4; i++)
+
+        for (var i = 0; i < _words.Length; i++)
         {
-            Texts[i] = CNames[Rnd.Range(0, CNames.Length)];
-            BinaryTemp += CBinary[Array.IndexOf(CNames, Texts[i])];
-            Colors[i] = Rnd.Range(0, 7);
-            BinaryTemp += CBinary[Array.IndexOf(CNums, Colors[i])];
+            _words[i] = Rnd.Range(0, 8);
+            _colors[i] = Rnd.Range(1, 8);   // can’t have black as a color
         }
-        Texts[4] = "GO";
-        Colors[4] = 6;
+        _words[0] |= 1; // ensure that the sequence always starts with an ‘H’, not a ‘T’
+
+        var binary = Enumerable.Range(0, _words.Length).Select(slot =>
+            Enumerable.Range(0, 3).Select(bit => (_words[slot] & (1 << bit)) != 0 ? "1" : "0").Join("") +
+            Enumerable.Range(0, 3).Select(bit => (_colors[slot] & (1 << bit)) != 0 ? "1" : "0").Join("")).Join("");
+
+        var modifiedBinary = "";
+        _solution = "";
+        for (var i = 0; i < binary.Length; i++)
+        {
+            if (i >= 3 && modifiedBinary[i - 3] == '1' && modifiedBinary[i - 2] == '1' && modifiedBinary[i - 1] == '1' && binary[i] == '1')
+                modifiedBinary += '0';
+            else if (i >= 1 && modifiedBinary[i - 1] == '0' && binary[i] == '0')
+                modifiedBinary += '1';
+            else
+                modifiedBinary += binary[i];
+
+            _solution +=
+                modifiedBinary[i] == '0' ? 'T' :
+                modifiedBinary.Count(ch => ch == '1') % 2 != 0 ? 'H' : 'R';
+        }
+
         Debug.LogFormat("[The Pink Button #{0}] Flashing sequence:", _moduleId);
         for (int i = 0; i < 4; i++)
-            Debug.LogFormat("[The Pink Button #{0}] Text: {1}, Color: {2}", _moduleId, Texts[i], CNames[Array.IndexOf(CNums, Colors[i])]);
+            Debug.LogFormat("[The Pink Button #{0}] Text: {1} (meaning {2}), color: {3}", _moduleId, _abbreviatedColorNames[_words[i]], _colorNames[_words[i]], _colorNames[_colors[i]]);
 
-        Binary = BinaryTemp.Split('z');
-        Binary = Binary.Take(Binary.Length - 1).ToArray();
-        Debug.LogFormat("[The Pink Button #{0}] Binary conversion: {1}.", _moduleId, Binary.Join(""));
-        bool Open = false;
-        Binary[0] = "1";
-        for (int i = 0; i < 24; i++)
-        {
-            if (i > 2)
-                if (Binary[i - 3] == Binary[i - 2] && Binary[i - 2] == Binary[i - 1])
-                    Binary[i] = ((1 + int.Parse(Binary[i - 1])) % 2).ToString();
-            switch (Binary[i])
-            {
-                case "0":
-                    if (Answer[i - 1] != 'T')
-                    {
-                        Answer += "T";
-                        break;
-                    }
-                    else goto case "1";
+        Debug.LogFormat("[The Pink Button #{0}] Binary: {1}.", _moduleId, binary);
+        Debug.LogFormat("[The Pink Button #{0}] Binary after modification: {1}.", _moduleId, modifiedBinary);
+        Debug.LogFormat("[The Pink Button #{0}] Input sequence: {1}.", _moduleId, _solution);
 
-                case "1":
-                    if (!Open)
-                    {
-                        Answer += "H";
-                        Open = true;
-                    }
-                    else
-                    {
-                        Answer += "R";
-                        Open = false;
-                    }
-                    break;
-            }
-        }
-        Debug.LogFormat("[The Pink Button #{0}] Binary after modification: {1}.", _moduleId, Binary.Join(""));
-        Debug.LogFormat("[The Pink Button #{0}] Input sequence: {1}.", _moduleId, Answer);
         PinkButtonSelectable.OnInteract += PinkButtonPress;
         PinkButtonSelectable.OnInteractEnded += PinkButtonRelease;
-        _textFlash = StartCoroutine(TextFlash());
+        StartCoroutine(TextFlash());
     }
-    void AnswerChecker()
-    {
-        if (Answer == input)
-        {
-            if(_moduleSolved)
-                return;
-            Debug.LogFormat("[The Pink Button #{0}] Valid.", _moduleId);
-            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
 
-            Module.HandlePass();
-            _moduleSolved = true;
-            //StopCoroutine(_textFlash);
-            Texts[0] = "WOW";
-            Texts[1] = "YOU";
-            Texts[2] = "DID";
-            Texts[3] = "IT!";
-            Texts[4] = ":D";
-            Colors[0] = 5;
-            Colors[1] = 4;
-            Colors[2] = 6;
-            Colors[3] = 4;
-            Colors[4] = 5;
-            StartCoroutine(FlashSolve());
+    private void Input(char ch, string whatUserDid)
+    {
+        if (_solution[_solutionProgress] != ch)
+        {
+            Debug.LogFormat("[The Pink Button #{0}] You {2} at position {1} in the solution. Strike!", _moduleId, _solutionProgress + 1, whatUserDid);
+            _solutionProgress = 0;
+            Module.HandleStrike();
         }
         else
         {
-            Module.HandleStrike();
-            Debug.LogFormat("[The Pink Button #{0}] Inputted {1} instead of {2}. Strike.", _moduleId, input, Answer);
-            input = "";
+            _solutionProgress++;
+            if (_solutionProgress == _solution.Length)
+            {
+                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+                Debug.LogFormat("[The Pink Button #{0}] Module solved.", _moduleId);
+                _moduleSolved = true;
+
+                // We’re delaying the Module.HandlePass() if the button is still pressed so that the TP handler can do some cleanup
+                if (_solution.Count(c => c == 'H') == _solution.Count(c => c == 'R'))
+                    Module.HandlePass();
+            }
         }
     }
+
     private bool PinkButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
         if (!_moduleSolved)
-        {
-            inputting = true;
-            input += "H";
-            if (input.Length == 24)
-            {
-                inputting = false;
-                AnswerChecker();
-            }
-        }
+            Input('H', "held the button");
         return false;
     }
 
@@ -139,15 +107,10 @@ public class PinkButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (!_moduleSolved && inputting)
-        {
-            input += "R";
-            if (input.Length == 24)
-            {
-                inputting = false;
-                AnswerChecker();
-            }
-        }
+        if (_moduleSolved)  // Module.HandlePass() is delayed if the module is solved while the button is held so that the TP handler can release it
+            Module.HandlePass();
+        if (!_moduleSolved && _solutionProgress > 0)    // ignore a button release that happened immediately after a strike
+            Input('R', "released the button");
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -162,96 +125,142 @@ public class PinkButtonScript : MonoBehaviour
         }
         PinkButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
+
     private IEnumerator TextFlash()
     {
         while (!_moduleSolved)
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < _words.Length; i++)
             {
                 yield return new WaitForSeconds(.5f);
-                if(_moduleSolved)
-                    break;
-                PinkButtonText.text = Texts[i];
-                StartCoroutine(ColorFade(Colors[i]));
+                if (_moduleSolved)
+                    goto solved;
+                PinkButtonText.text = _abbreviatedColorNames[_words[i]];
+                StartCoroutine(ColorFade(_colors[i]));
             }
-            if (inputting && !_moduleSolved)
-            {
-                input += "T";
-                if (input[input.Length - 2] == 'T')
-                {
-                    Module.HandleStrike();
-                    inputting = false;
-                    input = "";
-                    Debug.LogFormat("[The Pink Button #{0}] You stopped inputting mid-way. Did you fall asleep? Hope this strike wakes you up...", _moduleId);
-                }
-                if (input.Length == 24)
-                {
-                    inputting = false;
-                    AnswerChecker();
-                }
-            }
+
+            yield return new WaitForSeconds(.5f);
+            if (_moduleSolved)
+                goto solved;
+            PinkButtonText.text = "GO";
+            StartCoroutine(ColorFade(7));   // white
+
+            if (_solutionProgress > 0)
+                Input('T', "waited for a “GO”");
+        }
+
+        solved:
+        var solveText = _solveTexts[Rnd.Range(0, _solveTexts.Length)];
+        var colors = new[] { 6, 5, 7, 5, 6 };
+        for (int i = 0; i < solveText.Length; i++)
+        {
+            PinkButtonText.text = solveText[i];
+            StartCoroutine(ColorFade(colors[i]));
+            yield return new WaitForSeconds(.5f);
         }
     }
 
-    private IEnumerator FlashSolve()
+    public IEnumerator ColorFade(int color)
     {
-        for (int i = 0; i < 5; i++)
+        var duration = .4f;
+        var elapsed = 0f;
+        while (elapsed < duration)
         {
-            PinkButtonText.text = Texts[i];
-            StartCoroutine(ColorFade(Colors[i]));
-            yield return new WaitForSeconds(0.5f);
+            PinkButtonText.color = new Color(
+                ((color & 1) != 0 ? 1f : 0) * (1 - elapsed / duration),
+                ((color & 2) != 0 ? 1f : 0) * (1 - elapsed / duration),
+                ((color & 4) != 0 ? 1f : 0) * (1 - elapsed / duration));
+            yield return null;
+            elapsed += Time.deltaTime;
         }
         PinkButtonText.text = "";
     }
-    public IEnumerator ColorFade(int Colors)
-    {
-        //RGYBMCW
-        byte r = 0, g = 0, b = 0;
-        if (Colors % 2 == 0) r = 255;
-        if (Colors == 1 || Colors == 2 || Colors == 5 || Colors == 6) g = 255;
-        if (Colors > 2) b = 255;
-        float time = Time.time;
-        while (g > 0 || r > 0 || b > 0)
-        {
-            if (r != 0) r = (byte)((1f - (Time.time - time) * 2f) * 255f);
-            if (g != 0) g = (byte)((1f - (Time.time - time) * 2f) * 255f);
-            if (b != 0) b = (byte)((1f - (Time.time - time) * 2f) * 255f);
-            PinkButtonText.color = new Color32(r, g, b, 255);
-            yield return null;
-        }
-    }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} HRT (Inputs a tap, then waits for a tick. Putting an input this short is a death wish and wastes time.)";
+    private readonly string TwitchHelpMessage = @"!{0} HRT [hold, release, tick]";
 #pragma warning restore 414
 
-    /* public IEnumerator ProcessTwitchCommand(string command)
-     {
-         Match m;
-         if ((m = Regex.Match(command, @"^\s*([hrt]+)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
-         {
-             //copy the code in the solver :)
-         }
-     }*/
-
-    public IEnumerator TwitchHandleForcedSolve()
+    public IEnumerator ProcessTwitchCommand(string command)
     {
         if (_moduleSolved)
             yield break;
+
+        Match m;
+        if (!(m = Regex.Match(command, @"^\s*([ HRT]+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+            yield break;
+        if (Regex.IsMatch(m.Groups[1].Value, @"H[^R]*H", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return "sendtochaterror You can’t hold when you’re already holding.";
+            yield break;
+        }
+        if (Regex.IsMatch(m.Groups[1].Value, @"R[^H]*R", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return "sendtochaterror You can’t release when you’re not holding.";
+            yield break;
+        }
+        if (Regex.IsMatch(m.Groups[1].Value, @"^\s*T", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return "sendtochaterror You can’t start with a T.";
+            yield break;
+        }
+        yield return null;
+
         while (PinkButtonText.text != "GO")
+            yield return null;
+
+        var held = false;
+        var abort = false;
+        foreach (var ch in m.Groups[1].Value.ToUpperInvariant())
         {
-            yield return new WaitForSeconds(.05f);
-        }
-        yield return new WaitForSeconds(.05f);
-        for (int i = 0; i < 24; i++)
-        {
-            switch (Answer[i])
+            if (ch == ' ')
+                continue;
+            if (ch != _solution[_solutionProgress])
             {
-                case 'H': PinkButtonSelectable.OnInteract(); yield return new WaitForSeconds(.5f); break;
-                case 'R': PinkButtonSelectable.OnInteractEnded(); yield return new WaitForSeconds(.5f); break;
-                case 'T': while (input.Last() != 'T') { yield return new WaitForSeconds(.05f); } yield return new WaitForSeconds(.5f); break;
+                yield return "multiple strikes";
+                abort = true;
             }
+
+            switch (ch)
+            {
+                case 'H':
+                    held = true;
+                    PinkButtonSelectable.OnInteract();
+                    yield return new WaitForSeconds(.1f);
+                    break;
+                case 'R':
+                    held = false;
+                    PinkButtonSelectable.OnInteractEnded();
+                    yield return new WaitForSeconds(.1f);
+                    break;
+                case 'T':
+                    var p = _solutionProgress;
+                    while (_solutionProgress == p)
+                        yield return null;
+                    break;
+            }
+
+            if (abort)
+                break;
         }
-        PinkButtonSelectable.OnInteractEnded();
+        if (held)
+            PinkButtonSelectable.OnInteractEnded();
+
+        yield return "end multiple strikes";
+    }
+
+    public IEnumerator TwitchHandleForcedSolve()
+    {
+        var lastHeld = false;
+        while (!_moduleSolved)
+        {
+            switch (_solution[_solutionProgress])
+            {
+                case 'H': lastHeld = true; PinkButtonSelectable.OnInteract(); yield return new WaitForSeconds(.1f); break;
+                case 'R': lastHeld = false; PinkButtonSelectable.OnInteractEnded(); yield return new WaitForSeconds(.1f); break;
+            }
+            yield return null;
+        }
+        if (lastHeld)
+            PinkButtonSelectable.OnInteractEnded();
     }
 }
