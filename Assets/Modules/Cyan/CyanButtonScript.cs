@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -18,18 +20,15 @@ public class CyanButtonScript : MonoBehaviour
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
-    private int _currentPos;
     private int _currentStage;
-    private int[] _buttonPositions = new int[6];
-    private bool[] _buttonPresses = new bool[6];
-    private bool[] _correctPresses = new bool[6];
+    private readonly int[] _buttonPositions = new int[6];
+    private readonly bool[] _correctPresses = new bool[6];
     private bool _moduleSolved;
-    private bool _eject;
     private bool _buttonVisible = true;
     private Coroutine _timer;
 
-    private float[] xPos = { -0.05f, 0f, 0.05f, -0.05f, 0f, 0.05f };
-    private float[] zPos = { 0f, 0f, 0f, -0.05f, -0.05f, -0.05f };
+    private static readonly float[] xPos = { -0.05f, 0f, 0.05f, -0.05f, 0f, 0.05f };
+    private static readonly float[] zPos = { 0f, 0f, 0f, -0.05f, -0.05f, -0.05f };
 
     private void Start()
     {
@@ -38,7 +37,6 @@ public class CyanButtonScript : MonoBehaviour
         CyanButtonSelectable.OnInteractEnded += CyanButtonRelease;
         GenerateButtonSequence();
     }
-
 
     private bool CyanButtonPress()
     {
@@ -59,7 +57,7 @@ public class CyanButtonScript : MonoBehaviour
     {
         for (int i = 0; i < 6; i++)
             _buttonPositions[i] = Rnd.Range(0, 6);
-        CyanButtonObj.transform.localPosition = new Vector3(xPos[_buttonPositions[_currentPos]], 0.02f, zPos[_buttonPositions[_currentPos]]);
+        CyanButtonObj.transform.localPosition = new Vector3(xPos[_buttonPositions[_currentStage]], 0.02f, zPos[_buttonPositions[_currentStage]]);
         _correctPresses[0] = true;
         _correctPresses[1] =
             _buttonPositions[0] < 3 ||
@@ -85,17 +83,9 @@ public class CyanButtonScript : MonoBehaviour
             _buttonPositions[4] != 4 &&
             _buttonPositions[5] != 5
             );
-        string PRESSES = "";
-        for (int i = 0; i < 6; i++)
-        {
-            if (_correctPresses[i])
-            {
-                if (i != 0)
-                    PRESSES = PRESSES + ",";
-                PRESSES = PRESSES + " " + (i + 1);
-            }
-        }
-        Debug.LogFormat("[The Cyan Button #{0}] The buttons that must be pressed are: {1}.", _moduleId, PRESSES);
+
+        Debug.LogFormat("[The Cyan Button #{0}] The stages in which the button must be pressed are: {1}.",
+            _moduleId, Enumerable.Range(0, 6).Where(st => _correctPresses[st]).Select(i => i + 1).Join(", "));
     }
 
     private IEnumerator StartTimer()
@@ -131,22 +121,21 @@ public class CyanButtonScript : MonoBehaviour
             if (_currentStage < 6)
                 _timer = StartCoroutine(StartTimer());
         }
-        StartCoroutine(DoButtonMove(prevPos, _currentStage == 6 ? (int?)null : _buttonPositions[_currentStage]));
+        StartCoroutine(DoButtonMove(prevPos, _currentStage == 6 ? (int?) null : _buttonPositions[_currentStage]));
     }
 
-    private IEnumerator DoButtonMove(int first, int? second)
+    private IEnumerator DoButtonMove(int sinkInto, int? comeOutOf)
     {
         if (_moduleSolved)
             yield break;
-        StartCoroutine(OpenDoors(first, false));
-        StartCoroutine(MoveButton(first, false));
         _buttonVisible = false;
+        StartCoroutine(OpenDoors(sinkInto, false));
+        StartCoroutine(MoveButton(sinkInto, false));
         yield return new WaitForSeconds(1f);
-        if (second != null)
+        if (comeOutOf != null)
         {
-            _buttonVisible = true;
-            StartCoroutine(OpenDoors(second.Value, true));
-            StartCoroutine(MoveButton(second.Value, true));
+            StartCoroutine(OpenDoors(comeOutOf.Value, true));
+            StartCoroutine(MoveButton(comeOutOf.Value, true));
         }
         else
         {
@@ -238,20 +227,39 @@ public class CyanButtonScript : MonoBehaviour
         }
         CyanButtonObj.transform.localPosition = new Vector3(xPos[b], nextYPos, zPos[b]);
         if (isEjecting)
+        {
             CyanButtonSelObj.SetActive(true);
+            _buttonVisible = true;
+        }
     }
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold 1 5 [hold on 1, release on 5] | !{0} tap";
+    private readonly string TwitchHelpMessage = "!{0} tap [tap the button]";
 #pragma warning restore 0414
 
-    private IEnumerator ProcessTwitchCommand(string command)
+    private KMSelectable[] ProcessTwitchCommand(string command)
     {
-        if (!_moduleSolved)
-            yield break;
+        return _moduleSolved || !Regex.IsMatch(command, @"^\s*(tap|press|submit|click)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+            ? null
+            : new[] { CyanButtonSelectable };
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        while (!_moduleSolved && _correctPresses.Skip(_currentStage).Any(b => b))
+        {
+            if (_correctPresses[_currentStage])
+            {
+                while (!_buttonVisible)
+                    yield return null;
+                CyanButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                CyanButtonSelectable.OnInteractEnded();
+                yield return null;
+            }
+            yield return null;
+        }
+
+        while (!_moduleSolved)
+            yield return true;
     }
 }
