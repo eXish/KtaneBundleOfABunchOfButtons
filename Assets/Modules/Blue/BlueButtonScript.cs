@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,7 +25,8 @@ public class BlueButtonScript : MonoBehaviour
     public Transform ResetParent;
 
     // Objects for instantiating/animating
-    public Material[] DiffuseColorsMasked;
+    public MeshRenderer Mask;
+    public Color[] DiffuseColors;
     public Mesh PolyominoCubelet;
     public Mesh ColorBlob;
     public Light ColorsSpotlight;
@@ -41,6 +41,7 @@ public class BlueButtonScript : MonoBehaviour
     public Material SuitHighlighted;
     public TextMesh[] WordTexts;
     public TextMesh WordResultText;
+    public MaskShaderManager MaskShaderManager;
 
     // Puzzle
     private PolyominoPlacement[] _polyominoSequence;
@@ -68,6 +69,7 @@ public class BlueButtonScript : MonoBehaviour
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private Coroutine _pressHandler;
+    private MaskMaterials _maskMaterials;
 
     enum Stage
     {
@@ -88,6 +90,8 @@ public class BlueButtonScript : MonoBehaviour
         ButtonSelectable.OnInteract += BlueButtonPress;
         ButtonSelectable.OnInteractEnded += BlueButtonRelease;
         ColorsSpotlight.range *= transform.lossyScale.x;
+        _maskMaterials = MaskShaderManager.MakeMaterials();
+        Mask.sharedMaterial = _maskMaterials.Mask;
 
         GeneratePuzzle();
         _stage = Stage.Polyominoes;
@@ -331,7 +335,9 @@ public class BlueButtonScript : MonoBehaviour
                     h = Math.Max(block.Y, h);
                     var blockObj = MakeGameObject(string.Format("Block {0}", block), polyParent.transform, position: new Vector3(block.X, 0, -block.Y));
                     blockObj.AddComponent<MeshFilter>().sharedMesh = PolyominoCubelet;
-                    blockObj.AddComponent<MeshRenderer>().sharedMaterial = DiffuseColorsMasked[_polyominoSequenceColors[i]];
+                    var mr = blockObj.AddComponent<MeshRenderer>();
+                    mr.material = _maskMaterials.DiffuseTint;
+                    mr.material.color = DiffuseColors[_polyominoSequenceColors[i]];
                 }
 
                 polyParent.transform.localPosition = new Vector3(width, 0, h * .5f);
@@ -364,7 +370,9 @@ public class BlueButtonScript : MonoBehaviour
             {
                 var blobObj = MakeGameObject(string.Format("Color {0}", i), scroller.transform, position: new Vector3(width, 0, 0), scale: .04f);
                 blobObj.AddComponent<MeshFilter>().sharedMesh = ColorBlob;
-                blobObj.AddComponent<MeshRenderer>().sharedMaterial = DiffuseColorsMasked[_colorStageColors[i]];
+                var mr = blobObj.AddComponent<MeshRenderer>();
+                mr.material = _maskMaterials.DiffuseTint;
+                mr.material.color = DiffuseColors[_colorStageColors[i]];
                 width += separation;
             }
             numCopies++;
@@ -423,6 +431,7 @@ public class BlueButtonScript : MonoBehaviour
             for (int i = 0; i < _equations.Length; i++)
             {
                 var equation = Instantiate(EquationTemplate, scroller.transform);
+                equation.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
                 equation.name = string.Format("Equation #{0}", i + 1);
                 equation.transform.localPosition = new Vector3(width, 0, 0);
                 equation.transform.localEulerAngles = new Vector3(90, 0, 0);
@@ -481,8 +490,33 @@ public class BlueButtonScript : MonoBehaviour
         }
     }
 
+    private void SetSuitMeshes(int[] suits)
+    {
+        for (var i = 0; i < suits.Length; i++)
+        {
+            SuitObjects[i].transform.localPosition = new Vector3(SuitX(i), -0.01f, 0);
+            SuitObjects[i].transform.localRotation = Quaternion.identity;
+            SuitObjects[i].sharedMesh = SuitMeshes[4 * _jumps[Array.IndexOf(_suitsGoal, suits[i])] + suits[i]];
+            SuitRenderers[i].material = _maskMaterials.DiffuseTint;
+            SuitRenderers[i].material.color = new Color32(0x92, 0xB7, 0xFF, 0xFF);
+        }
+        for (var i = 0; i < SuitSeparators.Length; i++)
+        {
+            SuitSeparators[i].material = _maskMaterials.DiffuseTint;
+            SuitSeparators[i].material.color = new Color32(0x92, 0xB7, 0xFF, 0xFF);
+        }
+    }
+
+    private static float SuitX(int i)
+    {
+        return -0.114f + .076f * i;
+    }
+
     private IEnumerator AnimateWordsAndSolve(Func<bool> stop)
     {
+        for (var i = 0; i < 4; i++)
+            (i == 3 ? WordResultText : WordTexts[i]).GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
+
         while (!stop())
         {
             if (_stage == Stage.Solved)
@@ -533,24 +567,6 @@ public class BlueButtonScript : MonoBehaviour
 
         for (var i = 0; i < 3; i++)
             WordTexts[i].gameObject.SetActive(false);
-    }
-
-    private void SetSuitMeshes(int[] suits)
-    {
-        for (var i = 0; i < suits.Length; i++)
-        {
-            SuitObjects[i].transform.localPosition = new Vector3(SuitX(i), -0.01f, 0);
-            SuitObjects[i].transform.localRotation = Quaternion.identity;
-            SuitObjects[i].sharedMesh = SuitMeshes[4 * _jumps[Array.IndexOf(_suitsGoal, suits[i])] + suits[i]];
-            SuitRenderers[i].sharedMaterial = SuitMasked;
-        }
-        for (var i = 0; i < SuitSeparators.Length; i++)
-            SuitSeparators[i].sharedMaterial = SuitMasked;
-    }
-
-    private static float SuitX(int i)
-    {
-        return -0.114f + .076f * i;
     }
 
     private IEnumerator AnimateReset(Func<bool> stop)
