@@ -1,4 +1,4 @@
-Shader "KT/Custom/Masks/KT 3D Text Mask Diffuse 107" {
+Shader "KT/Custom/Masks/KT 3D Text Mask Diffuse 215" {
     Properties {
         _MainTex("Base (RGB)", 2D) = "white" {}
     }
@@ -16,7 +16,7 @@ Shader "KT/Custom/Masks/KT 3D Text Mask Diffuse 107" {
         Blend SrcAlpha OneMinusSrcAlpha
 
         Stencil {
-            ref 107
+            ref 215
             Comp Equal
         }
 

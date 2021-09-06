@@ -20,32 +20,31 @@ public class MaskShaderManager : MonoBehaviour
 
     public MaskMaterials MakeMaterials()
     {
-        if (UsedMaskLayers.Count == 255)
+        if (UsedMaskLayers.Count >= 127)
             UsedMaskLayers.Clear();
 
-        int layer = 0;
-        while (UsedMaskLayers.Contains(layer))
-            layer++;
+        int layerIx;
+        if (UsedMaskLayers.Count < 64)
+        {
+            do
+                layerIx = Rnd.Range(0, 127);
+            while (UsedMaskLayers.Contains(layerIx));
+        }
+        else
+        {
+            var available = Enumerable.Range(0, 127).Where(i => !UsedMaskLayers.Contains(i)).ToArray();
+            layerIx = available[Rnd.Range(0, available.Length)];
+        }
 
-        //if (UsedMaskLayers.Count < 128)
-        //{
-        //    do
-        //        layer = Rnd.Range(1, 256);
-        //    while (UsedMaskLayers.Contains(layer));
-        //}
-        //else
-        //{
-        //    var available = Enumerable.Range(1, 256).Where(i => !UsedMaskLayers.Contains(i)).ToArray();
-        //    layer = available[Rnd.Range(0, available.Length)];
-        //}
-
-        UsedMaskLayers.Add(layer);
+        UsedMaskLayers.Add(layerIx);
+        var maskMat = new Material(MaskShaders[layerIx]);
+        maskMat.renderQueue = 1000;
         return new MaskMaterials
         {
-            Mask = new Material(MaskShaders[layer]),
-            DiffuseTint = new Material(DiffuseTintShaders[((layer + 1) | 1) - 1]),
-            DiffuseText = new Material(DiffuseTextShaders[layer]),
-            Text = new Material(TextShaders[layer])
+            Mask = maskMat,
+            DiffuseTint = new Material(DiffuseTintShaders[layerIx]),
+            DiffuseText = new Material(DiffuseTextShaders[layerIx]),
+            Text = new Material(TextShaders[layerIx])
         };
     }
 }

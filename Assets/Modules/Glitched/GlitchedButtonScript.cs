@@ -12,11 +12,13 @@ public class GlitchedButtonScript : MonoBehaviour
     public KMBombModule Module;
     public KMAudio Audio;
     public KMRuleSeedable RuleSeedable;
-
+    public KMBombInfo Bomb;
     public KMSelectable GlitchedButtonSelectable;
     public GameObject GlitchedButtonCap;
     public TextMesh Text;
-    public KMBombInfo Bomb;
+    public MeshRenderer TextRenderer;
+    public MaskShaderManager MaskShaderManager;
+    public MeshRenderer Mask;
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
@@ -30,6 +32,12 @@ public class GlitchedButtonScript : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         GlitchedButtonSelectable.OnInteract += GlitchedButtonPress;
         GlitchedButtonSelectable.OnInteractEnded += GlitchedButtonRelease;
+
+        var fontTexture = TextRenderer.sharedMaterial.mainTexture;
+        var mr = MaskShaderManager.MakeMaterials();
+        TextRenderer.material = mr.Text;
+        TextRenderer.material.mainTexture = fontTexture;
+        Mask.sharedMaterial = mr.Mask;
 
         // RULE SEED STARTS HERE
         var rnd = RuleSeedable.GetRNG();
@@ -81,6 +89,11 @@ public class GlitchedButtonScript : MonoBehaviour
 
         Text.text = _cyclingBits;
         StartCoroutine(CycleBits());
+    }
+
+    private void OnDestroy()
+    {
+        MaskShaderManager.Clear();
     }
 
     private IEnumerator CycleBits()

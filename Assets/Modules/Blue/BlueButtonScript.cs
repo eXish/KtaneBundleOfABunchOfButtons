@@ -104,6 +104,11 @@ public class BlueButtonScript : MonoBehaviour
         StartCoroutine(AnimationManager(Stage.Reset, ResetParent, AnimateReset));
     }
 
+    private void OnDestroy()
+    {
+        MaskShaderManager.Clear();
+    }
+
     private bool BlueButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
@@ -337,6 +342,7 @@ public class BlueButtonScript : MonoBehaviour
                     blockObj.AddComponent<MeshFilter>().sharedMesh = PolyominoCubelet;
                     var mr = blockObj.AddComponent<MeshRenderer>();
                     mr.material = _maskMaterials.DiffuseTint;
+                    Debug.LogFormat("<> {0} // {1}", _maskMaterials.DiffuseTint.name, _maskMaterials.DiffuseTint.shader.name);
                     mr.material.color = DiffuseColors[_polyominoSequenceColors[i]];
                 }
 
@@ -431,7 +437,10 @@ public class BlueButtonScript : MonoBehaviour
             for (int i = 0; i < _equations.Length; i++)
             {
                 var equation = Instantiate(EquationTemplate, scroller.transform);
-                equation.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
+                var mr = equation.GetComponent<MeshRenderer>();
+                var fontTexture = mr.sharedMaterial.mainTexture;
+                mr.material = _maskMaterials.DiffuseText;
+                mr.material.mainTexture = fontTexture;
                 equation.name = string.Format("Equation #{0}", i + 1);
                 equation.transform.localPosition = new Vector3(width, 0, 0);
                 equation.transform.localEulerAngles = new Vector3(90, 0, 0);

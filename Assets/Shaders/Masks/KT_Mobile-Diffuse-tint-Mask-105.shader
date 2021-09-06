@@ -1,4 +1,4 @@
-Shader "KT/Custom/Masks/Diffuse Tint Mask 105" {
+Shader "KT/Custom/Masks/Diffuse Tint Mask 211" {
     Properties {
         _MainTex ("Base (RGB)", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
@@ -8,7 +8,7 @@ Shader "KT/Custom/Masks/Diffuse Tint Mask 105" {
         LOD 150
 
         Stencil {
-            ref 105
+            ref 211
             Comp Equal
         }
 

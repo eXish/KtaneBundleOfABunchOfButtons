@@ -1,4 +1,4 @@
-Shader "KT/Custom/Masks/KT 3D Text Mask 23" {
+Shader "KT/Custom/Masks/KT 3D Text Mask 47" {
 	Properties {
 		_MainTex ("Font Texture", 2D) = "white" {}
 	}
@@ -15,7 +15,7 @@ Shader "KT/Custom/Masks/KT 3D Text Mask 23" {
 		Blend SrcAlpha OneMinusSrcAlpha
 
 		Stencil {
-			ref 23
+			ref 47
 			Comp Equal
 		}
 
