@@ -9,27 +9,36 @@ Shader "KT/Custom/Mask" {
             ref 1
             Comp Always
             Pass replace
-            WriteMask 1
         }
         LOD 150
 
         ZWrite Off
 
-        CGPROGRAM
-        // Mobile improvement: noforwardadd
-        // http://answers.unity3d.com/questions/1200437/how-to-make-a-conditional-pragma-surface-noforward.html
-        // http://gamedev.stackexchange.com/questions/123669/unity-surface-shader-conditinally-noforwardadd
-        #pragma surface surf Lambert
+		pass {
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
 
-        struct Input {
-            float2 uv_MainTex;
-        };
+			struct appdata_t {
+				float4 vertex : POSITION;
+			};
 
-        void surf (Input IN, inout SurfaceOutput o) {
-            fixed4 c = fixed4(1,1,1,1);
-            o.Albedo = c.rgb;
-            o.Alpha = c.a;
-        }
-        ENDCG
+			struct v2f {
+				float4 p : SV_POSITION;
+			};
+
+			v2f vert (appdata_t v)
+			{
+				v2f o;
+				o.p = UnityObjectToClipPos(v.vertex);
+				return o;
+			}
+
+			fixed4 frag (v2f i) : SV_Target
+			{
+				return fixed4(0, 0, 0, 0);
+			}
+			ENDCG
+		}
     }
 }
