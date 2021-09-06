@@ -342,7 +342,6 @@ public class BlueButtonScript : MonoBehaviour
                     blockObj.AddComponent<MeshFilter>().sharedMesh = PolyominoCubelet;
                     var mr = blockObj.AddComponent<MeshRenderer>();
                     mr.material = _maskMaterials.DiffuseTint;
-                    Debug.LogFormat("<> {0} // {1}", _maskMaterials.DiffuseTint.name, _maskMaterials.DiffuseTint.shader.name);
                     mr.material.color = DiffuseColors[_polyominoSequenceColors[i]];
                 }
 
