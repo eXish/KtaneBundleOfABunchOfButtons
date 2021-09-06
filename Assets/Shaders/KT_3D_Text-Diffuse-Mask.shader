@@ -18,7 +18,6 @@ Shader "KT/Custom/KT 3D Text Mask Diffuse" {
         Stencil {
             ref 1
             Comp Equal
-            ReadMask 1
         }
 
         CGPROGRAM

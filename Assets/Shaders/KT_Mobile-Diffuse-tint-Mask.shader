@@ -10,7 +10,6 @@ Shader "KT/Mobile/DiffuseTintMask" {
         Stencil {
             ref 1
             Comp Equal
-            ReadMask 1
         }
 
         CGPROGRAM

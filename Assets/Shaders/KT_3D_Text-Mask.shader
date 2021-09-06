@@ -17,10 +17,9 @@
 		Stencil {
 			ref 1
 			Comp Equal
-			ReadMask 1
 		}
 
-		Pass {	
+		Pass {
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -41,7 +40,7 @@
 
 			sampler2D _MainTex;
 			uniform float4 _MainTex_ST;
-			
+
 			v2f vert (appdata_t v)
 			{
 				v2f o;
@@ -57,7 +56,7 @@
 				col.a *= tex2D(_MainTex, i.texcoord).a;
 				return col;
 			}
-			ENDCG 
+			ENDCG
 		}
 	}
 }
