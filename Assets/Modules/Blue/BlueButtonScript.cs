@@ -91,6 +91,8 @@ public class BlueButtonScript : MonoBehaviour
         ButtonSelectable.OnInteractEnded += BlueButtonRelease;
         ColorsSpotlight.range *= transform.lossyScale.x;
         _maskMaterials = MaskShaderManager.MakeMaterials();
+        _maskMaterials.Text.mainTexture = WordResultText.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+        _maskMaterials.DiffuseText.mainTexture = WordResultText.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
         Mask.sharedMaterial = _maskMaterials.Mask;
 
         GeneratePuzzle();
@@ -436,10 +438,7 @@ public class BlueButtonScript : MonoBehaviour
             for (int i = 0; i < _equations.Length; i++)
             {
                 var equation = Instantiate(EquationTemplate, scroller.transform);
-                var mr = equation.GetComponent<MeshRenderer>();
-                var fontTexture = mr.sharedMaterial.mainTexture;
-                mr.material = _maskMaterials.DiffuseText;
-                mr.material.mainTexture = fontTexture;
+                equation.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
                 equation.name = string.Format("Equation #{0}", i + 1);
                 equation.transform.localPosition = new Vector3(width, 0, 0);
                 equation.transform.localEulerAngles = new Vector3(90, 0, 0);
@@ -484,7 +483,6 @@ public class BlueButtonScript : MonoBehaviour
                 for (var i = 0; i < 4; i++)
                     if (newPositions[i] != i)
                     {
-                        //SuitObjects[i].transform.localPosition = Vector3.Lerp(SuitPos(i), SuitPos(newPositions[i]), t);
                         SuitObjects[i].transform.localPosition = new Vector3(
                             Easing.InOutQuart(t, SuitX(i), SuitX(newPositions[i]), 1),
                             .3f * t * (t - 1) * (t - 1) - 0.01f,
@@ -522,8 +520,9 @@ public class BlueButtonScript : MonoBehaviour
 
     private IEnumerator AnimateWordsAndSolve(Func<bool> stop)
     {
-        for (var i = 0; i < 4; i++)
-            (i == 3 ? WordResultText : WordTexts[i]).GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
+        WordResultText.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
+        for (var i = 0; i < 3; i++)
+            WordTexts[i].GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
 
         while (!stop())
         {
@@ -635,19 +634,19 @@ public class BlueButtonScript : MonoBehaviour
             _moduleId, -maxHeight * .5 - .1, x - .5 + .2, maxHeight + .2, polyominoSeqSvg);
 
         var segs = new List<Seg>();
-        for (var cellIx = 0; cellIx < 6 * 4; cellIx++)
+        for (var cellIx = 0; cellIx < BlueButtonPuzzle.GridWidth * BlueButtonPuzzle.GridHeight; cellIx++)
         {
-            var cell = new Coord(6, 4, cellIx);
+            var cell = new Coord(BlueButtonPuzzle.GridWidth, BlueButtonPuzzle.GridHeight, cellIx);
             if (puzzle.PolyominoGrid[cellIx] != puzzle.PolyominoGrid[cell.AddXWrap(1).Index])
             {
                 segs.Add(new Seg { d1 = 2, d2 = 0, c = new List<int> { (cell.X + 1) | (cell.Y << 3), (cell.X + 1) | ((cell.Y + 1) << 3) } });
-                if (cell.X == 5)
+                if (cell.X == BlueButtonPuzzle.GridWidth - 1)
                     segs.Add(new Seg { d1 = 2, d2 = 0, c = new List<int> { cell.Y << 3, (cell.Y + 1) << 3 } });
             }
             if (puzzle.PolyominoGrid[cellIx] != puzzle.PolyominoGrid[cell.AddYWrap(1).Index])
             {
                 segs.Add(new Seg { d1 = 1, d2 = 3, c = new List<int> { cell.X | ((cell.Y + 1) << 3), (cell.X + 1) | ((cell.Y + 1) << 3) } });
-                if (cell.Y == 3)
+                if (cell.Y == BlueButtonPuzzle.GridHeight - 1)
                     segs.Add(new Seg { d1 = 1, d2 = 3, c = new List<int> { cell.X, cell.X + 1 } });
             }
         }
