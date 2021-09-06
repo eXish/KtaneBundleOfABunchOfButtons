@@ -24,6 +24,10 @@
         td.corner {
             border: none;
         }
+		.low-margin {
+			margin-top: 3px;
+			margin-bottom: 3px;
+		}
     </style>
 </head>
 <body>
@@ -38,8 +42,10 @@
                 <h2>On the Subject of The White Button</h2>
                 <p class="flavour-text">This is a button. It is white.</p>
                 <p>The module contains a white button, a ring of cycling red, green, and blue lights, and five blobs of varying colors.</p>
-				<p>Upon tapping the button, the blob with the lights on will have its color channel adjusted based on the lit up color channel.</p>
-
+				<p>Upon tapping the button, the blob with the lights on will have its color channel adjusted based on the lit up color channel and the seconds digit on the timer.</p>
+				<p>Pressing the button when the last digit of the timer is even adds the lit up color channel to the lit up blob. Pressing the button when the last digit of the timer is odd removes the lit up color channel to the lit up blob.</p>
+				<p>Holding the button over a timer tick submits the answer.</p>
+				
 				<table class="color-table">
 				<tr>
 					<th colspan='2' class="color-name">Name</th>
@@ -66,7 +72,18 @@
                 <tr><td style='background-color: rgb( 60, 200,  60)'></td><td>Apple</td><td>0</td><td>2</td><td>0</td>    <td style='background-color: rgb(130, 200,  60)'></td><td>Atlantis</td><td>1</td><td>2</td><td>0</td>     <td style='background-color: rgb(200, 200,  60)'></td><td>Turmeric</td><td>2</td><td>2</td><td>0</td>
                 <tr><td style='background-color: rgb( 60, 200, 130)'></td><td>Emerald</td><td>0</td><td>2</td><td>1</td>  <td style='background-color: rgb(130, 200, 130)'></td><td>Pistachio</td><td>1</td><td>2</td><td>1</td>    <td style='background-color: rgb(200, 200, 130)'></td><td>Pine</td><td>2</td><td>2</td><td>1</td>
                 <tr><td style='background-color: rgb( 60, 200, 200)'></td><td>Pelorous</td><td>0</td><td>2</td><td>2</td> <td style='background-color: rgb(130, 200, 200)'></td><td>Neptune</td><td>1</td><td>2</td><td>2</td>      <td style='background-color: rgb(200, 200, 200)'></td><td>Silver</td><td>2</td><td>2</td><td>2</td>				</table>
-            </div>
+			<h3 cassl="low-margin">Further notes:</h3>
+			<ul class="low-margin">
+				<li class="low-margin">Pressing the button on <i>x</i> modulo 2 adjusts the <i>y</i> color channel.</li>
+				<ul class="low-margin"><li class="low-margin">0 → Red; 1 → Blue; 2 → Green</li></ul>
+				<li class="low-margin">Pressing the button on <i>x</i> modulo 3 affects the <i>y</i> color channel.</li>
+				<ul class="low-margin"><li class="low-margin">0 → Adds; 1 → Subtracts</li></ul>
+				<li class="low-margin">Pressing the button on <i>x</i> modulo 5 affects the <i>y</i> blob.</li>
+				<ul class="low-margin"><li class="low-margin">0 → Top; 1 → Top Left; 2 → Bottom Left; 3 → Bottom Right; 4 → Top Right</li></ul>
+				<li class="low-margin">The color channels are not as sharp as (e.g. (0, 255, 255)).  Each channel is determined by the following formula:</li>
+				<ul class="low-margin"><li class="low-margin">60 + 70<i>n</i>, where n is 0, 1, or 2.</li></ul>
+			</ul>
+			</div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>
     </div>
