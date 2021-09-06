@@ -547,7 +547,7 @@ public class BlueButtonScript : MonoBehaviour
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x9F, 0xB6, 0xE8, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x3D, 0x69, 0xC7, 0xFF);
                 }
                 WordResultText.text = _word.Substring(0, _wordProgress) + "_";
 
