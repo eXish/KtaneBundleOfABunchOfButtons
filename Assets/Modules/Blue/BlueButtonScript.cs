@@ -932,31 +932,42 @@ public class BlueButtonScript : MonoBehaviour
 
         while (_stage == Stage.Suits)
         {
-            for (var i = 0; i < 4; i++)
-            {
-                if (i == 3 ? (!_suitsCurrent.SequenceEqual(_suitsGoal)) : (Array.IndexOf(_suitsGoal, _suitsCurrent[i]) <= i))
-                    continue;
-                var len1 = 2;
-                var len2 = i == 0 ? 1 : i == 1 ? 3 : i == 2 ? 1 : 3;
-                var len3 = i == 0 ? 1 : i == 1 ? 1 : i == 2 ? 3 : 3;
+            // Find the first slot that currently has a wrong suit in it
+            var firstWrongSlot = Enumerable.Range(0, 4).IndexOf(i => _suitsGoal[i] != _suitsCurrent[i]);
 
-                ButtonSelectable.OnInteract();
-                yield return new WaitForSeconds(.1f);
-                ButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(.1f + .2f * len1);
-                ButtonSelectable.OnInteract();
-                yield return new WaitForSeconds(.1f);
-                ButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(.1f + .2f * len2);
-                ButtonSelectable.OnInteract();
-                yield return new WaitForSeconds(.1f);
-                ButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(.1f + .2f * len3);
-                ButtonSelectable.OnInteract();
-                yield return new WaitForSeconds(.1f);
-                ButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(i == 3 ? 1.5f : .1f);
+            // Assume we want to submit
+            var len1 = 2;
+            var len2 = 3;
+            var len3 = 3;
+            var submitting = true;
+
+            if (firstWrongSlot != -1)
+            {
+                // Find where the desired suit is at the moment.
+                // We’re swapping that with the slot LEFT of it
+                var swapSlot = Array.IndexOf(_suitsCurrent, _suitsGoal[firstWrongSlot]) - 1;
+
+                submitting = false;
+                len2 = swapSlot == 0 ? 1 : swapSlot == 1 ? 3 : swapSlot == 2 ? 1 : 3;
+                len3 = swapSlot == 0 ? 1 : swapSlot == 1 ? 1 : swapSlot == 2 ? 3 : 3;
             }
+
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len1);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len2);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f + .2f * len3);
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(submitting ? 1.4f : .1f);
         }
 
         while (_stage == Stage.Word)
