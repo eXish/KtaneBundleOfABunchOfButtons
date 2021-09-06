@@ -1,12 +1,13 @@
 Shader "KT/Custom/Mask" {
     Properties {
+      _Layer ("Layer", Range (1,255)) = 1
     }
 
     SubShader {
         Tags { "RenderType"="Transparent" }
         ColorMask 0
         Stencil {
-            ref 1
+            ref [_Layer]
             Comp Always
             Pass replace
         }

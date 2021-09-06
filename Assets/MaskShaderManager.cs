@@ -6,10 +6,10 @@ using Rnd = UnityEngine.Random;
 
 public class MaskShaderManager : MonoBehaviour
 {
-    public Shader[] MaskShaders;
-    public Shader[] DiffuseTintShaders;
-    public Shader[] TextShaders;
-    public Shader[] DiffuseTextShaders;
+    public Shader MaskShader;
+    public Shader DiffuseTintShader;
+    public Shader TextShader;
+    public Shader DiffuseTextShader;
 
     public static HashSet<int> UsedMaskLayers = new HashSet<int>();
 
@@ -20,31 +20,43 @@ public class MaskShaderManager : MonoBehaviour
 
     public MaskMaterials MakeMaterials()
     {
-        if (UsedMaskLayers.Count >= 127)
+        if (UsedMaskLayers.Count >= 255)
             UsedMaskLayers.Clear();
 
-        int layerIx;
-        if (UsedMaskLayers.Count < 64)
+        int layer;
+        if (UsedMaskLayers.Count < 128)
         {
             do
-                layerIx = Rnd.Range(0, 127);
-            while (UsedMaskLayers.Contains(layerIx));
+                layer = Rnd.Range(1, 256);
+            while (UsedMaskLayers.Contains(layer));
         }
         else
         {
-            var available = Enumerable.Range(0, 127).Where(i => !UsedMaskLayers.Contains(i)).ToArray();
-            layerIx = available[Rnd.Range(0, available.Length)];
+            var available = Enumerable.Range(1, 255).Where(i => !UsedMaskLayers.Contains(i)).ToArray();
+            layer = available[Rnd.Range(0, available.Length)];
         }
 
-        UsedMaskLayers.Add(layerIx);
-        var maskMat = new Material(MaskShaders[layerIx]);
+        UsedMaskLayers.Add(layer);
+
+        var maskMat = new Material(MaskShader);
+        maskMat.SetInt("_Layer", layer);
         maskMat.renderQueue = 1000;
+
+        var diffuseTint = new Material(DiffuseTintShader);
+        diffuseTint.SetInt("_Layer", layer);
+
+        var diffuseText = new Material(DiffuseTextShader);
+        diffuseText.SetInt("_Layer", layer);
+
+        var text = new Material(TextShader);
+        text.SetInt("_Layer", layer);
+
         return new MaskMaterials
         {
             Mask = maskMat,
-            DiffuseTint = new Material(DiffuseTintShaders[layerIx]),
-            DiffuseText = new Material(DiffuseTextShaders[layerIx]),
-            Text = new Material(TextShaders[layerIx])
+            DiffuseTint = diffuseTint,
+            DiffuseText = diffuseText,
+            Text = text
         };
     }
 }

@@ -2,13 +2,14 @@ Shader "KT/Mobile/DiffuseTintMask" {
     Properties {
         _MainTex ("Base (RGB)", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
+        _Layer ("Layer", Range (1,255)) = 1
     }
     SubShader {
         Tags { "RenderType"="Opaque" }
         LOD 150
 
         Stencil {
-            ref 1
+            ref [_Layer]
             Comp Equal
         }
 
