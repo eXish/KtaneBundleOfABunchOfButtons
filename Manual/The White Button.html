@@ -28,6 +28,9 @@
 			margin-top: 3px;
 			margin-bottom: 3px;
 		}
+		.small-text {
+			font-size: 11pt;
+		}
     </style>
 </head>
 <body>
@@ -41,11 +44,13 @@
                 <img src="img/Component/The White Button.svg" class="diagram">
                 <h2>On the Subject of The White Button</h2>
                 <p class="flavour-text">This is a button. It is white.</p>
+				<div class="small-text">
                 <p>The module contains a white button, a ring of cycling red, green, and blue lights, and five blobs of varying colors.</p>
 				<p>Upon tapping the button, the blob with the lights on will have its color channel adjusted based on the lit up color channel and the seconds digit on the timer.</p>
+				<p>The blobs are numbered from 1-5, starting at the top, and continuing clockwise.</p>
+				<p>Convert each character of the serial number to a base-3 digit. The first and second blobs must be colored based on the first and second serial number characters.  The third and fourth blobs must be colored based on the fourth and fifth serial number characters.  The fifth blob must be colored based on the sum of the third and sixth serial number characters.</p>
 				<p>Pressing the button when the last digit of the timer is even adds the lit up color channel to the lit up blob. Pressing the button when the last digit of the timer is odd removes the lit up color channel to the lit up blob.</p>
 				<p>Holding the button over a timer tick submits the answer.</p>
-				
 				<table class="color-table">
 				<tr>
 					<th colspan='2' class="color-name">Name</th>
@@ -83,6 +88,7 @@
 				<li class="low-margin">The color channels are not as sharp as (e.g. (0, 255, 255)).  Each channel is determined by the following formula:</li>
 				<ul class="low-margin"><li class="low-margin">60 + 70<i>n</i>, where n is 0, 1, or 2.</li></ul>
 			</ul>
+			</div>
 			</div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>
