@@ -206,14 +206,14 @@ public class WhiteButtonScript : MonoBehaviour
             {
                 if (_blobColors[i] != _targetBlobColors[i])
                 {
-                    LeftLeds[i].material = OnColors[0];
-                    RightLeds[i].material = OnColors[0];
+                    LeftLeds[4 - (i + 4) % 5].material = OnColors[0];
+                    RightLeds[4 - (i + 4) % 5].material = OnColors[0];
                     Debug.LogFormat("[The White Button #{0}] The {1} blob should have been {2}, instead of {3}.", _moduleId, POSITIONS[i], _targetBlobColors[i], _blobColors[i]);
                 }
                 else
                 {
-                    LeftLeds[i].material = OnColors[2];
-                    RightLeds[i].material = OnColors[2];
+                    LeftLeds[4 - (i + 4) % 5].material = OnColors[2];
+                    RightLeds[4 - (i + 4) % 5].material = OnColors[2];
                 }
             }
             Debug.LogFormat("[The White Button #{0}] Not all correct colors have been submitted. Strike.", _moduleId);
