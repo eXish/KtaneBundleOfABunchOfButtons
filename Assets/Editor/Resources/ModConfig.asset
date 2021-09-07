@@ -14,15 +14,20 @@ MonoBehaviour:
   id: SingleSelectablePack
   title: Single Selectable Pack
   author: JakkOfKlubs
-  description: 'The Single Selectable Pack!
+  description: 'This is a module pack. It has buttons.
 
-    - The Red Button (by JakkOfKlubs)
 
-    - The Orange Button (by JakkOfKlubs)
+    Contributions by:
 
-    - The Green Button (by BakersDozenBagels)
+    [b]JakkOfKlubs:[/b] The Red Button, The Orange Button, The White Button, The Cyan
+    Button
 
-    - The Blue Button (by Timwi)'
+    [b]BakersDozenBagels:[/b] The Green Button, The Brown Button, The Black Button,
+    The Glitched Button
+
+    [b]Timwi:[/b] The Blue Button, The Gray Button, The Yellow Button
+
+    [b]Cooldoom:[/b] The Pink Button'
   version: 1.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: bd5c1f4881f57d54481b44e4c8a7779a, type: 3}
