@@ -2144,8 +2144,8 @@ MonoBehaviour:
   Module: {fileID: 114445151190721914}
   Audio: {fileID: 114629500169079468}
   BombInfo: {fileID: 114851826596115828}
-  ButtonSelectable: {fileID: 114303559387390978}
-  ButtonCap: {fileID: 1064130632272964}
+  BlueButtonSelectable: {fileID: 114303559387390978}
+  BlueButtonCap: {fileID: 1064130632272964}
   PolyominoesParent: {fileID: 4631464475650776}
   ColorsParent: {fileID: 4872333174046552}
   EquationsParent: {fileID: 4478716721415824}

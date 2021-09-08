@@ -578,6 +578,7 @@ public class BlueButtonScript : MonoBehaviour
 
     private IEnumerator AnimateReset(Func<bool> stop)
     {
+        ResetText.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
         ResetText.gameObject.SetActive(true);
         while (!stop())
             yield return null;

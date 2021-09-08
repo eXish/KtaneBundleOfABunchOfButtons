@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100"
+   height="100"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="main-svg"
+   inkscape:export-filename="D:\c\KTANE\SingleSelectablePack\Assets\Modules\Teal\Assets\ButtonTexture.png"
+   inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
+   sodipodi:docname="TealButtonSymbol.svg"
+   inkscape:export-xdpi="480"
+   inkscape:export-ydpi="480">
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs5" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#0d93b8"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="7"
+     inkscape:cx="28.543311"
+     inkscape:cy="50.054844"
+     inkscape:document-units="px"
+     showgrid="true"
+     units="px"
+     inkscape:current-layer="main-svg"
+     inkscape:document-rotation="0">
+    <inkscape:grid
+       type="xygrid"
+       id="main-grid"
+       spacingx="5"
+       spacingy="5" />
+  </sodipodi:namedview>
+  <path
+     id="path832"
+     style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#0b3541;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+     d="M 49.826172,5 C 25.041269,5.0957409 4.9998151,25.214912 5,50 5,74.852814 25.147186,95 50,95 74.852814,95 95,74.852814 95,50 95,25.147186 74.852814,5 50,5 49.942057,4.9998881 49.884115,4.9998881 49.826172,5 Z M 55,15.359375 C 70.357762,17.577134 82.421925,29.642092 84.638672,45 H 55 Z M 15.361328,55 H 45 V 84.640625 C 29.642238,82.422866 17.578075,70.357908 15.361328,55 Z M 55,55 H 84.640625 C 82.422866,70.357762 70.357908,82.421925 55,84.638672 Z"
+     sodipodi:nodetypes="ccsscccccccccccccc" />
+</svg>
