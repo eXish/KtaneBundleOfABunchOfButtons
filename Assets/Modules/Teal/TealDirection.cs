@@ -1,6 +1,6 @@
-﻿namespace OrangeButton
+﻿namespace TealButton
 {
-    enum OrangeDirection
+    enum TealDirection
     {
         Up,
         Right,

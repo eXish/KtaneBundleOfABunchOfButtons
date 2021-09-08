@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using BlueButtonLib;
+using System.Text.RegularExpressions;
+using KModkit;
 using SingleSelectablePack;
+using TealButton;
 using UnityEngine;
 
 using Rnd = UnityEngine.Random;
@@ -14,105 +16,96 @@ public class TealButtonScript : MonoBehaviour
     public KMBombInfo BombInfo;
     public KMAudio Audio;
     public KMRuleSeedable RuleSeedable;
-    public KMSelectable TealButtonSelectable;
-    public GameObject TealButtonCap;
-    public Transform ArrowRotator;
-    public MeshRenderer[] ColorSquares;
-    public Material[] Colors;
-    public MeshRenderer[] Segments;
-    public Material SegmentOff;
-    public Material SegmentOn;
-    public Material SegmentOnHighlighted;
-    public Transform Symbol;
-    public Transform Indicator;
+    public KMSelectable ButtonSelectable;
+    public GameObject ButtonCap;
+    public MeshRenderer[] LedLights;
+    public Material[] LedMats;
+    public TextMesh _buttonText;
+    public TextMesh[] _mainText;
+    public Color[] _textColors;
 
-    private static readonly Dictionary<int, int[][]> _ruleSeededColorGrids = new Dictionary<int, int[][]>();
-    public static readonly string[] _colorNames = { "red", "yellow", "green", "cyan", "blue", "pink" };
-    public static readonly string[] _directionNames = { "up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left" };
+    private static readonly Dictionary<int, int[]> _ruleSeededTables = new Dictionary<int, int[]>();
 
     private static int _moduleIdCounter = 1;
-    private int _moduleId;
-    private bool _moduleSolved;
-    private int[] _solution;
-    private int _solutionProgress;
-    private int _curDirection;
-    private bool _curDirectionHighlighted;
-
-    private const int GridSize = 6;
-    private const int SnakeLength = 8;
+    private int _moduleId, _lastTimerSeconds, _lightIndex;
+    private readonly int[] _lightCycle = { 0, 1, 2, 3 };
+    private readonly int[] _screenTextIxs = new int[3];
+    private readonly int[] _solutions = new int[3];
+    private bool _moduleSolved, _buttonHeld, _checkTap, _isStriking;
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
-        TealButtonSelectable.OnInteract += TealButtonPress;
-        TealButtonSelectable.OnInteractEnded += TealButtonRelease;
 
-        // Rule seed
+        // START RULE SEED
         var rnd = RuleSeedable.GetRNG();
-        var colorGrids = _ruleSeededColorGrids.ContainsKey(rnd.Seed)
-            ? _ruleSeededColorGrids[rnd.Seed]
-            : (_ruleSeededColorGrids[rnd.Seed] = GenerateColorGrids(rnd));
+        Debug.LogFormat("[The Teal Button #{0}] Using rule seed {1}", _moduleId, rnd.Seed);
+        for (var i = 0; i < 73; i++)
+            rnd.Next(0, 2);
 
-        // Generate puzzle
-        var whichColorGrid = Rnd.Range(0, 4);
-        var numIterations = 0;
-        tryAgain:
-        numIterations++;
+        var directions = (TealDirection[]) Enum.GetValues(typeof(TealDirection));
+        var direction = directions[rnd.Next(0, 4)];
 
-        var inf = FindSnakyPath(new Coord[SnakeLength], 0, SnakeLength).FirstOrDefault();
-        if (FindSolutions(new Coord[SnakeLength], 0, colorGrids[whichColorGrid], inf.Squares, SnakeLength).Skip(1).Any())
-            goto tryAgain;
+        int[] pairPos = { 0, 1, 2, 3, 4, 5 };
+        rnd.ShuffleFisherYates(pairPos);
 
-        _solution = inf.Directions;
+        var letterTable = _ruleSeededTables.ContainsKey(rnd.Seed)
+            ? _ruleSeededTables[rnd.Seed]
+            : (_ruleSeededTables[rnd.Seed] = LatinSquare.Generate(rnd, 9));
+        // END RULE SEED
 
-        for (var i = 0; i < ColorSquares.Length; i++)
-            ColorSquares[i].sharedMaterial = Colors[colorGrids[whichColorGrid][inf.Squares[i].Index]];
-        Symbol.localEulerAngles = new Vector3(90, new[] { 0, 90, 270, 180 }[whichColorGrid], 0);
+        for (int i = 0; i < _screenTextIxs.Length; i++)
+            _screenTextIxs[i] = Rnd.Range(0, 9);
 
-        StartCoroutine(AnimateArrow());
-        StartCoroutine(AnimateColorStrip());
+        var snDigits = BombInfo.GetSerialNumber().Select(ch => (ch >= '0' && ch <= '9' ? ch - '0' : ch - 'A' + 10) % 9).ToArray();
+        var buttonNum = Rnd.Range(0, 9);
+        _buttonText.text = buttonNum.ToString();
 
-        Debug.LogFormat(@"[The Teal Button #{0}] Dance floor: {1}", _moduleId, "top-left,top-right,bottom-left,bottom-right".Split(',')[whichColorGrid]);
-        Debug.LogFormat(@"[The Teal Button #{0}] Color sequence: {1}", _moduleId, inf.Squares.Select(sq => _colorNames[colorGrids[whichColorGrid][sq.Index]]).Join(", "));
-        Debug.LogFormat(@"[The Teal Button #{0}] Starting position: {1}{2}", _moduleId, (char) ('A' + inf.Squares[0].X), inf.Squares[0].Y + 1);
-        Debug.LogFormat(@"[The Teal Button #{0}] Solution: {1}", _moduleId, inf.Directions.Select(dir => _directionNames[dir]).Join(", "));
-        Debug.LogFormat(@"<The Teal Button #{0}> Snake: {1}", _moduleId, inf.Squares.Select(c => (char) ('A' + c.X) + (c.Y + 1).ToString()).Join(" "));
+        var snPairs = new int[6];
+        for (int i = 0; i < snPairs.Length; i++)
+            snPairs[i] = snDigits[pairPos[i]];
+        for (int i = 0; i < _solutions.Length; i++)
+            _solutions[i] = letterTable[
+                ((snPairs[i * 2] + (direction == TealDirection.Left ? 9 - buttonNum : direction == TealDirection.Right ? buttonNum : 0)) % 9) +
+                9 * ((snPairs[i * 2 + 1] + (direction == TealDirection.Up ? 9 - buttonNum : direction == TealDirection.Down ? buttonNum : 0)) % 9)];
+
+        _lightCycle.Shuffle();
+        Debug.LogFormat("[The Teal Button #{0}] LED cycle is {1}.", _moduleId, _lightCycle.Select(lc => lc + 1).Join(", "));
+        Debug.LogFormat("[The Teal Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char) ('A' + ch)).Join(", "));
+
+        SetLights();
+        SetText();
+
+        ButtonSelectable.OnInteract += ButtonPress;
+        ButtonSelectable.OnInteractEnded += ButtonRelease;
     }
 
-    private bool TealButtonPress()
+    private bool ButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if (_moduleSolved)
-            return false;
-        _curDirectionHighlighted = true;
-        if (_curDirection != _solution[_solutionProgress])
+        if (!_moduleSolved)
         {
-            Debug.LogFormat(@"[The Teal Button #{0}] {1} was WRONG at position #{2}. Strike!", _moduleId, _directionNames[_curDirection], _solutionProgress + 1);
-            Module.HandleStrike();
-        }
-        else
-        {
-            _solutionProgress++;
-            Debug.LogFormat(@"[The Teal Button #{0}] {1} was correct at position #{2}.", _moduleId, _directionNames[_curDirection], _solutionProgress);
-            if (_solutionProgress == _solution.Length)
-            {
-                Debug.LogFormat(@"[The Teal Button #{0}] Module solved.", _moduleId);
-                Module.HandlePass();
-                _moduleSolved = true;
-                Audio.PlaySoundAtTransform("TealButtonSound8", transform);
-            }
-            else
-                Audio.PlaySoundAtTransform("TealButtonSound" + Rnd.Range(1, 8), transform);
+            _checkTap = false;
+            _buttonHeld = true;
         }
         return false;
     }
-
-    private void TealButtonRelease()
+    private void ButtonRelease()
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        _curDirectionHighlighted = false;
+        if (!_moduleSolved && !_isStriking)
+        {
+            _buttonHeld = false;
+            if (_checkTap)
+                CheckAnswer();
+            else
+            {
+                SetLights();
+                ButtonTap(_lastTimerSeconds);
+            }
+        }
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -121,143 +114,162 @@ public class TealButtonScript : MonoBehaviour
         var elapsed = 0f;
         while (elapsed < duration)
         {
-            TealButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
+            ButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        TealButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+        ButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
-    private IEnumerator AnimateArrow()
+    private void SetLights()
     {
-        const float speed = 64f;
-        while (!_moduleSolved)
+        _lightIndex++;
+        for (int i = 0; i < _lightCycle.Length; i++)
         {
-            var angle = speed * Time.time;
-            ArrowRotator.localEulerAngles = new Vector3(0, angle - 22.5f, 0);
-            _curDirection = ((int) angle / 45) % 8;
-            for (var i = 0; i < Segments.Length; i++)
-                Segments[i].sharedMaterial = i == _curDirection ? _curDirectionHighlighted ? SegmentOnHighlighted : SegmentOn : SegmentOff;
-            yield return null;
+            if (i != _lightCycle[(_lightIndex + 1) % 4])
+                LedLights[i].material = LedMats[0];
+            else
+                LedLights[i].material = LedMats[1];
         }
 
-        const float decelDuration = 4.7f;
-
-        var startAngle = speed * Time.time - 22.5f;
-        yield return Animation(decelDuration, useElapsed: true,
-            action: t => ArrowRotator.localEulerAngles = new Vector3(0, startAngle + speed * (t - .5f * Mathf.Pow(t, 2) / decelDuration), 0));
     }
 
-    private IEnumerator AnimateColorStrip()
+    private void Update()
     {
-        var prevProgress = -1;
-        while (!_moduleSolved)
+        var seconds = (int) BombInfo.GetTime() % 3;
+        if (seconds != _lastTimerSeconds)
         {
-            while (_solutionProgress == prevProgress)
-                yield return null;
-            var newProgress = prevProgress + 1;
+            _lastTimerSeconds = seconds;
+            if (!_isStriking)
+                SetTextColors(seconds);
+            if (_buttonHeld)
+                _checkTap = true;
+        }
+    }
 
-            yield return Animation(.6f, t =>
+    private void SetText()
+    {
+        for (int i = 0; i < _mainText.Length; i++)
+            _mainText[i].text = ((char) ('A' + _screenTextIxs[i])).ToString();
+    }
+    private void SetTextColors(int sec)
+    {
+        if (!_moduleSolved && !_isStriking)
+        {
+            for (int i = 0; i < _mainText.Length; i++)
             {
-                for (var i = 0; i < ColorSquares.Length; i++)
-                    ColorSquares[i].transform.localPosition = new Vector3(Easing.OutCubic(t,
-                        -0.039f + .011f * i + (i <= prevProgress ? -.0025f : .0025f),
-                        -0.039f + .011f * i + (i <= newProgress ? -.0025f : .0025f), 1), 0, 0);
-                Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.032f + prevProgress * .011f, -.032f + newProgress * .011f, 1), .0001f, 0);
-            });
-            prevProgress = newProgress;
+                if (i == sec)
+                    _mainText[i].color = _textColors[3];
+                else
+                    _mainText[i].color = _textColors[2];
+            }
         }
-
-        var indicatorMaterial = Indicator.gameObject.GetComponent<MeshRenderer>().material;
-        yield return Animation(1.7f, t =>
-        {
-            for (var i = 0; i < ColorSquares.Length; i++)
-                ColorSquares[i].transform.localPosition = new Vector3(Easing.OutCubic(t, -0.039f + .011f * i + (i <= prevProgress ? -.0025f : .0025f), -0.039f + .011f * i, 1), 0, 0);
-            Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.032f + prevProgress * .011f, .06f, 1), .0001f, 0);
-            indicatorMaterial.color = new Color(1, 1, 1, 1 - t);
-        });
     }
 
-    private IEnumerator Animation(float duration, Action<float> action, bool useElapsed = false)
+    private void ButtonTap(int ix)
     {
-        var elapsed = 0f;
-        while (elapsed < duration)
+        _screenTextIxs[ix] = (_screenTextIxs[ix] + _lightCycle[_lightIndex % 4] + 1) % 9;
+        SetText();
+    }
+
+    private void CheckAnswer()
+    {
+        bool isSolve = true;
+        for (int i = 0; i < _screenTextIxs.Length; i++)
+            if (_solutions[i] != _screenTextIxs[i])
+                isSolve = false;
+        if (isSolve)
         {
-            action(useElapsed ? elapsed : elapsed / duration);
+            Module.HandlePass();
+            _moduleSolved = true;
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
+            for (int i = 0; i < _screenTextIxs.Length; i++)
+                _mainText[i].color = _textColors[1];
+            for (int i = 0; i < LedLights.Length; i++)
+                LedLights[i].material = LedMats[1];
+            Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Module solved.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
+        }
+        else
+            StartCoroutine(Strike());
+    }
+
+    private IEnumerator Strike()
+    {
+        Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Strike.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
+        Module.HandleStrike();
+        _isStriking = true;
+        for (int i = 0; i < _screenTextIxs.Length; i++)
+        {
+            if (_screenTextIxs[i] != _solutions[i])
+                _mainText[i].color = _textColors[0];
+            else
+                _mainText[i].color = _textColors[1];
+        }
+        yield return new WaitForSeconds(1.2f);
+        _isStriking = false;
+    }
+
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} tap 3 1 2 1 [tap button when letters in those positions are highlighted] | !{0} submit";
+#pragma warning restore 414
+
+    public IEnumerator ProcessTwitchCommand(string command)
+    {
+        if (Regex.IsMatch(command, @"^\s*(submit|hold)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
             yield return null;
-            elapsed += Time.deltaTime;
-        }
-        action(useElapsed ? duration : 1);
-    }
-
-    private int[][] GenerateColorGrids(MonoRandom rnd)
-    {
-        var result = new int[4][];
-        for (int i = 0; i < 4; i++)
-            result[i] = LatinSquare.Generate(rnd, GridSize);
-        return result;
-    }
-
-    struct Snake
-    {
-        public Coord[] Squares;
-        public int[] Directions;
-    }
-
-    private IEnumerable<Snake> FindSnakyPath(Coord[] sofar, int ix, int length)
-    {
-        if (ix == length)
-        {
-            var directions = new int[length - 1];
-            for (var i = 1; i < length; i++)
-                directions[i - 1] = Enumerable.Range(0, 8).First(dir => sofar[i - 1].NeighborWrap((GridDirection) dir) == sofar[i]);
-            yield return new Snake { Directions = directions, Squares = sofar.ToArray() };
+            var time = (int) BombInfo.GetTime() % 3;
+            yield return ButtonSelectable;
+            while ((int) BombInfo.GetTime() % 3 == time)
+                yield return null;
+            yield return ButtonSelectable;
+            yield return new WaitForSeconds(.1f);
             yield break;
         }
 
-        var available = (ix == 0 ? Coord.Cells(GridSize, GridSize) : sofar[ix - 1].Neighbors.Where(neigh => !sofar.Take(ix).Contains(neigh))).ToArray();
-        var offset = Rnd.Range(0, available.Length);
-        for (var fAvIx = 0; fAvIx < available.Length; fAvIx++)
-        {
-            var avIx = (fAvIx + offset) % available.Length;
-            sofar[ix] = available[avIx];
-            foreach (var solution in FindSnakyPath(sofar, ix + 1, length))
-                yield return solution;
-        }
-    }
-
-    private IEnumerable<Coord[]> FindSolutions(Coord[] sofar, int ix, int[] colorGrid, Coord[] snake, int length)
-    {
-        if (ix == length)
-        {
-            yield return sofar.ToArray();
+        var m = Regex.Match(command, @"^\s*(?:tap|press|click)\s+([1-3 ]*)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!m.Success)
             yield break;
-        }
+        yield return null;
+        var slotsStr = m.Groups[1].Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var slots = new int[slotsStr.Length];
+        for (var i = 0; i < slotsStr.Length; i++)
+            if (!int.TryParse(slotsStr[i], out slots[i]))
+                yield break;
 
-        var available = (ix == 0 ? Coord.Cells(GridSize, GridSize) : sofar[ix - 1].Neighbors.Where(neigh => !sofar.Take(ix).Contains(neigh)))
-            .Where(cell => colorGrid[cell.Index] == colorGrid[snake[ix].Index])
-            .ToArray();
-        for (var avIx = 0; avIx < available.Length; avIx++)
+        foreach (var slot in slots)
         {
-            var cell = sofar[ix] = available[avIx];
-            var color = colorGrid[cell.Index];
-            foreach (var solution in FindSolutions(sofar, ix + 1, colorGrid, snake, length))
-                yield return solution;
+            while ((int) BombInfo.GetTime() % 3 != slot)
+                yield return null;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
         }
-    }
-
-#pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} NW N SE | !{0} UL U DR";
-#pragma warning restore 0414
-
-    private IEnumerator ProcessTwitchCommand(string command)
-    {
-        if (!_moduleSolved)
-            yield break;
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        while (!_moduleSolved)
+        {
+            var slot = (int) BombInfo.GetTime() % 3;
+            if (_screenTextIxs[slot] != _solutions[slot])
+            {
+                ButtonSelectable.OnInteract();
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+            else
+                yield return true;
+
+            if (Enumerable.Range(0, 3).All(ix => _screenTextIxs[ix] == _solutions[ix]))
+            {
+                // All slots correct: time to submit
+                var time = (int) BombInfo.GetTime() % 3;
+                ButtonSelectable.OnInteract();
+                while ((int) BombInfo.GetTime() % 3 == time)
+                    yield return true;
+                ButtonSelectable.OnInteractEnded();
+            }
+        }
     }
 }

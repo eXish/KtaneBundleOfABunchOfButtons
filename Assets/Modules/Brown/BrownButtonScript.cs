@@ -44,7 +44,6 @@ public class BrownButtonScript : MonoBehaviour
 
         Vector3Int[] changes = new Vector3Int[] { new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0), new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) };
 
-        Vector3Int start = _chosenNet.PickRandom();
         Dictionary<Vector3Int, int> cubeAssignments = new Dictionary<Vector3Int, int>() { };
         List<Vector3Int> notVisited = new List<Vector3Int>(_chosenNet);
         List<Direction4D.Axis4d> taken = new List<Direction4D.Axis4d>();

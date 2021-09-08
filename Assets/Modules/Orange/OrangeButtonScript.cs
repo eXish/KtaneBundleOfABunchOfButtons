@@ -1,275 +1,202 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
-using KModkit;
-using System.Linq;
-using System;
 
 using Rnd = UnityEngine.Random;
-using OrangeButton;
-using System.Text.RegularExpressions;
-using SingleSelectablePack;
 
 public class OrangeButtonScript : MonoBehaviour
 {
     public KMBombModule Module;
-    public KMBombInfo BombInfo;
+    public KMBombInfo Bomb;
     public KMAudio Audio;
-    public KMRuleSeedable RuleSeedable;
-    public KMSelectable OrangeButtonSelectable;
-    public GameObject OrangeButtonCap;
-    public MeshRenderer[] LedLights;
-    public Material[] LedMats;
-    public TextMesh _orangeButtonText;
-    public TextMesh[] _mainText;
-    public Color[] _textColors;
-
-    private static readonly Dictionary<int, int[]> _ruleSeededTables = new Dictionary<int, int[]>();
+    public KMSelectable ButtonSelectable;
+    public GameObject ButtonCap;
+    public Material LedOn, LedOff;
+    public MeshRenderer[] Leds;
+    public Light[] Lights;
+    public Transform LedParent;
 
     private static int _moduleIdCounter = 1;
-    private int _moduleId, _lastTimerSeconds, _lightIndex;
-    private readonly int[] _lightCycle = { 0, 1, 2, 3 };
-    private readonly int[] _screenTextIxs = new int[3];
-    private readonly int[] _solutions = new int[3];
-    private bool _moduleSolved, _buttonHeld, _checkTap, _isStriking;
+    private int _moduleId;
+    private bool _moduleSolved;
+    private bool _holding;
+    private int _holdWhen;
+    private int _releaseWhen;
+    private int _heldWhen;
+    private int _denom;
+    private int _numer;
+    private bool _counterclockwise;
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
+        ButtonSelectable.OnInteract += ButtonPress;
+        ButtonSelectable.OnInteractEnded += ButtonRelease;
 
-        // START RULE SEED
-        var rnd = RuleSeedable.GetRNG();
-        Debug.LogFormat("[The Orange Button #{0}] Using rule seed {1}", _moduleId, rnd.Seed);
-        for (var i = 0; i < 73; i++)
-            rnd.Next(0, 2);
+        foreach (Light l in Lights)
+            l.range *= transform.lossyScale.x;
 
-        var directions = (OrangeDirection[]) Enum.GetValues(typeof(OrangeDirection));
-        var direction = directions[rnd.Next(0, 4)];
+        tryAgain:
+        _denom = Rnd.Range(2, 10);
+        _numer = Rnd.Range(2, 10);
+        if (gcd(_denom, _numer) != 1)
+            goto tryAgain;
+        _counterclockwise = Rnd.Range(0, 2) != 0;
+        _holdWhen = _counterclockwise ? _denom : _numer;
+        _releaseWhen = _counterclockwise ? _numer : _denom;
 
-        int[] pairPos = { 0, 1, 2, 3, 4, 5 };
-        rnd.ShuffleFisherYates(pairPos);
+        Debug.LogFormat("[The Orange Button #{0}] Going {3}. Hold on {1}, release on {2}.", _moduleId, _holdWhen, _releaseWhen, _counterclockwise ? "counter-clockwise" : "clockwise");
 
-        var letterTable = _ruleSeededTables.ContainsKey(rnd.Seed)
-            ? _ruleSeededTables[rnd.Seed]
-            : (_ruleSeededTables[rnd.Seed] = LatinSquare.Generate(rnd, 9));
-        // END RULE SEED
-
-        for (int i = 0; i < _screenTextIxs.Length; i++)
-            _screenTextIxs[i] = Rnd.Range(0, 9);
-
-        var snDigits = BombInfo.GetSerialNumber().Select(ch => (ch >= '0' && ch <= '9' ? ch - '0' : ch - 'A' + 10) % 9).ToArray();
-        var buttonNum = Rnd.Range(0, 9);
-        _orangeButtonText.text = buttonNum.ToString();
-
-        var snPairs = new int[6];
-        for (int i = 0; i < snPairs.Length; i++)
-            snPairs[i] = snDigits[pairPos[i]];
-        for (int i = 0; i < _solutions.Length; i++)
-            _solutions[i] = letterTable[
-                ((snPairs[i * 2] + (direction == OrangeDirection.Left ? 9 - buttonNum : direction == OrangeDirection.Right ? buttonNum : 0)) % 9) +
-                9 * ((snPairs[i * 2 + 1] + (direction == OrangeDirection.Up ? 9 - buttonNum : direction == OrangeDirection.Down ? buttonNum : 0)) % 9)];
-
-        _lightCycle.Shuffle();
-        Debug.LogFormat("[The Orange Button #{0}] LED cycle is {1}.", _moduleId, _lightCycle.Select(lc => lc + 1).Join(", "));
-        Debug.LogFormat("[The Orange Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char) ('A' + ch)).Join(", "));
-
-        SetLights();
-        SetText();
-
-        OrangeButtonSelectable.OnInteract += OrangeButtonPress;
-        OrangeButtonSelectable.OnInteractEnded += OrangeButtonRelease;
+        StartCoroutine(Move());
     }
 
-    private bool OrangeButtonPress()
+    private static int gcd(int a, int b)
+    {
+        while (a != 0 && b != 0)
+        {
+            if (a > b)
+                a %= b;
+            else
+                b %= a;
+        }
+
+        return a | b;
+    }
+
+    private IEnumerator Move()
+    {
+        var rotationPeriod = Rnd.Range(4f, 6f);
+        var ledChangePeriod = rotationPeriod / _numer * _denom;
+        var prevLedState = (int) (Time.time / ledChangePeriod);
+        var latestRotation = 0f;
+
+        while (!_moduleSolved)
+        {
+            yield return null;
+            latestRotation = Time.time * 360 / rotationPeriod * (_counterclockwise ? -1 : 1);
+            LedParent.localEulerAngles = new Vector3(0, latestRotation, 0);
+            var ledState = (int) (Time.time / ledChangePeriod);
+            if (ledState != prevLedState)
+            {
+                for (var i = 0; i < Leds.Length; i++)
+                    SetLightState(i, Rnd.Range(0, 2) != 0);
+                prevLedState = ledState;
+            }
+        }
+
+        for (var i = 0; i < Leds.Length; i++)
+            SetLightState(i, false);
+
+        var duration = 3.5f;
+        var elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            LedParent.localEulerAngles = new Vector3(0, latestRotation + (_counterclockwise ? -1 : 1) * (elapsed - .5f * Mathf.Pow(elapsed, 2) / duration) * 360 / rotationPeriod, 0);
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+    }
+
+    private void SetLightState(int ix, bool on)
+    {
+        Leds[ix].sharedMaterial = on ? LedOn : LedOff;
+        Lights[ix].gameObject.SetActive(on);
+    }
+
+    private bool ButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
+
         if (!_moduleSolved)
         {
-            _checkTap = false;
-            _buttonHeld = true;
+            _holding = true;
+            _heldWhen = (int) Bomb.GetTime() % 10;
         }
         return false;
     }
-    private void OrangeButtonRelease()
+
+    private void ButtonRelease()
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (!_moduleSolved && !_isStriking)
+
+        if (!_moduleSolved)
         {
-            _buttonHeld = false;
-            if (_checkTap)
-                CheckAnswer();
+            _holding = false;
+            var releasedWhen = (int) Bomb.GetTime() % 10;
+
+            if (_heldWhen != _holdWhen || releasedWhen != _releaseWhen)
+            {
+                Debug.LogFormat(@"[The Orange Button #{0}] You held on {1} and released on {2}. Strike!", _moduleId, _heldWhen, releasedWhen);
+                Module.HandleStrike();
+            }
             else
             {
-                SetLights();
-                ButtonTap(_lastTimerSeconds);
+                Debug.LogFormat(@"[The Orange Button #{0}] Module solved.", _moduleId);
+                Module.HandlePass();
+                _moduleSolved = true;
             }
         }
     }
 
     private IEnumerator AnimateButton(float a, float b)
     {
-        var duration = 0.1f;
-        var elapsed = 0f;
+        float duration = 0.1f;
+        float elapsed = 0f;
         while (elapsed < duration)
         {
-            OrangeButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
+            ButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        OrangeButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+        ButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
-    private void SetLights()
-    {
-        _lightIndex++;
-        for (int i = 0; i < _lightCycle.Length; i++)
-        {
-            if (i != _lightCycle[(_lightIndex + 1) % 4])
-                LedLights[i].material = LedMats[0];
-            else
-                LedLights[i].material = LedMats[1];
-        }
+#pragma warning disable 0414
+    private readonly string TwitchHelpMessage = "!{0} hold 4 | !{0} release 7";
+#pragma warning restore 0414
 
-    }
-
-    private void Update()
+    private IEnumerator ProcessTwitchCommand(string command)
     {
-        var seconds = (int) BombInfo.GetTime() % 3;
-        if (seconds != _lastTimerSeconds)
-        {
-            _lastTimerSeconds = seconds;
-            if (!_isStriking)
-                SetTextColors(seconds);
-            if (_buttonHeld)
-                _checkTap = true;
-        }
-    }
+        if (_moduleSolved)
+            yield break;
 
-    private void SetText()
-    {
-        for (int i = 0; i < _mainText.Length; i++)
-            _mainText[i].text = ((char) ('A' + _screenTextIxs[i])).ToString();
-    }
-    private void SetTextColors(int sec)
-    {
-        if (!_moduleSolved && !_isStriking)
-        {
-            for (int i = 0; i < _mainText.Length; i++)
-            {
-                if (i == sec)
-                    _mainText[i].color = _textColors[3];
-                else
-                    _mainText[i].color = _textColors[2];
-            }
-        }
-    }
+        Match m;
+        int v;
 
-    private void ButtonTap(int ix)
-    {
-        _screenTextIxs[ix] = (_screenTextIxs[ix] + _lightCycle[_lightIndex % 4] + 1) % 9;
-        SetText();
-    }
-
-    private void CheckAnswer()
-    {
-        bool isSolve = true;
-        for (int i = 0; i < _screenTextIxs.Length; i++)
-            if (_solutions[i] != _screenTextIxs[i])
-                isSolve = false;
-        if (isSolve)
-        {
-            Module.HandlePass();
-            _moduleSolved = true;
-            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
-            for (int i = 0; i < _screenTextIxs.Length; i++)
-                _mainText[i].color = _textColors[1];
-            for (int i = 0; i < LedLights.Length; i++)
-                LedLights[i].material = LedMats[1];
-            Debug.LogFormat("[The Orange Button #{0}] Submitted {1}. Module solved.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
-        }
-        else
-            StartCoroutine(Strike());
-    }
-
-    private IEnumerator Strike()
-    {
-        Debug.LogFormat("[The Orange Button #{0}] Submitted {1}. Strike.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
-        Module.HandleStrike();
-        _isStriking = true;
-        for (int i = 0; i < _screenTextIxs.Length; i++)
-        {
-            if (_screenTextIxs[i] != _solutions[i])
-                _mainText[i].color = _textColors[0];
-            else
-                _mainText[i].color = _textColors[1];
-        }
-        yield return new WaitForSeconds(1.2f);
-        _isStriking = false;
-    }
-
-#pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} tap 3 1 2 1 [tap button when letters in those positions are highlighted] | !{0} submit";
-#pragma warning restore 414
-
-    public IEnumerator ProcessTwitchCommand(string command)
-    {
-        if (Regex.IsMatch(command, @"^\s*(submit|hold)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        if (!_holding && (m = Regex.Match(command, @"^\s*hold\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
         {
             yield return null;
-            var time = (int) BombInfo.GetTime() % 3;
-            yield return OrangeButtonSelectable;
-            while ((int) BombInfo.GetTime() % 3 == time)
+            while ((int) Bomb.GetTime() % 10 != v)
                 yield return null;
-            yield return OrangeButtonSelectable;
-            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteract();
             yield break;
         }
 
-        var m = Regex.Match(command, @"^\s*(?:tap|press|click)\s+([1-3 ]*)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        if (!m.Success)
-            yield break;
-        yield return null;
-        var slotsStr = m.Groups[1].Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        var slots = new int[slotsStr.Length];
-        for (var i = 0; i < slotsStr.Length; i++)
-            if (!int.TryParse(slotsStr[i], out slots[i]))
-                yield break;
-
-        foreach (var slot in slots)
+        if (_holding && (m = Regex.Match(command, @"^\s*release\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
         {
-            while ((int) BombInfo.GetTime() % 3 != slot)
+            yield return null;
+            while ((int) Bomb.GetTime() % 10 != v)
                 yield return null;
-            OrangeButtonSelectable.OnInteract();
-            OrangeButtonSelectable.OnInteractEnded();
-            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield break;
         }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        while (!_moduleSolved)
-        {
-            var slot = (int) BombInfo.GetTime() % 3;
-            if (_screenTextIxs[slot] != _solutions[slot])
-            {
-                OrangeButtonSelectable.OnInteract();
-                OrangeButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(.1f);
-            }
-            else
-                yield return true;
+        if (_moduleSolved)
+            yield break;
 
-            if (Enumerable.Range(0, 3).All(ix => _screenTextIxs[ix] == _solutions[ix]))
-            {
-                // All slots correct: time to submit
-                var time = (int) BombInfo.GetTime() % 3;
-                OrangeButtonSelectable.OnInteract();
-                while ((int) BombInfo.GetTime() % 3 == time)
-                    yield return true;
-                OrangeButtonSelectable.OnInteractEnded();
-            }
-        }
+        while ((int) Bomb.GetTime() % 10 != _holdWhen)
+            yield return true;
+        ButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        while ((int) Bomb.GetTime() % 10 != _releaseWhen)
+            yield return true;
+        ButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
     }
 }

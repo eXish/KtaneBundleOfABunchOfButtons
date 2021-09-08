@@ -12,9 +12,9 @@
    viewBox="0 0 100 100"
    version="1.1"
    id="main-svg"
-   inkscape:export-filename="D:\c\KTANE\SingleSelectablePack\Assets\Modules\Teal\Assets\ButtonTexture.png"
+   inkscape:export-filename="D:\c\KTANE\SingleSelectablePack\Assets\Modules\Yellow\Assets\ButtonTexture.png"
    inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
-   sodipodi:docname="TealButtonSymbol.svg"
+   sodipodi:docname="YellowButtonSymbol.svg"
    inkscape:export-xdpi="480"
    inkscape:export-ydpi="480">
   <metadata
@@ -33,7 +33,7 @@
      id="defs5" />
   <sodipodi:namedview
      id="base"
-     pagecolor="#0d93b8"
+     pagecolor="#d6c50f"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0"
@@ -54,7 +54,7 @@
   </sodipodi:namedview>
   <path
      id="path832"
-     style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#0b3541;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+     style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#292607;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
      d="M 49.826172,5 C 25.041269,5.0957409 4.9998151,25.214912 5,50 5,74.852814 25.147186,95 50,95 74.852814,95 95,74.852814 95,50 95,25.147186 74.852814,5 50,5 49.942057,4.9998881 49.884115,4.9998881 49.826172,5 Z M 55,15.359375 C 70.357762,17.577134 82.421925,29.642092 84.638672,45 H 55 Z M 15.361328,55 H 45 V 84.640625 C 29.642238,82.422866 17.578075,70.357908 15.361328,55 Z M 55,55 H 84.640625 C 82.422866,70.357762 70.357908,82.421925 55,84.638672 Z"
      sodipodi:nodetypes="ccsscccccccccccccc" />
 </svg>
