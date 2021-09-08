@@ -100,7 +100,10 @@ public class TealButtonScript : MonoBehaviour
                 Debug.LogFormat(@"[The Teal Button #{0}] Module solved.", _moduleId);
                 Module.HandlePass();
                 _moduleSolved = true;
+                Audio.PlaySoundAtTransform("TealButtonSound8", transform);
             }
+            else
+                Audio.PlaySoundAtTransform("TealButtonSound" + Rnd.Range(1, 8), transform);
         }
         return false;
     }
@@ -147,7 +150,7 @@ public class TealButtonScript : MonoBehaviour
 
     private IEnumerator AnimateColorStrip()
     {
-        var prevProgress = 0;
+        var prevProgress = -1;
         while (!_moduleSolved)
         {
             while (_solutionProgress == prevProgress)
@@ -158,9 +161,9 @@ public class TealButtonScript : MonoBehaviour
             {
                 for (var i = 0; i < ColorSquares.Length; i++)
                     ColorSquares[i].transform.localPosition = new Vector3(Easing.OutCubic(t,
-                        -0.035f + .01f * i + (i <= prevProgress ? -.0025f : .0025f),
-                        -0.035f + .01f * i + (i <= newProgress ? -.0025f : .0025f), 1), 0, 0);
-                Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.03f + prevProgress * .01f, -.03f + newProgress * .01f, 1), .0001f, 0);
+                        -0.039f + .011f * i + (i <= prevProgress ? -.0025f : .0025f),
+                        -0.039f + .011f * i + (i <= newProgress ? -.0025f : .0025f), 1), 0, 0);
+                Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.032f + prevProgress * .011f, -.032f + newProgress * .011f, 1), .0001f, 0);
             });
             prevProgress = newProgress;
         }
@@ -169,8 +172,8 @@ public class TealButtonScript : MonoBehaviour
         yield return Animation(1.7f, t =>
         {
             for (var i = 0; i < ColorSquares.Length; i++)
-                ColorSquares[i].transform.localPosition = new Vector3(Easing.OutCubic(t, -0.035f + .01f * i + (i <= prevProgress ? -.0025f : .0025f), -0.035f + .01f * i, 1), 0, 0);
-            Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.03f + prevProgress * .01f, .05f, 1), .0001f, 0);
+                ColorSquares[i].transform.localPosition = new Vector3(Easing.OutCubic(t, -0.039f + .011f * i + (i <= prevProgress ? -.0025f : .0025f), -0.039f + .011f * i, 1), 0, 0);
+            Indicator.localPosition = new Vector3(Easing.OutCubic(t, -.032f + prevProgress * .011f, .06f, 1), .0001f, 0);
             indicatorMaterial.color = new Color(1, 1, 1, 1 - t);
         });
     }
