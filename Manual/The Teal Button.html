@@ -18,15 +18,26 @@
 
         function setRules(rnd)
         {
-            let size = 6;
+            for (let n = 0; n < 73; n++)
+                rnd.next(0, 2);
+
+            let directions = ["up", "right", "down", "left"];
+            document.getElementById('rule-direction').innerText = directions[rnd.next(0, 4)];
+
+            let positions = ["first", "second", "third", "fourth", "fifth", "sixth"];
+            rnd.shuffleFisherYates(positions);
+            let spans = Array.from(document.querySelectorAll(`.teal-button-list span`));
+            for (let i = 0; i < 6; i++)
+                spans[i].innerText = positions[i];
+
             function recurse(sofar, available)
             {
                 function processAvailable(sq, v)
                 {
                     let newAvailable = available.slice(0);
-                    for (let c = 0; c < size; c++)
+                    for (let c = 0; c < 9; c++)
                     {
-                        let avIx = c + size * ((sq / size) | 0);
+                        let avIx = c + 9 * ((sq / 9) | 0);
                         let ix = newAvailable[avIx].indexOf(v);
                         if (ix !== -1)
                         {
@@ -34,9 +45,9 @@
                             newAvailable[avIx].splice(ix, 1);
                         }
                     }
-                    for (let r = 0; r < size; r++)
+                    for (let r = 0; r < 9; r++)
                     {
-                        let avIx = (sq % size) + size * r;
+                        let avIx = (sq % 9) + 9 * r;
                         let ix = newAvailable[avIx].indexOf(v);
                         if (ix !== -1)
                         {
@@ -48,12 +59,12 @@
                 }
 
                 let ixs = [];
-                let lowest = null;
-                for (let sq = 0; sq < size * size; sq++)
+                let lowest = 9;
+                for (let sq = 0; sq < 9 * 9; sq++)
                 {
                     if (sofar[sq] !== null)
                         continue;
-                    if (lowest == null || available[sq].length < lowest)
+                    if (available[sq].length < lowest)
                     {
                         ixs = [sq];
                         lowest = available[sq].length;
@@ -82,16 +93,13 @@
                 sofar[square] = null;
                 return null;
             }
+            let grid = recurse(
+                Array(9 * 9).fill(null),
+                Array(9 * 9).fill(null).map(x => Array(9).fill(null).map((_, c) => c)));
 
-            let divs = Array.from(document.querySelectorAll(`.teal-button-dancefloor`));
-            for (let df = 0; df < 4; df++)
-            {
-                let grid = recurse(
-                    Array(size * size).fill(null),
-                    Array(size * size).fill(null).map(x => Array(size).fill(null).map((_, c) => c)));
-
-                divs[df].innerHTML = `<table>${Array(size).fill(null).map((_, row) => `<tr>${Array(size).fill(null).map((_, col) => `<td class='color-${grid[col + size*row]}'><${''}/td>`).join('')}<${''}/tr>`).join('')}<${''}/table>`;
-            }
+            let tds = Array.from(document.querySelectorAll(`.teal-button-table td`));
+            for (let i = 0; i < 81; i++)
+                tds[i].innerText = String.fromCharCode(65 + grid[i]);
         }
     </script>
     <style>
@@ -99,26 +107,33 @@
             border: none;
         }
 
-        #teal-button-dancefloors {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
+        .teal-button-table {
+            margin-left: auto;
+            margin-right: auto;
+            border: none;
         }
-        .teal-button-dancefloor {
-            margin-bottom: 1cm;
-            border: 2px solid black;
-        }
-            .teal-button-dancefloor td {
-                width: 1cm;
-                height: 1cm;
-                padding: 0;
+
+            .teal-button-table td {
+                text-align: center;
+                font-size: 12pt;
+                padding: .2em .6em .1em;
             }
-            .teal-button-dancefloor td.color-0 { background: hsl(  0, 90%, 70%); }
-            .teal-button-dancefloor td.color-1 { background: hsl( 60, 90%, 70%); }
-            .teal-button-dancefloor td.color-2 { background: hsl(120, 90%, 70%); }
-            .teal-button-dancefloor td.color-3 { background: hsl(180, 90%, 70%); }
-            .teal-button-dancefloor td.color-4 { background: hsl(240, 90%, 70%); }
-            .teal-button-dancefloor td.color-5 { background: hsl(300, 90%, 70%); }
+
+            .teal-button-table th {
+                width: 25px;
+                height: 25px;
+                font-size: 16pt;
+                padding: .2em .6em .1em;
+            }
+
+        body.ruleseed-active .rule {
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .manual {
+            font-size: 11pt;
+        }
     </style>
 </head>
 <body>
@@ -132,15 +147,141 @@
                 <img src="img/Component/The Teal Button.svg" class="diagram">
                 <h2>On the Subject of The Teal Button</h2>
                 <p class="flavour-text">This is a button. It is teal.</p>
-                <p>Pick the right dance floor as indicated by the symbol on the button.</p>
-                <p>The screen reveals the newest hip color sequence you need to grok to fit in with the cool kids. It is up to you to find the sick moves that cover that exact sequence. You can only take one step at a time in any direction (including diagonal). If you stumble off the dancefloor, you brand yourself as a lame loser.</p>
-                <p>Tap the button to take a step in the direction of the spinning arrow.</p>
-                <div id="teal-button-dancefloors">
-                    <div class="teal-button-dancefloor"></div>
-                    <div class="teal-button-dancefloor"></div>
-                    <div class="teal-button-dancefloor"></div>
-                    <div class="teal-button-dancefloor"></div>
+                <div class="manual">
+                    <p>Take the serial number characters, and split them up into three pairs of two:</p>
+                    <ul class="teal-button-list">
+                        <li>The <span class="rule">sixth</span> and <span class="rule">fifth</span> serial number characters as the first pair.</li>
+                        <li>The <span class="rule">fourth</span> and <span class="rule">third</span> serial number characters as the second pair.</li>
+                        <li>The <span class="rule">second</span> and <span class="rule">first</span> serial number characters as the third pair.</li>
+                    </ul>
+                    <p>Convert any letters into their base-36 value. (A=10, B=11, ..., Z=35) Then, take each character serial number, and repeatedly subtract 9 until your number is between 0 and 8.</p>
+                    <p>The first value in each pair represents which column in the table below you have to use.  The second value represents the row. Find the letter found at the intersection.</p>
+                    <p>Then, with the number written on the button, move these many squares <span id="rule-direction" class="rule">down</span> from the discovered intersection, wrapping around to the beginning of the row if necessary.  The three letters found at each new square is what needs to be submitted.</p>
+                    <p>To change the letter in the display, tap the button when the letter's color is cyan.  This will shift it forward <i>n</i> times, where <i>n</i> is the position of the green LED from top to bottom.</p>
+                    <p>To submit your answer, hold the button over any timer tick.</p>
                 </div>
+                <table class="teal-button-table">
+                    <tr>
+                        <th class="corner"></th>
+                        <th>0</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
+                        <th>8</th>
+                    </tr>
+                    <tr>
+                        <th>0</th>
+                        <td>I</td>
+                        <td>E</td>
+                        <td>F</td>
+                        <td>G</td>
+                        <td>C</td>
+                        <td>H</td>
+                        <td>B</td>
+                        <td>A</td>
+                        <td>D</td>
+                    </tr>
+                    <tr>
+                        <th>1</th>
+                        <td>F</td>
+                        <td>H</td>
+                        <td>G</td>
+                        <td>A</td>
+                        <td>E</td>
+                        <td>B</td>
+                        <td>I</td>
+                        <td>D</td>
+                        <td>C</td>
+                    </tr>
+                    <tr>
+                        <th>2</th>
+                        <td>E</td>
+                        <td>A</td>
+                        <td>I</td>
+                        <td>D</td>
+                        <td>B</td>
+                        <td>C</td>
+                        <td>G</td>
+                        <td>F</td>
+                        <td>H</td>
+                    </tr>
+                    <tr>
+                        <th>3</th>
+                        <td>C</td>
+                        <td>G</td>
+                        <td>H</td>
+                        <td>B</td>
+                        <td>F</td>
+                        <td>D</td>
+                        <td>A</td>
+                        <td>E</td>
+                        <td>I</td>
+                    </tr>
+                    <tr>
+                        <th>4</th>
+                        <td>G</td>
+                        <td>F</td>
+                        <td>B</td>
+                        <td>C</td>
+                        <td>D</td>
+                        <td>E</td>
+                        <td>H</td>
+                        <td>I</td>
+                        <td>A</td>
+                    </tr>
+                    <tr>
+                        <th>5</th>
+                        <td>A</td>
+                        <td>C</td>
+                        <td>E</td>
+                        <td>F</td>
+                        <td>H</td>
+                        <td>I</td>
+                        <td>D</td>
+                        <td>G</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <th>6</th>
+                        <td>H</td>
+                        <td>I</td>
+                        <td>D</td>
+                        <td>E</td>
+                        <td>G</td>
+                        <td>A</td>
+                        <td>C</td>
+                        <td>B</td>
+                        <td>F</td>
+                    </tr>
+                    <tr>
+                        <th>7</th>
+                        <td>D</td>
+                        <td>B</td>
+                        <td>A</td>
+                        <td>H</td>
+                        <td>I</td>
+                        <td>F</td>
+                        <td>E</td>
+                        <td>C</td>
+                        <td>G</td>
+                    </tr>
+                    <tr>
+                        <th>8</th>
+                        <td>B</td>
+                        <td>D</td>
+                        <td>C</td>
+                        <td>I</td>
+                        <td>A</td>
+                        <td>G</td>
+                        <td>F</td>
+                        <td>H</td>
+                        <td>E</td>
+                    </tr>
+                </table>
             </div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>
