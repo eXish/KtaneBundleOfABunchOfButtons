@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+
 using Rnd = UnityEngine.Random;
 
 public class BaseButtonScript : MonoBehaviour
@@ -22,7 +23,6 @@ public class BaseButtonScript : MonoBehaviour
         ButtonSelectable.OnInteract += RedButtonPress;
         ButtonSelectable.OnInteractEnded += RedButtonRelease;
     }
-
 
     private bool RedButtonPress()
     {

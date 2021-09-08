@@ -59,6 +59,7 @@
      <Compile Include="Assets\KMScripts\KMRuleSeedable.cs" />
      <Compile Include="Assets\KMScripts\PrivateWhenPlayingAttribute.cs" />
      <Compile Include="Assets\KMScripts\ReadOnlyWhenPlayingAttribute.cs" />
+     <Compile Include="Assets\LatinSquare.cs" />
      <Compile Include="Assets\MaskMaterials.cs" />
      <Compile Include="Assets\MaskShaderManager.cs" />
      <Compile Include="Assets\Modules\BASE BUTTON\BaseButtonScript.cs" />
@@ -78,6 +79,7 @@
      <Compile Include="Assets\Modules\Pink\PinkButtonScript.cs" />
      <Compile Include="Assets\Modules\Purple\PurpleButtonScript.cs" />
      <Compile Include="Assets\Modules\Red\RedButtonScript.cs" />
+     <Compile Include="Assets\Modules\Teal\TealButtonScript.cs" />
      <Compile Include="Assets\Modules\White\WhiteButtonScript.cs" />
      <Compile Include="Assets\Modules\Yellow\YellowButtonScript.cs" />
      <Compile Include="Assets\TestHarness\EdgeworkConfiguration.cs" />

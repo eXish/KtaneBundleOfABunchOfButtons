@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="BlueButtonPuzzle.cs" />
     <Compile Include="Coord.cs" />
+    <Compile Include="GridDirection.cs" />
     <Compile Include="Polyomino.cs" />
     <Compile Include="PolyominoPlacement.cs" />
     <Compile Include="Ut.cs" />

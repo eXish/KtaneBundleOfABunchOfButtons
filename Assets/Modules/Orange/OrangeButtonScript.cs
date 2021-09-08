@@ -8,6 +8,7 @@ using System;
 using Rnd = UnityEngine.Random;
 using OrangeButton;
 using System.Text.RegularExpressions;
+using SingleSelectablePack;
 
 public class OrangeButtonScript : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class OrangeButtonScript : MonoBehaviour
     public TextMesh _orangeButtonText;
     public TextMesh[] _mainText;
     public Color[] _textColors;
+
+    private static readonly Dictionary<int, int[]> _ruleSeededTables = new Dictionary<int, int[]>();
 
     private static int _moduleIdCounter = 1;
     private int _moduleId, _lastTimerSeconds, _lightIndex;
@@ -46,7 +49,9 @@ public class OrangeButtonScript : MonoBehaviour
         int[] pairPos = { 0, 1, 2, 3, 4, 5 };
         rnd.ShuffleFisherYates(pairPos);
 
-        var letterTable = recurse(rnd, new int?[9 * 9], Enumerable.Range(0, 9 * 9).Select(_ => Enumerable.Range(0, 9).ToList()).ToArray());
+        var letterTable = _ruleSeededTables.ContainsKey(rnd.Seed)
+            ? _ruleSeededTables[rnd.Seed]
+            : (_ruleSeededTables[rnd.Seed] = LatinSquare.Generate(rnd, 9));
         // END RULE SEED
 
         for (int i = 0; i < _screenTextIxs.Length; i++)
@@ -73,71 +78,6 @@ public class OrangeButtonScript : MonoBehaviour
 
         OrangeButtonSelectable.OnInteract += OrangeButtonPress;
         OrangeButtonSelectable.OnInteractEnded += OrangeButtonRelease;
-    }
-
-    int[] recurse(MonoRandom rnd, int?[] sofar, List<int>[] available)
-    {
-        var ixs = new List<int>();
-        var lowest = 9;
-        for (var sq = 0; sq < 9 * 9; sq++)
-        {
-            if (sofar[sq] != null)
-                continue;
-            if (available[sq].Count < lowest)
-            {
-                ixs.Clear();
-                ixs.Add(sq);
-                lowest = available[sq].Count;
-            }
-            else if (available[sq].Count == lowest)
-                ixs.Add(sq);
-            if (lowest == 1)
-                break;
-        }
-
-        if (ixs.Count == 0)
-            return sofar.Select(i => i.Value).ToArray();
-
-        var square = ixs[rnd.Next(0, ixs.Count)];
-        var offset = rnd.Next(0, available[square].Count);
-        for (var fAvIx = 0; fAvIx < available[square].Count; fAvIx++)
-        {
-            var avIx = (fAvIx + offset) % available[square].Count;
-            var v = available[square][avIx];
-            sofar[square] = v;
-
-            var result = recurse(rnd, sofar, processAvailable(available, square, v));
-            if (result != null)
-                return result;
-        }
-        sofar[square] = null;
-        return null;
-    }
-
-    List<int>[] processAvailable(List<int>[] available, int sq, int v)
-    {
-        var newAvailable = available.ToArray();
-        for (var c = 0; c < 9; c++)
-        {
-            var avIx = c + 9 * (sq / 9);
-            var ix = newAvailable[avIx].IndexOf(v);
-            if (ix != -1)
-            {
-                newAvailable[avIx] = newAvailable[avIx].ToList();
-                newAvailable[avIx].RemoveAt(ix);
-            }
-        }
-        for (var r = 0; r < 9; r++)
-        {
-            var avIx = (sq % 9) + 9 * r;
-            var ix = newAvailable[avIx].IndexOf(v);
-            if (ix != -1)
-            {
-                newAvailable[avIx] = newAvailable[avIx].ToList();
-                newAvailable[avIx].RemoveAt(ix);
-            }
-        }
-        return newAvailable;
     }
 
     private bool OrangeButtonPress()
