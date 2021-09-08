@@ -81,6 +81,8 @@
      <Compile Include="Assets\Modules\Teal\TealButtonScript.cs" />
      <Compile Include="Assets\Modules\Teal\TealDirection.cs" />
      <Compile Include="Assets\Modules\White\WhiteButtonScript.cs" />
+     <Compile Include="Assets\Modules\Yellow\FakeStatusLight.cs" />
+     <Compile Include="Assets\Modules\Yellow\StatusLightState.cs" />
      <Compile Include="Assets\Modules\Yellow\YellowButtonScript.cs" />
      <Compile Include="Assets\TestHarness\EdgeworkConfiguration.cs" />
      <Compile Include="Assets\TestHarness\NeedyTimer.cs" />

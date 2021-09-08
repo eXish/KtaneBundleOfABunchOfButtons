@@ -25,6 +25,7 @@ public class YellowButtonScript : MonoBehaviour
     public Material SegmentOnHighlighted;
     public Transform Symbol;
     public Transform Indicator;
+    public FakeStatusLight FakeStatusLight;
 
     private static readonly Dictionary<int, int[][]> _ruleSeededColorGrids = new Dictionary<int, int[][]>();
     public static readonly string[] _colorNames = { "red", "yellow", "green", "cyan", "blue", "pink" };
@@ -102,7 +103,6 @@ public class YellowButtonScript : MonoBehaviour
             if (_solutionProgress == _solution.Length)
             {
                 Debug.LogFormat(@"[The Yellow Button #{0}] Module solved.", _moduleId);
-                Module.HandlePass();
                 StartCoroutine(SolveAnimation());
                 _moduleSolved = true;
                 Audio.PlaySoundAtTransform("YellowButtonSound8", transform);
@@ -257,14 +257,27 @@ public class YellowButtonScript : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         Audio.PlaySoundAtTransform("YellowButtonSolve", transform);
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < 6 * 8; i++)
         {
-            if (i % 4 == 0)
+            if (i % 8 == 0)
+            {
                 StartCoroutine(AnimateButton(0f, -0.05f));
-            if (i % 4 == 2)
+                FakeStatusLight.SetPass();
+            }
+            if (i % 8 == 2)
+                FakeStatusLight.SetInActive();
+            if (i % 8 == 4)
+            {
                 StartCoroutine(AnimateButton(-0.05f, 0f));
-            yield return new WaitForSeconds(0.241f);
+                FakeStatusLight.SetStrike();
+            }
+            if (i % 8 == 6)
+                FakeStatusLight.SetInActive();
+            foreach (var cs in ColorSquares)
+                cs.sharedMaterial = Colors[Rnd.Range(0, Colors.Length)];
+            yield return new WaitForSeconds(0.118f);
         }
+        Module.HandlePass();
     }
 
 #pragma warning disable 0414
