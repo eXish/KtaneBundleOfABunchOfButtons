@@ -79,6 +79,10 @@ public class YellowButtonScript : MonoBehaviour
         Debug.LogFormat(@"[The Yellow Button #{0}] Starting position: {1}{2}", _moduleId, (char) ('A' + inf.Squares[0].X), inf.Squares[0].Y + 1);
         Debug.LogFormat(@"[The Yellow Button #{0}] Solution: {1}", _moduleId, inf.Directions.Select(dir => _directionNames[dir]).Join(", "));
         Debug.LogFormat(@"<The Yellow Button #{0}> Snake: {1}", _moduleId, inf.Squares.Select(c => (char) ('A' + c.X) + (c.Y + 1).ToString()).Join(" "));
+
+        FakeStatusLight = Instantiate(FakeStatusLight);
+        FakeStatusLight.GetStatusLights(transform);
+        FakeStatusLight.Module = Module;
     }
 
     private bool ButtonPress()
@@ -93,19 +97,20 @@ public class YellowButtonScript : MonoBehaviour
         _curDirectionHighlighted = true;
         if (_curDirection != _solution[_solutionProgress])
         {
-            Debug.LogFormat(@"[The Yellow Button #{0}] {1} was WRONG at position #{2}. Strike!", _moduleId, _directionNames[_curDirection], _solutionProgress + 1);
+            Debug.LogFormat(@"[The Yellow Button #{0}] Stepping {1} was WRONG at position #{2}. Strike!", _moduleId, _directionNames[_curDirection], _solutionProgress + 1);
             Module.HandleStrike();
         }
         else
         {
             _solutionProgress++;
-            Debug.LogFormat(@"[The Yellow Button #{0}] {1} was correct at position #{2}.", _moduleId, _directionNames[_curDirection], _solutionProgress);
+            Debug.LogFormat(@"[The Yellow Button #{0}] Stepping {1} was correct at position #{2}.", _moduleId, _directionNames[_curDirection], _solutionProgress);
             if (_solutionProgress == _solution.Length)
             {
                 Debug.LogFormat(@"[The Yellow Button #{0}] Module solved.", _moduleId);
                 StartCoroutine(SolveAnimation());
                 _moduleSolved = true;
                 Audio.PlaySoundAtTransform("YellowButtonSound8", transform);
+                // Module.HandlePass() is delayed until the button release so that the TP handler can finish
             }
             else
                 Audio.PlaySoundAtTransform("YellowButtonSound" + Rnd.Range(1, 8), transform);
@@ -121,6 +126,8 @@ public class YellowButtonScript : MonoBehaviour
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
         }
         _curDirectionHighlighted = false;
+        if (_moduleSolved)
+            FakeStatusLight.HandlePass(StatusLightState.Off);
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -255,29 +262,44 @@ public class YellowButtonScript : MonoBehaviour
 
     private IEnumerator SolveAnimation()
     {
-        yield return new WaitForSeconds(2f);
+        _allowedToPress = false;
+        yield return new WaitForSeconds(1f);
         Audio.PlaySoundAtTransform("YellowButtonSolve", transform);
-        for (int i = 0; i < 6 * 8; i++)
+
+        var startTime = Time.time;
+        var prevSegment = 0;
+        var segmentMaterials = new[] { SegmentOff, SegmentOn, SegmentOnHighlighted };
+        while (Time.time - startTime < 6.5f)
         {
-            if (i % 8 == 0)
+            var segment = (int) ((Time.time - startTime) / .122f) % 8;
+            if (segment == 0)
             {
                 StartCoroutine(AnimateButton(0f, -0.05f));
                 FakeStatusLight.SetPass();
             }
-            if (i % 8 == 2)
+            if (segment == 2)
                 FakeStatusLight.SetInActive();
-            if (i % 8 == 4)
+            if (segment == 4)
             {
                 StartCoroutine(AnimateButton(-0.05f, 0f));
                 FakeStatusLight.SetStrike();
             }
-            if (i % 8 == 6)
+            if (segment == 6)
                 FakeStatusLight.SetInActive();
-            foreach (var cs in ColorSquares)
-                cs.sharedMaterial = Colors[Rnd.Range(0, Colors.Length)];
-            yield return new WaitForSeconds(0.118f);
+            if (segment != prevSegment)
+            {
+                foreach (var cs in ColorSquares)
+                    cs.sharedMaterial = Colors[Rnd.Range(0, Colors.Length)];
+                foreach (var seg in Segments)
+                    seg.sharedMaterial = segmentMaterials[Rnd.Range(0, segmentMaterials.Length)];
+                prevSegment = segment;
+            }
+            yield return null;
         }
-        Module.HandlePass();
+        FakeStatusLight.SetPass();
+        foreach (var seg in Segments)
+            seg.sharedMaterial = SegmentOff;
+        _allowedToPress = false;
     }
 
 #pragma warning disable 0414
@@ -288,10 +310,43 @@ public class YellowButtonScript : MonoBehaviour
     {
         if (!_moduleSolved)
             yield break;
+        var dirs = new List<int>();
+        foreach (var piece in command.Trim().ToLowerInvariant().Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            switch (piece)
+            {
+                case "n": case "u": dirs.Add(0); break;
+                case "ne": case "ur": case "ru": dirs.Add(1); break;
+                case "e": case "r": dirs.Add(2); break;
+                case "se": case "dr": case "rd": dirs.Add(3); break;
+                case "s": case "d": dirs.Add(4); break;
+                case "sw": case "dl": case "ld": dirs.Add(5); break;
+                case "w": case "l": dirs.Add(6); break;
+                case "nw": case "ul": case "lu": dirs.Add(7); break;
+                default: yield break;
+            }
+        }
+        foreach (var dir in dirs)
+        {
+            while (_curDirection != dir)
+                yield return null;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        while (!_moduleSolved)
+        {
+            while (_curDirection != _solution[_solutionProgress])
+                yield return true;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+        }
     }
 }

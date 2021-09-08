@@ -39,7 +39,7 @@ public class FakeStatusLight : MonoBehaviour
         switch (color)
         {
             case StatusLightState.Random:
-                color = (StatusLightState)Random.Range(0, 3);
+                color = (StatusLightState) Random.Range(0, 3);
                 if (color == StatusLightState.Red) goto case StatusLightState.Red;
                 if (color == StatusLightState.Green) goto case StatusLightState.Green;
                 goto case StatusLightState.Off;
