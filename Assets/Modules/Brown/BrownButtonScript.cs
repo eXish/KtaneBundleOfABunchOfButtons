@@ -437,7 +437,7 @@ public class BrownButtonScript : MonoBehaviour
 
 #pragma warning disable 0414
     private readonly string TwitchHelpMessage = "!{0} tap jq r [Taps while those letters are displayed, in order]";
-    bool TwitchPlaysActive;
+    private bool TwitchPlaysActive;
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)

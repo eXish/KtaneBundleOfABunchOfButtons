@@ -35,23 +35,23 @@ public class BlackButtonScript : MonoBehaviour
 
         float targetTime = Rnd.Range(10f, 35f);
         double capacitance = targetTime / resistence;
-        if(capacitance >= 0.001d)
+        if (capacitance >= 0.001d)
             goto tryagain;
-        if(capacitance <= 0.000000001d)
+        if (capacitance <= 0.000000001d)
             goto tryagain;
 
         string capText = "";
 
-        if(capacitance >= 0.000001d)
+        if (capacitance >= 0.000001d)
         { // microfareds
             capacitance *= 1000000d;
-            int c = (int)Math.Floor(capacitance);
+            int c = (int) Math.Floor(capacitance);
             CapacitorText.text = capText = c + " μF ±10%";
         }
         else
         { // nanofareds
             capacitance *= 1000000000d;
-            int c = (int)Math.Floor(capacitance);
+            int c = (int) Math.Floor(capacitance);
             CapacitorText.text = capText = c + " nF ±10%";
         }
         Resistor1Bands[0].material = BandColors[resistences[0] / 100];
@@ -87,7 +87,7 @@ public class BlackButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if(!_moduleSolved)
+        if (!_moduleSolved)
             _lastHeldTime = Time.time;
         return false;
     }
@@ -96,13 +96,14 @@ public class BlackButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if(!_moduleSolved)
+        if (!_moduleSolved)
         {
-            if(Time.time - _lastHeldTime >= _minTime && Time.time - _lastHeldTime <= _maxTime)
+            if (Time.time - _lastHeldTime >= _minTime && Time.time - _lastHeldTime <= _maxTime)
             {
                 Debug.LogFormat("[The Black Button #{0}] Correct. Module solved.", _moduleId);
                 Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
                 Module.HandlePass();
+                _moduleSolved = true;
             }
             else
             {
@@ -116,7 +117,7 @@ public class BlackButtonScript : MonoBehaviour
     {
         var duration = 0.1f;
         var elapsed = 0f;
-        while(elapsed < duration)
+        while (elapsed < duration)
         {
             ButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
@@ -131,17 +132,17 @@ public class BlackButtonScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if(!_moduleSolved)
+        if (!_moduleSolved)
             yield break;
 
         var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+)?(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        if(!m.Success)
+        if (!m.Success)
             yield break;
 
         yield return null;
         var v = int.Parse(m.Groups[1].Value);
         BlackButtonSelectable.OnInteract();
-        while(Time.time - _lastHeldTime < v)
+        while (Time.time - _lastHeldTime < v)
             yield return null;
         BlackButtonSelectable.OnInteractEnded();
         yield return new WaitForSeconds(.1f);
@@ -150,7 +151,7 @@ public class BlackButtonScript : MonoBehaviour
     public IEnumerator TwitchHandleForcedSolve()
     {
         BlackButtonSelectable.OnInteract();
-        while(Time.time - _lastHeldTime < _minTime)
+        while (Time.time - _lastHeldTime < _minTime)
             yield return null;
         BlackButtonSelectable.OnInteractEnded();
         yield return new WaitForSeconds(.1f);
