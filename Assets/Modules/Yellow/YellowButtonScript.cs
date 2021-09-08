@@ -37,6 +37,7 @@ public class YellowButtonScript : MonoBehaviour
     private int _solutionProgress;
     private int _curDirection;
     private bool _curDirectionHighlighted;
+    private bool _allowedToPress = true;
 
     private const int GridSize = 6;
     private const int SnakeLength = 8;
@@ -81,8 +82,11 @@ public class YellowButtonScript : MonoBehaviour
 
     private bool ButtonPress()
     {
-        StartCoroutine(AnimateButton(0f, -0.05f));
-        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
+        if (_allowedToPress)
+        {
+            StartCoroutine(AnimateButton(0f, -0.05f));
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
+        }
         if (_moduleSolved)
             return false;
         _curDirectionHighlighted = true;
@@ -99,6 +103,7 @@ public class YellowButtonScript : MonoBehaviour
             {
                 Debug.LogFormat(@"[The Yellow Button #{0}] Module solved.", _moduleId);
                 Module.HandlePass();
+                StartCoroutine(SolveAnimation());
                 _moduleSolved = true;
                 Audio.PlaySoundAtTransform("YellowButtonSound8", transform);
             }
@@ -110,8 +115,11 @@ public class YellowButtonScript : MonoBehaviour
 
     private void ButtonRelease()
     {
-        StartCoroutine(AnimateButton(-0.05f, 0f));
-        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
+        if (_allowedToPress)
+        {
+            StartCoroutine(AnimateButton(-0.05f, 0f));
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
+        }
         _curDirectionHighlighted = false;
     }
 
@@ -242,6 +250,20 @@ public class YellowButtonScript : MonoBehaviour
             sofar[ix] = available[avIx];
             foreach (var solution in FindSolutions(sofar, ix + 1, colorGrid, snake, length))
                 yield return solution;
+        }
+    }
+
+    private IEnumerator SolveAnimation()
+    {
+        yield return new WaitForSeconds(2f);
+        Audio.PlaySoundAtTransform("YellowButtonSolve", transform);
+        for (int i = 0; i < 64; i++)
+        {
+            if (i % 4 == 0)
+                StartCoroutine(AnimateButton(0f, -0.05f));
+            if (i % 4 == 2)
+                StartCoroutine(AnimateButton(-0.05f, 0f));
+            yield return new WaitForSeconds(0.241f);
         }
     }
 
