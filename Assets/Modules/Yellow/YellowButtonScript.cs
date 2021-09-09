@@ -99,7 +99,7 @@ public class YellowButtonScript : MonoBehaviour
         if (_curDirection != _solution[_solutionProgress])
         {
             Debug.LogFormat(@"[The Yellow Button #{0}] Stepping {1} was WRONG at position #{2}. Strike!", _moduleId, _directionNames[_curDirection], _solutionProgress + 1);
-            Module.HandleStrike();
+            FakeStatusLight.HandleStrike();
         }
         else
         {
@@ -128,7 +128,7 @@ public class YellowButtonScript : MonoBehaviour
         }
         _curDirectionHighlighted = false;
         if (_moduleSolved)
-            Module.HandlePass();
+            FakeStatusLight.HandlePass(StatusLightState.Green);
     }
 
     private IEnumerator AnimateButton(float a, float b)
