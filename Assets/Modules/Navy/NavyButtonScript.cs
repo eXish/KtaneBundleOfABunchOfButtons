@@ -11,16 +11,25 @@ public class NavyButtonScript : MonoBehaviour
     public KMAudio Audio;
     public KMSelectable ButtonSelectable;
     public GameObject ButtonCap;
+    public GameObject RealButton;
+    public GameObject FakeButton;
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private bool _moduleSolved;
+    private int[] _realPositions = new int[5];
+    private int _duplicateIndex;
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
         ButtonSelectable.OnInteract += ButtonPress;
         ButtonSelectable.OnInteractEnded += ButtonRelease;
+        FakeButton.SetActive(false);
+        for (int i = 0; i < _realPositions.Length; i++)
+        {
+            _realPositions[i] = Rnd.Range(0, (int)Math.Pow(i, 2));
+        }
     }
 
     private bool ButtonPress()
@@ -42,6 +51,23 @@ public class NavyButtonScript : MonoBehaviour
         {
             //code
         }
+    }
+
+    private IEnumerator DuplicateButtons()
+    {
+        var elapsed = 0.3f;
+        var duration = 0f;
+        while (elapsed < duration)
+        {
+            RealButton.transform.localScale = new Vector3(Easing.InOutQuad(elapsed, 0.4f, 0f, duration), Easing.InOutQuad(elapsed, 0.4f, 0f, duration), Easing.InOutQuad(elapsed, 0.4f, 0f, duration));
+            for (int i = 0; i < (int)Math.Pow(_duplicateIndex, 2); i++)
+            {
+
+            }
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+        _duplicateIndex++;
     }
 
     private IEnumerator AnimateButton(float a, float b)
