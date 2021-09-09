@@ -127,6 +127,8 @@ public class YellowButtonScript : MonoBehaviour
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
         }
         _curDirectionHighlighted = false;
+        if (_moduleSolved)
+            Module.HandlePass();
     }
 
     private IEnumerator AnimateButton(float a, float b)

@@ -4,6 +4,7 @@
 5   Teal
 6   Yellow
 6   Glitched
+6   Purple
 7   Green
 7   Pink
 8   Cyan
