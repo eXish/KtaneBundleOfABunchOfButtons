@@ -4747,7 +4747,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: BlackButtonModule
   ModuleDisplayName: The Black Button
-  RequiresTimerVisibility: 1
+  RequiresTimerVisibility: 0
 --- !u!114 &114449216514761658
 MonoBehaviour:
   m_ObjectHideFlags: 1
