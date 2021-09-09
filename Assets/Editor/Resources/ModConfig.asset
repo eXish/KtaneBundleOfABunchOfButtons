@@ -11,23 +11,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: SingleSelectablePack
-  title: Single Selectable Pack
-  author: JakkOfKlubs
-  description: 'This is a module pack. It has buttons.
+  id: BunchOfButtonsPack
+  title: Bundle of a Bunch of Buttons
+  author: JakkOfKlubs, Timwi, BakersDozenBagels
+  description: 'This is a module bundle. It has a bunch of buttons.
 
 
-    Contributions by:
-
-    [b]JakkOfKlubs:[/b] The Red Button, The Orange Button, The White Button, The Cyan
-    Button
-
-    [b]BakersDozenBagels:[/b] The Green Button, The Brown Button, The Black Button,
-    The Glitched Button
-
-    [b]Timwi:[/b] The Blue Button, The Gray Button, The Yellow Button
-
-    [b]Cooldoom:[/b] The Pink Button'
+    Made by JakkOfKlubs, Timwi & BakersDozenBagels'
   version: 1.0
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: bd5c1f4881f57d54481b44e4c8a7779a, type: 3}
+  previewImage: {fileID: 2800000, guid: c8383910154661f4dad5f0132285f3da, type: 3}
