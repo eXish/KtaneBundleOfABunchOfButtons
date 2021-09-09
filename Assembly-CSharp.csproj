@@ -74,6 +74,7 @@
      <Compile Include="Assets\Modules\Gray\GrayButtonScript.cs" />
      <Compile Include="Assets\Modules\Gray\MazeLayout.cs" />
      <Compile Include="Assets\Modules\Green\GreenButtonScript.cs" />
+     <Compile Include="Assets\Modules\Maroon\MaroonButtonScript.cs" />
      <Compile Include="Assets\Modules\Orange\OrangeButtonScript.cs" />
      <Compile Include="Assets\Modules\Pink\PinkButtonScript.cs" />
      <Compile Include="Assets\Modules\Purple\PurpleButtonScript.cs" />
