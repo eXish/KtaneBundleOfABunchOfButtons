@@ -873,7 +873,6 @@ GameObject:
   - component: {fileID: 114462647377417402}
   - component: {fileID: 114851826596115828}
   - component: {fileID: 114629500169079468}
-  - component: {fileID: 114287705723213116}
   - component: {fileID: 114505148596268654}
   m_Layer: 0
   m_Name: WhiteButtonModule
@@ -3374,18 +3373,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderNames:
   - KT/Mobile/DiffuseTint
---- !u!114 &114287705723213116
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1962260446815250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1cfb889a07d5fd4e9baed7960bb397f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _colorblindMode: 0
 --- !u!114 &114303559387390978
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3525,7 +3512,6 @@ MonoBehaviour:
   Module: {fileID: 114445151190721914}
   BombInfo: {fileID: 114851826596115828}
   Audio: {fileID: 114629500169079468}
-  ColorblindMode: {fileID: 114287705723213116}
   WhiteButtonSelectable: {fileID: 114303559387390978}
   WhiteButtonCap: {fileID: 1064130632272964}
   ColorblindScreen: {fileID: 1284367663612244}

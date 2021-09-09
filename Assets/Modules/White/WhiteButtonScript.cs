@@ -13,7 +13,6 @@ public class WhiteButtonScript : MonoBehaviour
     public KMBombModule Module;
     public KMBombInfo BombInfo;
     public KMAudio Audio;
-    public KMColorblindMode ColorblindMode;
     public KMSelectable WhiteButtonSelectable;
     public GameObject WhiteButtonCap, ColorblindScreen;
     public TextMesh ColorblindText;
@@ -23,7 +22,7 @@ public class WhiteButtonScript : MonoBehaviour
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
-    private bool _moduleSolved, _colorblindMode;
+    private bool _moduleSolved;
 
     private bool _buttonHeld;
     private bool _longPress;
@@ -40,7 +39,6 @@ public class WhiteButtonScript : MonoBehaviour
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
-        SetColorblindMode(ColorblindMode.ColorblindModeActive);
 
         WhiteButtonSelectable.OnInteract += WhiteButtonPress;
         WhiteButtonSelectable.OnInteractEnded += WhiteButtonRelease;
@@ -73,12 +71,6 @@ public class WhiteButtonScript : MonoBehaviour
                 _targetBlobColors[i] / 9, _targetBlobColors[i] % 9 / 3, _targetBlobColors[i] % 3,
                 COLORNAMES[_targetBlobColors[i]]);
         }
-    }
-
-    private void SetColorblindMode(bool mode)
-    {
-        _colorblindMode = mode;
-        ColorblindScreen.SetActive(_colorblindMode);
     }
 
     private bool WhiteButtonPress()
@@ -223,18 +215,11 @@ public class WhiteButtonScript : MonoBehaviour
         }
     }
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} tap 23 17 5 [tap when the seconds on the timer are these values exactly] | !{0} submit | !{0} colorblind/cb";
+    private readonly string TwitchHelpMessage = "!{0} tap 23 17 5 [tap when the seconds on the timer are these values exactly] | !{0} submit";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (Regex.IsMatch(command, @"^\s*(colou?rblind|cb)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-        {
-            yield return null;
-            SetColorblindMode(!_colorblindMode);
-            yield break;
-        }
-
         if (Regex.IsMatch(command, @"^\s*(submit|hold)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
