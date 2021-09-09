@@ -31,7 +31,7 @@ public class GrayButtonScript : MonoBehaviour
 
         // START RULE SEED
         var rnd = RuleSeedable.GetRNG();
-        Debug.LogFormat("[The Blue Button #{0}] Using rule seed {1}", _moduleId, rnd.Seed);
+        Debug.LogFormat("[The Blue Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
         var mazes = Enumerable.Range(0, 9).Select(mazeId => MazeLayout.Generate(10, 10, rnd)).ToArray();
         // END RULE SEED
 

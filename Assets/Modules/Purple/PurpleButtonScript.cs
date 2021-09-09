@@ -2,116 +2,182 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using KModkit;
 using UnityEngine;
-using RNG = UnityEngine.Random;
 
-// Feel free to change this, the rules are temporary
+using Rnd = UnityEngine.Random;
+
 public class PurpleButtonScript : MonoBehaviour
 {
     public KMBombModule Module;
     public KMAudio Audio;
-    public KMSelectable PurpleButtonSelectable;
-    public GameObject PurpleButtonCap;
-    public Material BulbOnMat, BulbOffMat;
+    public KMBombInfo Bomb;
+    public KMRuleSeedable RuleSeedable;
+
+    public KMSelectable ButtonSelectable;
+    public GameObject ButtonCap;
+    public Material BulbOnMat;
+    public Material BulbOffMat;
     public MeshRenderer Bulb;
     public Light BulbLight;
-    public KMBombInfo Info;
+    public TextMesh DisplayText;
 
-    private int _id;
-    private static int _counter = 1;
-
-    private bool _blinkOn;
-    private List<float> _delays = new List<float>();
-    private List<int> _required = new List<int>();
-    private List<int> _entered = new List<int>();
-    private List<Event> _events = new List<Event>();
-    private bool _isSolved, _isMouseDown;
-    private readonly List<List<Event>> _gestures = new List<List<Event>>
-    {
-        new List<Event>
-        {
-            Event.Tick, Event.MouseDown, Event.Tick, Event.MouseUp, Event.Tick
-        },
-        new List<Event>
-        {
-            Event.Tick, Event.MouseDown, Event.Tick, Event.Tick, Event.MouseUp, Event.Tick
-        },
-        new List<Event>
-        {
-            Event.Tick, Event.MouseDown, Event.MouseUp, Event.Tick, Event.MouseDown, Event.MouseUp, Event.Tick
-        },
-        new List<Event>
-        {
-            Event.Tick, Event.MouseDown, Event.Tick, Event.MouseUp, Event.MouseDown, Event.Tick, Event.MouseUp, Event.Tick
-        }
-    };
+    private int _moduleId;
+    private static int _moduleIdCounter = 1;
+    private bool _moduleSolved;
+    private bool _isLightOn;
+    private bool _isPreInputModeActive;
+    private bool _isInputModeActive;
+    private int _cyclePosition;
+    private int[] _cyclingNumbers;
+    private bool[] _solutionStates;
 
     private void Start()
     {
-        _id = _counter++;
+        _moduleId = _moduleIdCounter++;
 
-        _blinkOn = false;
-        SetBulbActive(false);
         BulbLight.range *= transform.lossyScale.x;
 
-        PurpleButtonSelectable.OnInteract += ButtonPress;
-        PurpleButtonSelectable.OnInteractEnded += ButtonRelease;
+        ButtonSelectable.OnInteract += ButtonPress;
+        ButtonSelectable.OnInteractEnded += ButtonRelease;
 
-        GenerateStage();
+        var rnd = RuleSeedable.GetRNG();
+        Debug.LogFormat("[The Purple Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
+        for (var i = rnd.Next(0, 200); i >= 0; i--)
+            rnd.Next(0, 2);
+        var edgeworkValues = newArray(
+            Bomb.GetIndicators().Count(),
+            Bomb.GetOnIndicators().Count(),
+            Bomb.GetOffIndicators().Count(),
+            Bomb.GetIndicators().Count(ind => ind.Contains('A')),
+            Bomb.GetIndicators().Count(ind => ind.Contains('N')),
+            Bomb.GetIndicators().Count(ind => ind.Contains('R')),
+            Bomb.GetIndicators().Count(ind => ind.Contains('S')),
+            Bomb.GetBatteryCount(),
+            Bomb.GetBatteryCount(Battery.D),
+            Bomb.GetBatteryCount(Battery.AA) + Bomb.GetBatteryCount(Battery.AAx3) + Bomb.GetBatteryCount(Battery.AAx4),
+            Bomb.GetBatteryHolderCount(),
+            Bomb.GetPortCount(),
+            Bomb.GetPortPlateCount(),
+            Bomb.CountUniquePorts(),
+            Bomb.GetSerialNumber()[2] - '0',
+            Bomb.GetSerialNumber()[5] - '0',
+            Bomb.GetSerialNumberLetters().Count(),
+            Bomb.GetSerialNumberNumbers().Count(),
+            Bomb.GetSerialNumberLetters().Count(ltr => !"AEIOU".Contains(ltr)),
+            Bomb.GetSerialNumber().Distinct().Count());
+        rnd.ShuffleFisherYates(edgeworkValues);
 
-        _blinkOn = true;
-        StartCoroutine(Flash());
+        Debug.LogFormat("[The Purple Button #{0}] Edgework values: {1}", _moduleId, edgeworkValues.Join(", "));
+
+        var dic = new Dictionary<string, List<int>>();  // indexes in subsequence
+        var nonUnique = new HashSet<string>();
+
+        foreach (var subseq in subsequences(edgeworkValues.Length, 6, 6))
+        {
+            var values = subseq.Select(ix => edgeworkValues[ix]).ToArray();
+
+            var minCycle = values;
+            for (var cycIx = 1; cycIx < values.Length; cycIx++)
+            {
+                var cycled = cycleArray(values, cycIx);
+                for (var i = 0; i < minCycle.Length; i++)
+                {
+                    if (minCycle[i] < cycled[i])
+                        break;
+                    if (minCycle[i] > cycled[i])
+                    {
+                        minCycle = cycled;
+                        break;
+                    }
+                }
+            }
+            var key = minCycle.Join(", ");
+            if (nonUnique.Contains(key))
+                continue;
+            if (dic.ContainsKey(key))
+            {
+                dic.Remove(key);
+                nonUnique.Add(key);
+                continue;
+            }
+            dic[key] = subseq;
+        }
+        var chooseFrom = dic.Values.ToArray();
+        var chosen = chooseFrom[Rnd.Range(0, chooseFrom.Length)];
+        _cyclingNumbers = chosen.Select(ix => edgeworkValues[ix]).ToArray();
+        _solutionStates = chosen.Select(ix => ix % 2 != 0).ToArray();
+
+        Debug.LogFormat("[The Purple Button #{0}] Cycling numbers: {1}", _moduleId, _cyclingNumbers.Join(", "));
+        Debug.LogFormat("[The Purple Button #{0}] Desired states: {1}", _moduleId, _solutionStates.Select(b => b ? "on" : "off").Join(", "));
+
+        StartCoroutine(CycleLight());
     }
 
-    private void GenerateStage()
+    private IEnumerator CycleLight()
     {
-        if (_required.Count >= 3)
+        while (!_moduleSolved)
         {
-            Debug.LogFormat("[The Purple Button #{0}] Good job! Module solved.", _id);
-            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
-            Module.HandlePass();
-            _isSolved = true;
-            _blinkOn = false;
-            return;
-        }
-        int c = RNG.Range(0, 4);
-        _entered.Clear();
-        _required.Add(c);
-        _delays.AddRange(GetSequence(c));
-        Debug.LogFormat("[The Purple Button #{0}] Next flashes are: {1}", _id, c);
-    }
+            if (_isPreInputModeActive && _cyclePosition == _solutionStates.Length - 2)
+            {
+                Audio.PlaySoundAtTransform("PurpleButtonIntro", transform);
+            }
+            else if (_isPreInputModeActive && _cyclePosition == _solutionStates.Length - 1)
+            {
+                _isInputModeActive = true;
+                _isPreInputModeActive = false;
+                Audio.PlaySoundAtTransform("PurpleButtonCycle", transform);
+            }
+            else if (_isInputModeActive)
+            {
+                if (_isLightOn == _solutionStates[_cyclePosition] && _cyclePosition == _solutionStates.Length - 1)
+                {
+                    Debug.LogFormat("[The Purple Button #{0}] Module solved.", _moduleId);
+                    Module.HandlePass();
+                    _isInputModeActive = false;
+                    _moduleSolved = true;
+                    if (Bomb.GetSolvedModuleNames().Count < Bomb.GetSolvableModuleNames().Count)
+                        Audio.PlaySoundAtTransform("PurpleButtonOutro", transform);
+                }
+                else if (_isInputModeActive && _isLightOn != _solutionStates[_cyclePosition])
+                {
+                    Debug.LogFormat("[The Purple Button #{0}] You entered “{1}” at position #{2}. Strike!", _moduleId, _isLightOn ? "on" : "off", _cyclePosition + 1);
+                    Module.HandleStrike();
+                    _isInputModeActive = false;
+                }
+                else
+                    Audio.PlaySoundAtTransform("PurpleButtonCycle", transform);
+            }
 
-    private IEnumerable<float> GetSequence(int v)
-    {
-        switch (v)
-        {
-            case 0:
-                return new[] { 1f, 0.6f };
-            case 1:
-                return new[] { 0.3f, 0.3f, 1f, 0.6f };
-            case 2:
-                return new[] { 1f, 0.3f, 0.3f, 0.6f };
-            case 3:
-                return new[] { 1f, 0.3f, 1f, 0.6f };
+            ToggleBulb();
+            _cyclePosition = (_cyclePosition + 1) % 6;
+            DisplayText.text = _cyclingNumbers[_cyclePosition].ToString();
+            yield return new WaitForSeconds(1.666f);
         }
-        throw new ArgumentException();
     }
 
     private bool ButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if (_isSolved)
+        if (_moduleSolved)
             return false;
 
-        _blinkOn = false;
-
-        if (!_isMouseDown)
+        if (_isInputModeActive)
         {
-            _events.Add(Event.MouseDown);
-            checkEvents();
+            ToggleBulb();
         }
-        _isMouseDown = true;
+        else
+        {
+            if (_cyclePosition != _cyclingNumbers.Length - 2)
+            {
+                Debug.LogFormat("[The Purple Button #{0}] You attempted to start input at position #{1} (instead of {2}). Strike!", _moduleId, _cyclePosition + 1, _cyclingNumbers.Length - 1);
+                Module.HandleStrike();
+            }
+            else
+                _isPreInputModeActive = true;
+        }
+
         return false;
     }
 
@@ -119,81 +185,6 @@ public class PurpleButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (_isSolved)
-            return;
-
-        if (_isMouseDown && _events.Count(e => e == Event.MouseDown) > _events.Count(e => e == Event.MouseUp))
-        {
-            _events.Add(Event.MouseUp);
-            checkEvents();
-        }
-        _isMouseDown = false;
-    }
-
-    private void checkEvents()
-    {
-        while (_events.Count >= 2 && _events[0] == Event.Tick && (_events[1] == Event.Tick || _events[1] == Event.MouseUp))
-            _events.RemoveAt(1);
-
-        var input = _gestures.IndexOf(list => list.SequenceEqual(_events));
-        if (input != -1)
-        {
-            process(input);
-            return;
-        }
-
-        if (_events.Count(e => e == Event.MouseUp) >= _events.Count(e => e == Event.MouseDown))
-        {
-            var validPrefix = _gestures.IndexOf(list => list.Take(_events.Count).SequenceEqual(_events));
-            if (validPrefix == -1)
-            {
-                Debug.LogFormat("[The Purple Button #{0}] You entered {1}, which is not a valid pattern.", _id, _events.Join(", "));
-                Module.HandleStrike();
-                _events.Clear();
-                _events.Add(Event.Tick);
-            }
-        }
-    }
-
-    private void process(int input)
-    {
-        _entered.Add(input);
-        if (_required[_entered.Count - 1] == input)
-        {
-            if (_required.Count <= _entered.Count)
-                GenerateStage();
-        }
-        else
-        {
-            Debug.LogFormat("[The Purple Button #{0}] You entered {1}, which wasn't correct. Strike!", _id, input);
-            Module.HandleStrike();
-        }
-        _events.Clear();
-        _blinkOn = true;
-    }
-
-    private IEnumerator Flash()
-    {
-        while (true)
-        {
-            if (!_blinkOn)
-            {
-                yield return null;
-                continue;
-            }
-            yield return new WaitForSeconds(1f);
-            bool on = false;
-            foreach (float f in _delays)
-            {
-                SetBulbActive(on ^= true);
-                if (!_blinkOn)
-                {
-                    SetBulbActive(false);
-                    break;
-                }
-                yield return new WaitForSeconds(f);
-            }
-        }
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -202,39 +193,56 @@ public class PurpleButtonScript : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            PurpleButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
+            ButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        PurpleButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+        ButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
-    private void SetBulbActive(bool on)
+    private void ToggleBulb()
     {
-        Bulb.sharedMaterial = on ? BulbOnMat : BulbOffMat;
-        BulbLight.gameObject.SetActive(on);
+        _isLightOn = !_isLightOn;
+        Bulb.sharedMaterial = _isLightOn ? BulbOnMat : BulbOffMat;
+        BulbLight.gameObject.SetActive(_isLightOn);
     }
 
-    private enum Event
-    {
-        MouseUp,
-        MouseDown,
-        Tick
-    }
+    private T[] newArray<T>(params T[] array) { return array; }
 
-    private float _lastTime;
-
-    private void Update()
+    private static IEnumerable<List<int>> subsequences(int range, int minLen, int maxLen)
     {
-        if (!_isSolved)
+        if (minLen <= 0 && range == 0)
+            yield return new List<int>();
+        else if (range > 0 && maxLen > 0)
         {
-            int time = (int) Info.GetTime();
-            if (time != _lastTime)
+            foreach (var list in subsequences(range - 1, minLen - 1, maxLen))
             {
-                _events.Add(Event.Tick);
-                checkEvents();
-                _lastTime = time;
+                if (list.Count >= minLen)
+                {
+                    if (list.Count < maxLen)
+                    {
+                        var list2 = list.ToList();
+                        list2.Add(range - 1);
+                        yield return list2;
+                    }
+                    yield return list;
+                }
+                else if (list.Count < maxLen)
+                {
+                    list.Add(range - 1);
+                    yield return list;
+                }
             }
         }
+    }
+
+    private static T[] cycleArray<T>(T[] array, int amount)
+    {
+        if (amount == 0)
+            return array;
+        T[] result = new T[array.Length];
+        Array.Copy(array, amount, result, 0, array.Length - amount);
+        Array.Copy(array, 0, result, array.Length - amount, amount);
+        return result;
     }
 }

@@ -39,7 +39,7 @@ public class TealButtonScript : MonoBehaviour
 
         // START RULE SEED
         var rnd = RuleSeedable.GetRNG();
-        Debug.LogFormat("[The Teal Button #{0}] Using rule seed {1}", _moduleId, rnd.Seed);
+        Debug.LogFormat("[The Teal Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
         for (var i = 0; i < 73; i++)
             rnd.Next(0, 2);
 

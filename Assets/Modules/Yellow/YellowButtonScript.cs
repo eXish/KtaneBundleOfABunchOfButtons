@@ -51,6 +51,7 @@ public class YellowButtonScript : MonoBehaviour
 
         // Rule seed
         var rnd = RuleSeedable.GetRNG();
+        Debug.LogFormat("[The Yellow Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
         var colorGrids = _ruleSeededColorGrids.ContainsKey(rnd.Seed)
             ? _ruleSeededColorGrids[rnd.Seed]
             : (_ruleSeededColorGrids[rnd.Seed] = GenerateColorGrids(rnd));
@@ -75,10 +76,10 @@ public class YellowButtonScript : MonoBehaviour
         StartCoroutine(AnimateColorStrip());
 
         Debug.LogFormat(@"[The Yellow Button #{0}] Dance floor: {1}", _moduleId, "top-left,top-right,bottom-left,bottom-right".Split(',')[whichColorGrid]);
-        Debug.LogFormat(@"[The Yellow Button #{0}] Color sequence: {1}", _moduleId, inf.Squares.Select(sq => _colorNames[colorGrids[whichColorGrid][sq.Index]]).Join(", "));
+        Debug.LogFormat(@"[The Yellow Button #{0}] Hip color sequence: {1}", _moduleId, inf.Squares.Select(sq => _colorNames[colorGrids[whichColorGrid][sq.Index]]).Join(", "));
         Debug.LogFormat(@"[The Yellow Button #{0}] Starting position: {1}{2}", _moduleId, (char) ('A' + inf.Squares[0].X), inf.Squares[0].Y + 1);
-        Debug.LogFormat(@"[The Yellow Button #{0}] Solution: {1}", _moduleId, inf.Directions.Select(dir => _directionNames[dir]).Join(", "));
-        Debug.LogFormat(@"<The Yellow Button #{0}> Snake: {1}", _moduleId, inf.Squares.Select(c => (char) ('A' + c.X) + (c.Y + 1).ToString()).Join(" "));
+        Debug.LogFormat(@"[The Yellow Button #{0}] Sick moves: {1}", _moduleId, inf.Directions.Select(dir => _directionNames[dir]).Join(", "));
+        Debug.LogFormat(@"[The Yellow Button #{0}] Dance: {1}", _moduleId, inf.Squares.Select(c => (char) ('A' + c.X) + (c.Y + 1).ToString()).Join(" → "));
 
         FakeStatusLight = Instantiate(FakeStatusLight);
         FakeStatusLight.GetStatusLights(transform);
