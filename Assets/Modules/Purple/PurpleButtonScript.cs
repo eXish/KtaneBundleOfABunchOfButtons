@@ -78,6 +78,7 @@ public class PurpleButtonScript : MonoBehaviour
             var values = subseq.Select(ix => edgeworkValues[ix]).ToArray();
 
             var minCycle = values;
+            var cyclesSeen = new HashSet<string> { minCycle.Join(", ") };
             for (var cycIx = 1; cycIx < values.Length; cycIx++)
             {
                 var cycled = cycleArray(values, cycIx);
@@ -91,6 +92,8 @@ public class PurpleButtonScript : MonoBehaviour
                         break;
                     }
                 }
+                if (!cyclesSeen.Add(cycled.Join(", ")))
+                    goto busted;
             }
             var key = minCycle.Join(", ");
             if (nonUnique.Contains(key))
@@ -102,6 +105,7 @@ public class PurpleButtonScript : MonoBehaviour
                 continue;
             }
             dic[key] = subseq;
+            busted:;
         }
         var chooseFrom = dic.Values.ToArray();
         var chosen = chooseFrom[Rnd.Range(0, chooseFrom.Length)];
