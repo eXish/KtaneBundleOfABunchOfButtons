@@ -245,4 +245,102 @@ public class PurpleButtonScript : MonoBehaviour
         Array.Copy(array, 0, result, array.Length - amount, amount);
         return result;
     }
+
+#pragma warning disable 0414
+    private readonly string TwitchHelpMessage = "!{0} 0 2 3 on off off on on off [wait for this sequence of numbers and tap the button on the last one, then skip one digit, then toggle the light into the specified states]";
+#pragma warning restore 0414
+
+    private IEnumerator ProcessTwitchCommand(string command)
+    {
+        if (_moduleSolved)
+            yield break;
+        var pieces = command.ToLowerInvariant().Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+        var digits = new List<int>();
+        var i = 0;
+        int val;
+        for (; i < pieces.Length && int.TryParse(pieces[i], out val); i++)
+            digits.Add(val);
+        if (digits.Count == 0)
+        {
+            yield return "sendtochaterror You need to specify at least one number before the on/off states.";
+            yield break;
+        }
+        var desiredStates = new List<bool>();
+        for (; i < pieces.Length; i++)
+        {
+            if (pieces[i] == "on")
+                desiredStates.Add(true);
+            else if (pieces[i] == "off")
+                desiredStates.Add(false);
+            else
+                yield break;
+        }
+        if (desiredStates.Count != 6)
+        {
+            yield return "sendtochaterror You need exactly 6 on/off states.";
+            yield break;
+        }
+
+        var startIndex = Enumerable.Range(0, _cyclingNumbers.Length).IndexOf(cIx => Enumerable.Range(0, digits.Count).All(dIx => _cyclingNumbers[(cIx + dIx) % _cyclingNumbers.Length] == digits[dIx]));
+        if (startIndex == -1)
+        {
+            yield return "sendtochaterror That sequence of numbers is not on the module.";
+            yield break;
+        }
+
+        yield return null;
+        yield return "strike";
+        yield return "solve";
+
+        while (_cyclePosition != (startIndex + digits.Count - 1) % _cyclingNumbers.Length)
+            yield return null;
+
+        ButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        ButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
+        for (var cyclePosition = 0; cyclePosition < 6; cyclePosition++)
+        {
+            while (_cyclePosition != cyclePosition)
+                yield return null;
+
+            if (_isLightOn != desiredStates[cyclePosition])
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+        }
+    }
+
+    public IEnumerator TwitchHandleForcedSolve()
+    {
+        if (_moduleSolved)
+            yield break;
+
+        while (_cyclePosition != _cyclingNumbers.Length - 2)
+            yield return true;
+
+        ButtonSelectable.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        ButtonSelectable.OnInteractEnded();
+        yield return new WaitForSeconds(.1f);
+        for (var cyclePosition = 0; cyclePosition < 6; cyclePosition++)
+        {
+            while (_cyclePosition != cyclePosition)
+                yield return null;
+
+            if (_isLightOn != _solutionStates[cyclePosition])
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+        }
+
+        while (!_moduleSolved)
+            yield return true;
+    }
 }

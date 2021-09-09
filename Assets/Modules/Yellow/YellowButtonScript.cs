@@ -309,7 +309,7 @@ public class YellowButtonScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (!_moduleSolved)
+        if (_moduleSolved)
             yield break;
         var dirs = new List<int>();
         foreach (var piece in command.Trim().ToLowerInvariant().Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
