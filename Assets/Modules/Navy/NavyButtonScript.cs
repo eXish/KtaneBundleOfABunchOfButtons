@@ -2,10 +2,9 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-
 using Rnd = UnityEngine.Random;
 
-public class BaseButtonScript : MonoBehaviour
+public class NavyButtonScript : MonoBehaviour
 {
     public KMBombModule Module;
     public KMBombInfo BombInfo;
