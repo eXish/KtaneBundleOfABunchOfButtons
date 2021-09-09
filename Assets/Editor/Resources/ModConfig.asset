@@ -13,11 +13,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: BunchOfButtonsPack
   title: Bundle of a Bunch of Buttons
-  author: JakkOfKlubs, Timwi, BakersDozenBagels
+  author: JakkOfKlubs, Timwi, Cooldoom5, BakersDozenBagels
   description: 'This is a module bundle. It has a bunch of buttons.
 
 
-    Made by JakkOfKlubs, Timwi & BakersDozenBagels'
+    Made by JakkOfKlubs, Timwi, Cooldoom5 & BakersDozenBagels'
   version: 1.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: c8383910154661f4dad5f0132285f3da, type: 3}
