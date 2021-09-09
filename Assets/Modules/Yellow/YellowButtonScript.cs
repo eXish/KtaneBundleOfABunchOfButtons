@@ -127,8 +127,6 @@ public class YellowButtonScript : MonoBehaviour
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
         }
         _curDirectionHighlighted = false;
-        if (_moduleSolved)
-            FakeStatusLight.HandlePass(StatusLightState.Off);
     }
 
     private IEnumerator AnimateButton(float a, float b)
@@ -300,7 +298,7 @@ public class YellowButtonScript : MonoBehaviour
         FakeStatusLight.SetPass();
         foreach (var seg in Segments)
             seg.sharedMaterial = SegmentOff;
-        _allowedToPress = false;
+        _allowedToPress = true;
     }
 
 #pragma warning disable 0414

@@ -111,10 +111,10 @@ public class PurpleButtonScript : MonoBehaviour
         Debug.LogFormat("[The Purple Button #{0}] Cycling numbers: {1}", _moduleId, _cyclingNumbers.Join(", "));
         Debug.LogFormat("[The Purple Button #{0}] Desired states: {1}", _moduleId, _solutionStates.Select(b => b ? "on" : "off").Join(", "));
 
-        StartCoroutine(CycleLight());
+        StartCoroutine(CycleDigits());
     }
 
-    private IEnumerator CycleLight()
+    private IEnumerator CycleDigits()
     {
         while (!_moduleSolved)
         {
@@ -144,6 +144,7 @@ public class PurpleButtonScript : MonoBehaviour
                     Debug.LogFormat("[The Purple Button #{0}] You entered “{1}” at position #{2}. Strike!", _moduleId, _isLightOn ? "on" : "off", _cyclePosition + 1);
                     Module.HandleStrike();
                     _isInputModeActive = false;
+                    _isPreInputModeActive = false;
                 }
                 else
                     Audio.PlaySoundAtTransform("PurpleButtonCycle", transform);
@@ -154,6 +155,10 @@ public class PurpleButtonScript : MonoBehaviour
             DisplayText.text = _cyclingNumbers[_cyclePosition].ToString();
             yield return new WaitForSeconds(1.666f);
         }
+
+        DisplayText.gameObject.SetActive(false);
+        if (_isLightOn)
+            ToggleBulb();
     }
 
     private bool ButtonPress()
