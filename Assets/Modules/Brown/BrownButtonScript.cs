@@ -235,7 +235,7 @@ public class BrownButtonScript : MonoBehaviour
                 case Direction4D.Axis4d.X:
                     return 4;
                 case Direction4D.Axis4d.Y:
-                    return 3;
+                    return 2;
                 case Direction4D.Axis4d.Z:
                     return 5;
             }
@@ -249,7 +249,7 @@ public class BrownButtonScript : MonoBehaviour
                 case Direction4D.Axis4d.X:
                     return 1;
                 case Direction4D.Axis4d.Y:
-                    return 2;
+                    return 3;
                 case Direction4D.Axis4d.Z:
                     return 7;
             }
