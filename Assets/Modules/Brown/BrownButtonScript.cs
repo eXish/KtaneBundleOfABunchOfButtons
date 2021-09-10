@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
-using UnityEngine;
-using BrownButton;
-using Rnd = UnityEngine.Random;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using BrownButton;
+using UnityEngine;
+using Rnd = UnityEngine.Random;
 
 public class BrownButtonScript : MonoBehaviour
 {

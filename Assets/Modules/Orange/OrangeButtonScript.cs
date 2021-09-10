@@ -67,7 +67,6 @@ public class OrangeButtonScript : MonoBehaviour
     {
         var rotationPeriod = Rnd.Range(4f, 6f);
         var ledChangePeriod = rotationPeriod / _numer * _denom;
-        var prevLedState = (int) (Time.time / ledChangePeriod);
         var latestRotation = 0f;
 
         while (!_moduleSolved)
@@ -75,13 +74,9 @@ public class OrangeButtonScript : MonoBehaviour
             yield return null;
             latestRotation = Time.time * 360 / rotationPeriod * (_counterclockwise ? -1 : 1);
             LedParent.localEulerAngles = new Vector3(0, latestRotation, 0);
-            var ledState = (int) (Time.time / ledChangePeriod);
-            if (ledState != prevLedState)
-            {
-                for (var i = 0; i < Leds.Length; i++)
-                    SetLightState(i, Rnd.Range(0, 2) != 0);
-                prevLedState = ledState;
-            }
+            var ledState = (int) (Time.time / ledChangePeriod) % 2 != 0;
+            for (var i = 0; i < Leds.Length; i++)
+                SetLightState(i, (i % 2 != 0) ^ ledState);
         }
 
         for (var i = 0; i < Leds.Length; i++)
