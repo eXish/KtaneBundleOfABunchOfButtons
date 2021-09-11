@@ -59,7 +59,7 @@ public class YellowButtonScript : MonoBehaviour
         // Generate puzzle
         var whichColorGrid = Rnd.Range(0, 4);
         var numIterations = 0;
-        tryAgain:
+    tryAgain:
         numIterations++;
 
         var inf = FindSnakyPath(new Coord[SnakeLength], 0, SnakeLength).FirstOrDefault();
@@ -77,9 +77,9 @@ public class YellowButtonScript : MonoBehaviour
 
         Debug.LogFormat(@"[The Yellow Button #{0}] Dance floor: {1}", _moduleId, "top-left,top-right,bottom-left,bottom-right".Split(',')[whichColorGrid]);
         Debug.LogFormat(@"[The Yellow Button #{0}] Hip color sequence: {1}", _moduleId, inf.Squares.Select(sq => _colorNames[colorGrids[whichColorGrid][sq.Index]]).Join(", "));
-        Debug.LogFormat(@"[The Yellow Button #{0}] Starting position: {1}{2}", _moduleId, (char) ('A' + inf.Squares[0].X), inf.Squares[0].Y + 1);
+        Debug.LogFormat(@"[The Yellow Button #{0}] Starting position: {1}{2}", _moduleId, (char)('A' + inf.Squares[0].X), inf.Squares[0].Y + 1);
         Debug.LogFormat(@"[The Yellow Button #{0}] Sick moves: {1}", _moduleId, inf.Directions.Select(dir => _directionNames[dir]).Join(", "));
-        Debug.LogFormat(@"[The Yellow Button #{0}] Dance: {1}", _moduleId, inf.Squares.Select(c => (char) ('A' + c.X) + (c.Y + 1).ToString()).Join(" → "));
+        Debug.LogFormat(@"[The Yellow Button #{0}] Dance: {1}", _moduleId, inf.Squares.Select(c => (char)('A' + c.X) + (c.Y + 1).ToString()).Join(" → "));
 
         FakeStatusLight = Instantiate(FakeStatusLight);
         FakeStatusLight.GetStatusLights(transform);
@@ -151,7 +151,7 @@ public class YellowButtonScript : MonoBehaviour
         {
             var angle = speed * Time.time;
             ArrowRotator.localEulerAngles = new Vector3(0, angle - 22.5f, 0);
-            _curDirection = ((int) angle / 45) % 8;
+            _curDirection = ((int)angle / 45) % 8;
             for (var i = 0; i < Segments.Length; i++)
                 Segments[i].sharedMaterial = i == _curDirection ? _curDirectionHighlighted ? SegmentOnHighlighted : SegmentOn : SegmentOff;
             yield return null;
@@ -226,7 +226,7 @@ public class YellowButtonScript : MonoBehaviour
         {
             var directions = new int[length - 1];
             for (var i = 1; i < length; i++)
-                directions[i - 1] = Enumerable.Range(0, 8).First(dir => sofar[i - 1].NeighborWrap((GridDirection) dir) == sofar[i]);
+                directions[i - 1] = Enumerable.Range(0, 8).First(dir => sofar[i - 1].NeighborWrap((GridDirection)dir) == sofar[i]);
             yield return new Snake { Directions = directions, Squares = sofar.ToArray() };
             yield break;
         }
@@ -263,16 +263,15 @@ public class YellowButtonScript : MonoBehaviour
 
     private IEnumerator SolveAnimation()
     {
-        _allowedToPress = false;
         yield return new WaitForSeconds(1f);
+        _allowedToPress = false;
         Audio.PlaySoundAtTransform("YellowButtonSolve", transform);
-
         var startTime = Time.time;
         var prevSegment = 0;
         var segmentMaterials = new[] { SegmentOff, SegmentOn, SegmentOnHighlighted };
         while (Time.time - startTime < 6.5f)
         {
-            var segment = (int) ((Time.time - startTime) / .122f) % 8;
+            var segment = (int)((Time.time - startTime) / .122f) % 8;
             if (segment == 0)
             {
                 StartCoroutine(AnimateButton(0f, -0.05f));

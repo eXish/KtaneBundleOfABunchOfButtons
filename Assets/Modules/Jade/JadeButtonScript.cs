@@ -26,6 +26,7 @@ public class JadeButtonScript : MonoBehaviour
     private float _speed = 4f;
     private int _currentStage;
     private Coroutine _spinArm;
+    private bool _isDoingCountdown;
 
     private void Start()
     {
@@ -39,7 +40,7 @@ public class JadeButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if (!_moduleSolved)
+        if (!_moduleSolved && !_isDoingCountdown)
         {
             if (!_isSpinning)
             {
@@ -89,6 +90,7 @@ public class JadeButtonScript : MonoBehaviour
 
     private IEnumerator Startup()
     {
+        _isDoingCountdown = true;
         for (int i = 3; i > 0; i--)
         {
             ButtonText.text = i.ToString();
@@ -100,6 +102,7 @@ public class JadeButtonScript : MonoBehaviour
 
     private IEnumerator SpinArm()
     {
+        _isDoingCountdown = false;
         _currentStage++;
         ButtonText.text = _currentStage.ToString();
         if (_currentStage == 10)
