@@ -33,7 +33,7 @@ public class WhiteButtonScript : MonoBehaviour
     private int _currentBlob;
     private bool _isAdding, _isStriking;
     private readonly string[] COLORNAMES = { "Iridium", "East Bay", "Cerulean", "Laurel", "Celadon", "Seaport", "Apple", "Emerald", "Pelorous", "Lotus", "Plum", "Orchid", "Sycamore", "Battleship", "Cove", "Atlantis", "Pistachio", "Neptune", "Mahogany", "Mulberry", "Amethyst", "Sienna", "Puce", "Viola", "Turmeric", "Pine", "Silver" };
-    private readonly string[] CBNAMES = { "Ird", "Est", "Cer", "Lau", "Cdn", "Spt", "Apl", "Emd", "Pls", "Lot", "Plm", "Orc", "Syc", "Btl", "Cov", "Atl", "Pch", "Npt", "Mhg", "Mlb", "Amt", "Snn", "Pce", "Vio", "Trm", "Pin", "Slv" };
+    private readonly string[] CBNAMES = { "Irid", "East", "Ceru", "Laur", "Cela", "Seap", "Apple", "Emer", "Pelo", "Lotus", "Plum", "Orch", "Syca", "Batt", "Cove", "Atla", "Pist", "Nept", "Mahog", "Mulb", "Ameth", "Sien", "Puce", "Viola", "Turm", "Pine", "Silv" };
     private readonly string[] POSITIONS = { "first", "second", "third", "fourth", "fifth" };
 
     private void Start()
@@ -62,9 +62,9 @@ public class WhiteButtonScript : MonoBehaviour
         {
             _blobColors[i] = Rnd.Range(0, 26);
             var color = new Color(
-                (60 + 70 * ((float) (_blobColors[i] / 9))) / 255,
-                (60 + 70 * ((float) (_blobColors[i] % 9) / 3)) / 255,
-                (60 + 70 * ((float) (_blobColors[i] % 3))) / 255);
+                (60 + 70 * ((float)(_blobColors[i] / 9))) / 255,
+                (60 + 70 * ((float)(_blobColors[i] % 9) / 3)) / 255,
+                (60 + 70 * ((float)(_blobColors[i] % 3))) / 255);
             ColorBlobs[i].material.color = color;
             Debug.LogFormat("[The White Button #{0}] The {1} determined number is {2}. Converting this to base-3 yields {3}{4}{5}, giving you color {6}",
                 _moduleId, POSITIONS[i], _targetBlobColors[i],
@@ -124,7 +124,7 @@ public class WhiteButtonScript : MonoBehaviour
 
     private void Update()
     {
-        var seconds = (int) BombInfo.GetTime() % 30;
+        var seconds = (int)BombInfo.GetTime() % 30;
         if (seconds != _lastTimerSeconds)
         {
             _lastTimerSeconds = seconds;
@@ -161,16 +161,16 @@ public class WhiteButtonScript : MonoBehaviour
         var b = _blobColors[blob] % 3;
         var offset = add ? 1 : -1;
         if (channel == 2)
-            r = Math.Max(0, Math.Min(2, r + offset));
+            r = (r + offset + 3) % 3;
         if (channel == 1)
-            g = Math.Max(0, Math.Min(2, g + offset));
+            g = (g + offset + 3) % 3;
         if (channel == 0)
-            b = Math.Max(0, Math.Min(2, b + offset));
+            b = (b + offset + 3) % 3;
         _blobColors[blob] = r * 9 + g * 3 + b;
         ColorBlobs[blob].material.color = new Color(
-            (60 + 70 * ((float) r)) / 255,
-            (60 + 70 * ((float) g)) / 255,
-            (60 + 70 * ((float) b)) / 255);
+            (60 + 70 * ((float)r)) / 255,
+            (60 + 70 * ((float)g)) / 255,
+            (60 + 70 * ((float)b)) / 255);
     }
 
     private IEnumerator CheckLogic(bool c)
@@ -244,8 +244,8 @@ public class WhiteButtonScript : MonoBehaviour
         yield return "waiting music";
         while (numbers.Count > 0)
         {
-            keepWaiting:
-            var ix = numbers.IndexOf((int) BombInfo.GetTime() % 60);
+        keepWaiting:
+            var ix = numbers.IndexOf((int)BombInfo.GetTime() % 60);
             if (ix == -1)
             {
                 yield return "trycancel";
@@ -286,8 +286,8 @@ public class WhiteButtonScript : MonoBehaviour
 
         while (corrections.Count > 0)
         {
-            keepWaiting:
-            var ix = corrections.IndexOf((int) BombInfo.GetTime() % 30);
+        keepWaiting:
+            var ix = corrections.IndexOf((int)BombInfo.GetTime() % 30);
             if (ix == -1)
             {
                 yield return true;
