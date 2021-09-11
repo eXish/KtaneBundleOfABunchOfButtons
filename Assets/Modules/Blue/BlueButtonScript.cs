@@ -291,7 +291,7 @@ public class BlueButtonScript : MonoBehaviour
             {
                 parent.localPosition = new Vector3(0, 0, Easing.BackOut(t, -.2f, 0, 1));
                 if (spotlight != null)
-                    spotlight.intensity = 10 * t;
+                    spotlight.intensity = 5 * t;
             });
 
             while (requiredStages.Contains(_stage))
@@ -305,7 +305,7 @@ public class BlueButtonScript : MonoBehaviour
             {
                 parent.localPosition = new Vector3(0, 0, Easing.BackIn(t, 0, .2f, 1));
                 if (spotlight != null)
-                    spotlight.intensity = 10 * (1 - t);
+                    spotlight.intensity = 5 * (1 - t);
             });
 
             stop = true;
