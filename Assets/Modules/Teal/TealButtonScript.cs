@@ -43,7 +43,7 @@ public class TealButtonScript : MonoBehaviour
         for (var i = 0; i < 73; i++)
             rnd.Next(0, 2);
 
-        var directions = (TealDirection[]) Enum.GetValues(typeof(TealDirection));
+        var directions = (TealDirection[])Enum.GetValues(typeof(TealDirection));
         var direction = directions[rnd.Next(0, 4)];
 
         int[] pairPos = { 0, 1, 2, 3, 4, 5 };
@@ -71,7 +71,7 @@ public class TealButtonScript : MonoBehaviour
 
         _lightCycle.Shuffle();
         Debug.LogFormat("[The Teal Button #{0}] LED cycle is {1}.", _moduleId, _lightCycle.Select(lc => lc + 1).Join(", "));
-        Debug.LogFormat("[The Teal Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char) ('A' + ch)).Join(", "));
+        Debug.LogFormat("[The Teal Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char)('A' + ch)).Join(", "));
 
         SetLights();
         SetText();
@@ -136,7 +136,7 @@ public class TealButtonScript : MonoBehaviour
 
     private void Update()
     {
-        var seconds = (int) BombInfo.GetTime() % 3;
+        var seconds = (int)BombInfo.GetTime() % 3;
         if (seconds != _lastTimerSeconds)
         {
             _lastTimerSeconds = seconds;
@@ -150,7 +150,7 @@ public class TealButtonScript : MonoBehaviour
     private void SetText()
     {
         for (int i = 0; i < _mainText.Length; i++)
-            _mainText[i].text = ((char) ('A' + _screenTextIxs[i])).ToString();
+            _mainText[i].text = ((char)('A' + _screenTextIxs[i])).ToString();
     }
     private void SetTextColors(int sec)
     {
@@ -187,7 +187,7 @@ public class TealButtonScript : MonoBehaviour
                 _mainText[i].color = _textColors[1];
             for (int i = 0; i < LedLights.Length; i++)
                 LedLights[i].material = LedMats[1];
-            Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Module solved.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
+            Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Module solved.", _moduleId, _screenTextIxs.Select(ch => (char)('A' + ch)).Join(", "));
         }
         else
             StartCoroutine(Strike());
@@ -195,7 +195,7 @@ public class TealButtonScript : MonoBehaviour
 
     private IEnumerator Strike()
     {
-        Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Strike.", _moduleId, _screenTextIxs.Select(ch => (char) ('A' + ch)).Join(", "));
+        Debug.LogFormat("[The Teal Button #{0}] Submitted {1}. Strike.", _moduleId, _screenTextIxs.Select(ch => (char)('A' + ch)).Join(", "));
         Module.HandleStrike();
         _isStriking = true;
         for (int i = 0; i < _screenTextIxs.Length; i++)
@@ -218,9 +218,9 @@ public class TealButtonScript : MonoBehaviour
         if (Regex.IsMatch(command, @"^\s*(submit|hold)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
-            var time = (int) BombInfo.GetTime() % 3;
+            var time = (int)BombInfo.GetTime() % 3;
             yield return ButtonSelectable;
-            while ((int) BombInfo.GetTime() % 3 == time)
+            while ((int)BombInfo.GetTime() % 3 == time)
                 yield return null;
             yield return ButtonSelectable;
             yield return new WaitForSeconds(.1f);
@@ -234,12 +234,12 @@ public class TealButtonScript : MonoBehaviour
         var slotsStr = m.Groups[1].Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         var slots = new int[slotsStr.Length];
         for (var i = 0; i < slotsStr.Length; i++)
-            if (!int.TryParse(slotsStr[i], out slots[i]))
+            if (!int.TryParse(slotsStr[i], out slots[i]) || slots[i] < 1 || slots[i] > 3)
                 yield break;
 
         foreach (var slot in slots)
         {
-            while ((int) BombInfo.GetTime() % 3 != slot)
+            while ((int)BombInfo.GetTime() % 3 != slot - 1)
                 yield return null;
             ButtonSelectable.OnInteract();
             ButtonSelectable.OnInteractEnded();
@@ -251,7 +251,7 @@ public class TealButtonScript : MonoBehaviour
     {
         while (!_moduleSolved)
         {
-            var slot = (int) BombInfo.GetTime() % 3;
+            var slot = (int)BombInfo.GetTime() % 3;
             if (_screenTextIxs[slot] != _solutions[slot])
             {
                 ButtonSelectable.OnInteract();
@@ -264,9 +264,9 @@ public class TealButtonScript : MonoBehaviour
             if (Enumerable.Range(0, 3).All(ix => _screenTextIxs[ix] == _solutions[ix]))
             {
                 // All slots correct: time to submit
-                var time = (int) BombInfo.GetTime() % 3;
+                var time = (int)BombInfo.GetTime() % 3;
                 ButtonSelectable.OnInteract();
-                while ((int) BombInfo.GetTime() % 3 == time)
+                while ((int)BombInfo.GetTime() % 3 == time)
                     yield return true;
                 ButtonSelectable.OnInteractEnded();
             }
