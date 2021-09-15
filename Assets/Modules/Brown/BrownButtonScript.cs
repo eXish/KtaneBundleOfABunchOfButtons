@@ -25,6 +25,7 @@ public class BrownButtonScript : MonoBehaviour
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private bool _moduleSolved;
+    private bool _moduleActivated = false;
     List<Vector3Int> _chosenNet;
     private Vector3 _currentRotation;
     private Vector3Int _currentPosition, _correctCell;
@@ -202,8 +203,11 @@ public class BrownButtonScript : MonoBehaviour
         WallsParent.localPosition = end;
 
         GetComponentInChildren<CameraScript>().UpdateChildren();
-
-        StartCoroutine(RotateCamera());
+        Module.OnActivate += delegate
+        {
+            StartCoroutine(RotateCamera());
+            _moduleActivated = true;
+        };
     }
 
     private bool DirectionToPositivity(Vector3Int dir)
@@ -340,7 +344,7 @@ public class BrownButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if(!_moduleSolved)
+        if (_moduleActivated && !_moduleSolved)
         {
             if(_chosenNet.Any(t => t == _currentPosition + _currentRotation))
             {
@@ -441,7 +445,7 @@ public class BrownButtonScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if(_moduleSolved)
+        if (!_moduleActivated || _moduleSolved)
             yield break;
         string allLetters = _TPLetters.Values.Join("");
         Match m = Regex.Match(command.Trim().ToUpperInvariant(), @"^(?:(?:TAP|PRESS|GO|MOVE|SUBMIT)\s*)?((?:[" + allLetters + @"]\s*)*)$");

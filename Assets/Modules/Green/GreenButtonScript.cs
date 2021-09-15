@@ -185,7 +185,7 @@ public class GreenButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} tap | !{0} submit 1 4 8 10 15 [Submits those sets of 4]";
+    private readonly string TwitchHelpMessage = "!{0} tap | !{0} submit 1 4 8 10 15 [submits those sets of 4]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -193,46 +193,48 @@ public class GreenButtonScript : MonoBehaviour
         if (_moduleSolved)
             yield break;
 
+        if (_playing)
+        {
+            yield return "sendtochaterror The module is already playing! Please wait...";
+            yield break;
+        }
+
         if (Regex.IsMatch(command, @"^\s*(?:press|tap|push|submit|play)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            if (_playing)
-            {
-                yield return "sendtochaterror The module is already playing! Please wait...";
-                yield break;
-            }
             GreenButtonSelectable.OnInteract();
             GreenButtonSelectable.OnInteractEnded();
             yield break;
         }
 
         string[] chunks = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (Regex.IsMatch(chunks[0], @"^\s*(?:press|tap|push|submit|play)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        if (chunks.Length > 1 && Regex.IsMatch(chunks[0], @"^\s*(?:press|tap|push|submit|play)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            if (_playing)
-            {
-                yield return "sendtochaterror The module is already playing! Please wait...";
-                yield break;
-            }
-
             int[] answers = new int[chunks.Length - 1];
             for (int i = 1; i < chunks.Length; i++)
             {
                 if (!int.TryParse(chunks[i].Trim(), out answers[i - 1]))
                     yield break;
-                if (i != 1 && (answers[i - 1] <= 0 || answers[i - 1] > _displayedString.SelectMany(c => _newYorkPoint[c]).Count() || answers[i - 1] <= answers[i - 2]))
+                if (i != 1 && (answers[i - 1] <= 0 || answers[i - 1] > _displayedString.Sum(c => _newYorkPoint[c].Length) || answers[i - 1] <= answers[i - 2]))
                     yield break;
             }
 
             yield return null;
             yield return "strike";
             yield return "solve";
+
+            GreenButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            GreenButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+
             foreach (int answer in answers)
             {
-                float time = Time.time;
-                while (answer == _currentSet || time <= Time.time - 5f)
+                while (_currentSet != answer)
                     yield return null;
                 GreenButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
                 GreenButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
             }
         }
     }
@@ -253,6 +255,7 @@ public class GreenButtonScript : MonoBehaviour
             if (_targetWord[0] == _displayedString[_currentChar])
             {
                 GreenButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
                 GreenButtonSelectable.OnInteractEnded();
                 _targetWord = _targetWord.Substring(1);
                 int ch = _currentChar;

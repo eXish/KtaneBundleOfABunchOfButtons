@@ -132,15 +132,16 @@ public class BlackButtonScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (!_moduleSolved)
+        if (_moduleSolved)
             yield break;
 
-        var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+)?(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        if (!m.Success)
+        var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+(?:for\s+)?)?(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        int v;
+        Debug.LogFormat("{0}, {1}", m.Success, m.Success && int.TryParse(m.Groups[1].Value, out v));
+        if (!m.Success || !int.TryParse(m.Groups[1].Value, out v))
             yield break;
 
         yield return null;
-        var v = int.Parse(m.Groups[1].Value);
         BlackButtonSelectable.OnInteract();
         while (Time.time - _lastHeldTime < v)
             yield return null;
