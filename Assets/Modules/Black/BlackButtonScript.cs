@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+
 using Rnd = UnityEngine.Random;
 
 public class BlackButtonScript : MonoBehaviour
@@ -15,12 +15,13 @@ public class BlackButtonScript : MonoBehaviour
     public Material[] BandColors;
     public MeshRenderer[] Resistor1Bands, Resistor2Bands, Resistor3Bands;
     public TextMesh CapacitorText;
+    public TextMesh SecondsText;
 
     private static int _moduleIdCounter = 1;
     private int _moduleId;
     private bool _moduleSolved;
     private double _minTime, _maxTime;
-    private float _lastHeldTime;
+    private float? _lastHeldTime = null;
 
     private void Start()
     {
@@ -28,7 +29,7 @@ public class BlackButtonScript : MonoBehaviour
         BlackButtonSelectable.OnInteract += BlackButtonPress;
         BlackButtonSelectable.OnInteractEnded += BlackButtonRelease;
 
-        tryagain:
+        tryAgain:
         int[] resistences = new int[] { Rnd.Range(0, 1000), Rnd.Range(0, 1000), Rnd.Range(0, 1000) };
         int[] exponents = new int[] { Rnd.Range(0, 6), Rnd.Range(0, 6), Rnd.Range(0, 6) };
         double resistence = 1 / (1 / (resistences[1] * Math.Pow(10, exponents[1])) + 1 / (resistences[2] * Math.Pow(10, exponents[2])) + 1 / (resistences[0] * Math.Pow(10, exponents[0])));
@@ -36,20 +37,22 @@ public class BlackButtonScript : MonoBehaviour
         float targetTime = Rnd.Range(10f, 35f);
         double capacitance = targetTime / resistence;
         if (capacitance >= 0.001d)
-            goto tryagain;
+            goto tryAgain;
         if (capacitance <= 0.000000001d)
-            goto tryagain;
+            goto tryAgain;
 
         string capText = "";
 
         if (capacitance >= 0.000001d)
-        { // microfareds
+        {
+            // microfarads
             capacitance *= 1000000d;
             int c = (int) Math.Floor(capacitance);
             CapacitorText.text = capText = c + " μF ±10%";
         }
         else
-        { // nanofareds
+        {
+            // nanofarads
             capacitance *= 1000000000d;
             int c = (int) Math.Floor(capacitance);
             CapacitorText.text = capText = c + " nF ±10%";
@@ -87,8 +90,7 @@ public class BlackButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
-        if (!_moduleSolved)
-            _lastHeldTime = Time.time;
+        _lastHeldTime = Time.time;
         return false;
     }
 
@@ -96,9 +98,9 @@ public class BlackButtonScript : MonoBehaviour
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
-        if (!_moduleSolved)
+        if (!_moduleSolved && _lastHeldTime != null)
         {
-            if (Time.time - _lastHeldTime >= _minTime && Time.time - _lastHeldTime <= _maxTime)
+            if (Time.time - _lastHeldTime.Value >= _minTime && Time.time - _lastHeldTime.Value <= _maxTime)
             {
                 Debug.LogFormat("[The Black Button #{0}] Correct. Module solved.", _moduleId);
                 Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
@@ -107,10 +109,16 @@ public class BlackButtonScript : MonoBehaviour
             }
             else
             {
-                Debug.LogFormat("[The Black Button #{0}] You held for {1} seconds. That was incorrect. Strike!", _moduleId, Time.time - _lastHeldTime);
+                Debug.LogFormat("[The Black Button #{0}] You held for {1} seconds. That was incorrect. Strike!", _moduleId, Time.time - _lastHeldTime.Value);
                 Module.HandleStrike();
             }
         }
+        _lastHeldTime = null;
+    }
+
+    void Update()
+    {
+        SecondsText.text = _lastHeldTime == null ? "-" : Mathf.FloorToInt(Time.time - _lastHeldTime.Value).ToString();
     }
 
     private IEnumerator AnimateButton(float a, float b)
