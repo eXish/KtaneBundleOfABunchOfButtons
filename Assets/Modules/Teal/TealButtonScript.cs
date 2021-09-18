@@ -69,8 +69,6 @@ public class TealButtonScript : MonoBehaviour
                 ((snPairs[i * 2] + (direction == TealDirection.Left ? 9 - buttonNum : direction == TealDirection.Right ? buttonNum : 0)) % 9) +
                 9 * ((snPairs[i * 2 + 1] + (direction == TealDirection.Up ? 9 - buttonNum : direction == TealDirection.Down ? buttonNum : 0)) % 9)];
 
-        _lightCycle.Shuffle();
-        Debug.LogFormat("[The Teal Button #{0}] LED cycle is {1}.", _moduleId, _lightCycle.Select(lc => lc + 1).Join(", "));
         Debug.LogFormat("[The Teal Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char)('A' + ch)).Join(", "));
 
         SetLights();
