@@ -34,7 +34,6 @@ public class MaroonButtonScript : MonoBehaviour
         for (int i = 0; i < _sphereRotations.Length; i++)
         {
             _sphereRotations[i] = i % 2 == 0 ? Rnd.Range(3, 7) : Rnd.Range(-6, -2);
-            Debug.LogFormat("{0}", _sphereRotations[i]);
         }
     }
 

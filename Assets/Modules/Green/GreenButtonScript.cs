@@ -203,6 +203,7 @@ public class GreenButtonScript : MonoBehaviour
         {
             GreenButtonSelectable.OnInteract();
             GreenButtonSelectable.OnInteractEnded();
+            yield return null;
             yield break;
         }
 
