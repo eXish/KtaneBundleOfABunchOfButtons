@@ -45,9 +45,13 @@ public class OrangeButtonScript : MonoBehaviour
         _holdWhen = _counterclockwise ? _denom : _numer;
         _releaseWhen = _counterclockwise ? _numer : _denom;
 
+        var rotationPeriod = Rnd.Range(4f, 6f);
+        var ledChangePeriod = rotationPeriod / _numer * _denom;
+        Debug.LogFormat("[The Orange Button #{0}] One full rotation occurs every {1:0.000} seconds.", _moduleId, rotationPeriod);
+        Debug.LogFormat("[The Orange Button #{0}] LEDs change every {1:0.000} seconds.", _moduleId, ledChangePeriod);
         Debug.LogFormat("[The Orange Button #{0}] Going {3}. Hold on {1}, release on {2}.", _moduleId, _holdWhen, _releaseWhen, _counterclockwise ? "counter-clockwise" : "clockwise");
 
-        StartCoroutine(Move());
+        StartCoroutine(Move(rotationPeriod, ledChangePeriod));
     }
 
     private static int gcd(int a, int b)
@@ -63,10 +67,8 @@ public class OrangeButtonScript : MonoBehaviour
         return a | b;
     }
 
-    private IEnumerator Move()
+    private IEnumerator Move(float rotationPeriod, float ledChangePeriod)
     {
-        var rotationPeriod = Rnd.Range(4f, 6f);
-        var ledChangePeriod = rotationPeriod / _numer * _denom;
         var latestRotation = 0f;
 
         while (!_moduleSolved)
