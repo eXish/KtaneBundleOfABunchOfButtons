@@ -39,7 +39,8 @@ public class TealButtonScript : MonoBehaviour
 
         // START RULE SEED
         var rnd = RuleSeedable.GetRNG();
-        Debug.LogFormat("[The Teal Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
+        if (rnd.Seed != 1)
+            Debug.LogFormat("[The Teal Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
         for (var i = 0; i < 73; i++)
             rnd.Next(0, 2);
 
@@ -68,7 +69,7 @@ public class TealButtonScript : MonoBehaviour
             _solutions[i] = letterTable[
                 ((snPairs[i * 2] + (direction == TealDirection.Left ? 9 - buttonNum : direction == TealDirection.Right ? buttonNum : 0)) % 9) +
                 9 * ((snPairs[i * 2 + 1] + (direction == TealDirection.Up ? 9 - buttonNum : direction == TealDirection.Down ? buttonNum : 0)) % 9)];
-
+        Debug.LogFormat("[The Teal Button #{0}] The number printed on the button is {1}.", _moduleId, buttonNum);
         Debug.LogFormat("[The Teal Button #{0}] The solution is {1}.", _moduleId, _solutions.Select(ch => (char)('A' + ch)).Join(", "));
 
         SetLights();
