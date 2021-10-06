@@ -256,7 +256,7 @@ public class PurpleButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} 0 2 3 on off off on on off [wait for this sequence of numbers and tap the button on the last one, then skip one digit, then toggle the light into the specified states]";
+    private readonly string TwitchHelpMessage = "!{0} 5 1 2 2 2 on off off on on off [wait for this sequence of numbers and tap the button on the last one, then skip one digit, then toggle the light into the specified states]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
