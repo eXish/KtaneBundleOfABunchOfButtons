@@ -237,6 +237,8 @@ public class RedButtonScript : MonoBehaviour
             while ((int) BombInfo.GetTime() % 10 != holdTime)
                 yield return "trycancel";
             RedButtonSelectable.OnInteract();
+            if (holdTime == releaseTime)
+                yield return new WaitForSeconds(1f);
             while ((int) BombInfo.GetTime() % 10 != releaseTime)
                 yield return null;
             RedButtonSelectable.OnInteractEnded();
