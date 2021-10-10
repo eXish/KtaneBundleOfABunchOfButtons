@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlueButton;
+using GrayButton;
 using KModkit;
 using UnityEngine;
 
@@ -14,10 +14,10 @@ public class GrayButtonScript : MonoBehaviour
     public KMBombInfo BombInfo;
     public KMAudio Audio;
     public KMRuleSeedable RuleSeedable;
-    public KMSelectable BlueButtonSelectable;
-    public GameObject BlueButtonCap;
-    public MeshRenderer BlueButtonSymbol;
-    public TextMesh BlueButtonText;
+    public KMSelectable GrayButtonSelectable;
+    public GameObject GrayButtonCap;
+    public MeshRenderer GrayButtonSymbol;
+    public TextMesh GrayButtonText;
     public Material[] Symbols;
 
     private static int _moduleIdCounter = 1;
@@ -31,7 +31,7 @@ public class GrayButtonScript : MonoBehaviour
 
         // START RULE SEED
         var rnd = RuleSeedable.GetRNG();
-        Debug.LogFormat("[The Blue Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
+        Debug.LogFormat("[The Gray Button #{0}] Using rule seed: {1}.", _moduleId, rnd.Seed);
         var mazes = Enumerable.Range(0, 9).Select(mazeId => MazeLayout.Generate(10, 10, rnd)).ToArray();
         // END RULE SEED
 
@@ -69,12 +69,12 @@ public class GrayButtonScript : MonoBehaviour
         if (_solution > 59)
             goto tryAgain;
 
-        Debug.LogFormat(@"[The Blue Button #{0}] To disarm, tap at xx:{1:00} or 00:{2:00}.", _moduleId, _solution, _solution / 10);
+        Debug.LogFormat(@"[The Gray Button #{0}] To disarm, tap at xx:{1:00} or 00:{2:00}.", _moduleId, _solution, _solution / 10);
 
-        BlueButtonSymbol.sharedMaterial = Symbols[symbol];
-        BlueButtonText.text = string.Format("{0}, {1}", goalPos % 10, goalPos / 10);
-        BlueButtonSelectable.OnInteract += BlueButtonPress;
-        BlueButtonSelectable.OnInteractEnded += BlueButtonRelease;
+        GrayButtonSymbol.sharedMaterial = Symbols[symbol];
+        GrayButtonText.text = string.Format("{0}, {1}", goalPos % 10, goalPos / 10);
+        GrayButtonSelectable.OnInteract += GrayButtonPress;
+        GrayButtonSelectable.OnInteractEnded += GrayButtonRelease;
     }
 
     private static int convert(char ch)
@@ -82,7 +82,7 @@ public class GrayButtonScript : MonoBehaviour
         return ch >= '0' && ch <= '9' ? ch - '0' : ch - 'A' + 10;
     }
 
-    private bool BlueButtonPress()
+    private bool GrayButtonPress()
     {
         StartCoroutine(AnimateButton(0f, -0.05f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
@@ -90,20 +90,20 @@ public class GrayButtonScript : MonoBehaviour
         {
             if ((int) BombInfo.GetTime() % 60 == _solution || (int) BombInfo.GetTime() == _solution / 10)
             {
-                Debug.LogFormat(@"[The Blue Button #{0}] Module solved.", _moduleId);
+                Debug.LogFormat(@"[The Gray Button #{0}] Module solved.", _moduleId);
                 _moduleSolved = true;
                 Module.HandlePass();
             }
             else
             {
-                Debug.LogFormat(@"[The Blue Button #{0}] Button tapped at time {1}. Strike!", _moduleId, BombInfo.GetFormattedTime());
+                Debug.LogFormat(@"[The Gray Button #{0}] Button tapped at time {1}. Strike!", _moduleId, BombInfo.GetFormattedTime());
                 Module.HandleStrike();
             }
         }
         return false;
     }
 
-    private void BlueButtonRelease()
+    private void GrayButtonRelease()
     {
         StartCoroutine(AnimateButton(-0.05f, 0f));
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonRelease, transform);
@@ -115,11 +115,11 @@ public class GrayButtonScript : MonoBehaviour
         var elapsed = 0f;
         while (elapsed < duration)
         {
-            BlueButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
+            GrayButtonCap.transform.localPosition = new Vector3(0f, Easing.InOutQuad(elapsed, a, b, duration), 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        BlueButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+        GrayButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
     }
 
 #pragma warning disable 414
@@ -136,9 +136,9 @@ public class GrayButtonScript : MonoBehaviour
             yield return null;
             while ((int) BombInfo.GetTime() % 60 != sec)
                 yield return "trycancel";
-            BlueButtonSelectable.OnInteract();
+            GrayButtonSelectable.OnInteract();
             yield return new WaitForSeconds(.1f);
-            BlueButtonSelectable.OnInteractEnded();
+            GrayButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(.1f);
         }
     }
@@ -149,9 +149,9 @@ public class GrayButtonScript : MonoBehaviour
             yield break;
         while ((int) BombInfo.GetTime() % 60 != _solution && (int) BombInfo.GetTime() != _solution / 10)
             yield return true;
-        BlueButtonSelectable.OnInteract();
+        GrayButtonSelectable.OnInteract();
         yield return new WaitForSeconds(.1f);
-        BlueButtonSelectable.OnInteractEnded();
+        GrayButtonSelectable.OnInteractEnded();
         yield return new WaitForSeconds(.1f);
     }
 }
