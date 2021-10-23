@@ -705,7 +705,7 @@ Prefab:
     - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
         type: 2}
       propertyPath: AudioClips.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 439642, guid: 8814ea52310d2614a9feda02ec355ae4, type: 2}
       propertyPath: m_LocalPosition.x
@@ -742,7 +742,7 @@ Prefab:
     - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
         type: 2}
       propertyPath: TwitchPlaysActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
         type: 2}
@@ -753,7 +753,12 @@ Prefab:
         type: 2}
       propertyPath: AudioClips.Array.data[1]
       value: 
-      objectReference: {fileID: 8300000, guid: 8c0ebb3ced6b3af4788e282e3d7daf7e, type: 3}
+      objectReference: {fileID: 8300000, guid: b1545b51baaf5e645b358898b8026e75, type: 3}
+    - target: {fileID: 114617884380056244, guid: 8814ea52310d2614a9feda02ec355ae4,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8814ea52310d2614a9feda02ec355ae4, type: 2}
   m_IsPrefabParent: 0

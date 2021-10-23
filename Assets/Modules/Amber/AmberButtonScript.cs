@@ -19,9 +19,14 @@ public class AmberButtonScript : MonoBehaviour
     private int _moduleId, _lastTimerSeconds, _current, _typed;
     private int _toCycle = 4;
     private string _serialNumber, _input;
-    private string _base32 = "012345689ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private string _base36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private bool[] _done = new bool[2];
-    private bool _moduleSolved, _buttonHeld, _checkTap, _rotated, _isRotating, _typing;
+    private bool _moduleSolved, _buttonHeld, _checkHold, _rotated, _isRotating, _typing, _stageAnimating;
+
+    private string ToBinary(char y)
+    {
+        return Convert.ToString(_base36.IndexOf(y), 2).PadLeft(6, '0').Select(x => x == '0' ? '?' : '¿').Join("");
+    }
 
     private void Start()
     {
@@ -30,22 +35,29 @@ public class AmberButtonScript : MonoBehaviour
         ButtonSelectable.OnInteractEnded += ButtonRelease;
         _serialNumber = BombInfo.GetSerialNumber();
         _order.Shuffle();
-        Debug.Log(_order.Join(", "));
+        if (_order[4] > _order[5])
+        {
+            int cache = _order[4];
+            _order[4] = _order[5];
+            _order[5] = cache;
+        }
+        Debug.LogFormat("[The Amber Button #{0}] The displayed serial number characters are {1}.", _moduleId, _serialNumber[_order[0]] + ", " + _serialNumber[_order[1]] + ", " + _serialNumber[_order[2]] + " and " + _serialNumber[_order[3]]);
+        Debug.LogFormat("[The Amber Button #{0}] The two missing characters are {1}, or {2}.", _moduleId, _serialNumber[_order[4]] + " and " + _serialNumber[_order[5]], ToBinary(_serialNumber[_order[4]]) + " and " + ToBinary(_serialNumber[_order[5]]));
         AmberText.text = "";
-        Module.OnActivate += delegate { AmberText.text = Convert.ToString(Convert.ToInt32(_base32.IndexOf(_serialNumber[_order[_current]]).ToString(), 10), 2).PadLeft(5, '0').ToCharArray().Select(x => x == '0' ? '?' : '¿').Join(""); };
+        Module.OnActivate += delegate { AmberText.text = ToBinary(_serialNumber[_order[_current]]); };
     }
 
     private void Update()
     {
         var seconds = (int)BombInfo.GetTime() % 10;
-        if (seconds != _lastTimerSeconds)
+        if (seconds != _lastTimerSeconds && !_moduleSolved && !_stageAnimating)
         {
             _lastTimerSeconds = seconds;
             _current = (_current + 1) % _toCycle;
             if (!_typing)
-                AmberText.text = Convert.ToString(Convert.ToInt32(_base32.IndexOf(_serialNumber[_order[_current]]).ToString(), 10), 2).PadLeft(5, '0').ToCharArray().Select(x => x == '0' ? '?' : '¿').Join("");
+                AmberText.text = ToBinary(_serialNumber[_order[_current]]);
             if (_buttonHeld)
-                _checkTap = true;
+                _checkHold = true;
         }
     }
 
@@ -55,7 +67,7 @@ public class AmberButtonScript : MonoBehaviour
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
         if (!_moduleSolved)
         {
-            _checkTap = false;
+            _checkHold = false;
             _buttonHeld = true;
         }
         return false;
@@ -68,34 +80,52 @@ public class AmberButtonScript : MonoBehaviour
         if (!_moduleSolved)
         {
             _buttonHeld = false;
-            if (!_checkTap)
+            if (_checkHold)
             {
                 if (!_isRotating)
                     StartCoroutine(RotateButton());
             }
             else
-                Held();
+                Pressed();
         }
     }
 
-    private void Held()
+    private void Pressed()
     {
         _typing = true;
         _input += _rotated ? "¿" : "?";
-        AmberText.text = _input.PadRight(5, '-');
+        AmberText.text = _input.PadRight(6, '-');
         _typed++;
-        if (_typed == 5)
+        if (_typed == 6)
         {
             _typing = false;
-            if (AmberText.text == Convert.ToString(Convert.ToInt32(_base32.IndexOf(_serialNumber[_order[4]]).ToString(), 10), 2).PadLeft(5, '0').ToCharArray().Select(x => x == '0' ? '?' : '¿').Join("") && !_done[0])
+            if (AmberText.text == ToBinary(_serialNumber[_order[4]]) && !_done[0])
+            {
+                StartCoroutine(StageAnimation(new Color32(255, 233, 171, 255)));
+                Debug.LogFormat("[The Amber Button #{0}] You submitted {1}, which was correct.", _moduleId, AmberText.text);
                 _done[0] = true;
-            else if (AmberText.text == Convert.ToString(Convert.ToInt32(_base32.IndexOf(_serialNumber[_order[5]]).ToString(), 10), 2).PadLeft(5, '0').ToCharArray().Select(x => x == '0' ? '?' : '¿').Join("") && !_done[1])
+                _toCycle = 5;
+            }
+            else if (AmberText.text == ToBinary(_serialNumber[_order[5]]) && !_done[0])
+            {
+                StartCoroutine(StageAnimation(new Color32(255, 233, 171, 255)));
+                Debug.LogFormat("[The Amber Button #{0}] You submitted {1}, which was correct.", _moduleId, AmberText.text);
+                _done[0] = true;
+                _toCycle = 5;
+                var cache = _order[4];
+                _order[4] = _order[5];
+                _order[5] = cache;
+            }
+            else if (AmberText.text == ToBinary(_serialNumber[_order[5]]) && !_done[1])
                 _done[1] = true;
             else
                 Module.HandleStrike();
             if (_done[0] && _done[1])
             {
                 Module.HandlePass();
+                Debug.LogFormat("[The Amber Button #{0}] You submitted {1}, which was correct. Module solved!", _moduleId, AmberText.text);
+                StartCoroutine(StageAnimation(new Color32(0, 0, 0, 255)));
+                _moduleSolved = true;
             }
             _typed = 0;
             _input = "";
@@ -113,6 +143,20 @@ public class AmberButtonScript : MonoBehaviour
             elapsed += Time.deltaTime;
         }
         ButtonCap.transform.localPosition = new Vector3(0f, b, 0f);
+    }
+
+    private IEnumerator StageAnimation(Color32 colour)
+    {
+        Audio.PlaySoundAtTransform("AmberButtonStage", ButtonCap.transform);
+        var duration = 0.5f;
+        var elapsed = 0f;
+        while (elapsed < duration)
+        {
+            AmberText.color = Color.Lerp(new Color(0, 1, 0), colour, elapsed * 2);
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+        AmberText.color = colour;
     }
 
     private IEnumerator RotateButton()
@@ -133,17 +177,47 @@ public class AmberButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold 1 5 [hold on 1, release on 5] | !{0} tap";
+    private readonly string TwitchHelpMessage = "Use '!{0} hold tap' to hold the button over a timer tick, then tap it.";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (!_moduleSolved)
+        command = command.ToLowerInvariant();
+        string[] commandArray = command.Split(' ');
+        if (_moduleSolved)
             yield break;
+        for (int i = 0; i < commandArray.Length; i++)
+            if (commandArray[i] != "hold" && commandArray[i] != "tap" && commandArray[i] != "h" && commandArray[i] != "t")
+            {
+                yield return "sendtochaterror Invalid command.";
+                yield break;
+            }
+        for (int i = 0; i < commandArray.Length; i++)
+        {
+            ButtonSelectable.OnInteract();
+            if (commandArray[i] == "hold" || commandArray[i] == "h")
+                while (!_checkHold)
+                    yield return new WaitForSeconds(0.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        yield break;
+        var cache2 = _rotated ? '¿' : '?';
+        while (!_moduleSolved)
+        {
+            ButtonSelectable.OnInteract();
+            if (ToBinary(_serialNumber[_order[_toCycle]])[_typed] != cache2)
+            {
+                while (!_checkHold)
+                    yield return new WaitForSeconds(0.1f);
+                cache2 = _rotated ? '?' : '¿';
+            }
+            ButtonSelectable.OnInteractEnded();
+            yield return true;
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
