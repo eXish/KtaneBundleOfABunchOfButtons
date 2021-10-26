@@ -22,6 +22,7 @@ public class BlackButtonScript : MonoBehaviour
     private bool _moduleSolved;
     private double _minTime, _maxTime;
     private float? _lastHeldTime = null;
+    private int capac;
 
     private void Start()
     {
@@ -135,7 +136,7 @@ public class BlackButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold for 12 [holds the button for 12 seconds]";
+    private readonly string TwitchHelpMessage = "!{0} hold for 12 [holds the button for 12 seconds] | !{0} capacitor [Reads the number on the capacitor";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -143,18 +144,24 @@ public class BlackButtonScript : MonoBehaviour
         if (_moduleSolved)
             yield break;
 
-        var m = Regex.Match(command, @"^\s*(?:(?:press|tap|click|hold|submit|make|do|go)\s+(?:for\s+)?)?(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var m = Regex.Match(command, @"^\s*hold\s+for\s+(\d\d?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         int v;
-        Debug.LogFormat("{0}, {1}", m.Success, m.Success && int.TryParse(m.Groups[1].Value, out v));
-        if (!m.Success || !int.TryParse(m.Groups[1].Value, out v))
-            yield break;
-
-        yield return null;
-        BlackButtonSelectable.OnInteract();
-        while (Time.time - _lastHeldTime < v)
+        if (m.Success && int.TryParse(m.Groups[1].Value, out v))
+        {
             yield return null;
-        BlackButtonSelectable.OnInteractEnded();
-        yield return new WaitForSeconds(.1f);
+            BlackButtonSelectable.OnInteract();
+            while (Time.time - _lastHeldTime < v)
+                yield return null;
+            BlackButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+        }
+
+        var n = Regex.Match(command, @"^\s*capacitor\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (n.Success)
+        {
+            yield return null;
+            yield return "sendtochat The capacitance of the capacitor is "+ CapacitorText.text + ".";
+        }
     }
 
     public IEnumerator TwitchHandleForcedSolve()
