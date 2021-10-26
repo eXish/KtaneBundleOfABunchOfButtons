@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlueButton
+namespace GrayButton
 {
     public class MazeLayout
     {
