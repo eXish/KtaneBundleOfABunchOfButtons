@@ -1065,10 +1065,10 @@ MonoBehaviour:
   BombInfo: {fileID: 114440240834018088}
   Audio: {fileID: 114053005821605548}
   RuleSeedable: {fileID: 114658864792971414}
-  BlueButtonSelectable: {fileID: 114215743768313496}
-  BlueButtonCap: {fileID: 1628179643459866}
-  BlueButtonSymbol: {fileID: 23266399715825526}
-  BlueButtonText: {fileID: 102005303601107934}
+  GrayButtonSelectable: {fileID: 114215743768313496}
+  GrayButtonCap: {fileID: 1628179643459866}
+  GrayButtonSymbol: {fileID: 23266399715825526}
+  GrayButtonText: {fileID: 102005303601107934}
   Symbols:
   - {fileID: 2100000, guid: 0013b020ae303954588b219b0c47b379, type: 2}
   - {fileID: 2100000, guid: 3651d76a3c666ae4eba75f6a66c6d774, type: 2}
