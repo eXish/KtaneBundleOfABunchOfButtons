@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RT.Util.ExtensionMethods
+namespace BlueButtonLib
 {
-    static class Ut
+    static partial class Ut
     {
         /// <summary>
         ///     Turns all elements in the enumerable to strings and joins them using the specified <paramref
@@ -624,6 +624,59 @@ namespace RT.Util.ExtensionMethods
                 index++;
             }
             return -1;
+        }
+
+        /// <summary>
+        ///     Determines whether any element of a sequence satisfies a condition by incorporating the element's index.</summary>
+        /// <typeparam name="T">
+        ///     The type of the elements of <paramref name="source"/>.</typeparam>
+        /// <param name="source">
+        ///     An <see cref="IEnumerable{T}"/> that contains the elements to apply the predicate to.</param>
+        /// <param name="predicate">
+        ///     A function to test each element for a condition; the second parameter of the function represents the index of
+        ///     the source element.</param>
+        /// <returns>
+        ///     <c>true</c> if any elements in the source sequence pass the test in the specified <paramref
+        ///     name="predicate"/>; otherwise, false.</returns>
+        public static bool Any<T>(this IEnumerable<T> source, Func<T, int, bool> predicate)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            var ix = 0;
+            foreach (var elem in source)
+            {
+                if (predicate(elem, ix))
+                    return true;
+                ix++;
+            }
+            return false;
+        }
+
+        /// <summary>
+        ///     Returns all permutations of the input <see cref="IEnumerable&lt;T&gt;"/>.</summary>
+        /// <param name="source">
+        ///     The list of items to permute.</param>
+        /// <returns>
+        ///     A collection containing all permutations of the input <see cref="IEnumerable&lt;T&gt;"/>.</returns>
+        public static IEnumerable<IEnumerable<T>> Permutations<T>(this IEnumerable<T> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            // Ensure that the source IEnumerable is evaluated only once
+            return permutations(source as T[] ?? source.ToArray());
+
+            static IEnumerable<IEnumerable<T>> permutations(IEnumerable<T> source)
+            {
+                var c = source.Count();
+                if (c < 2)
+                    yield return source;
+                else
+                    for (int i = 0; i < c; i++)
+                        foreach (var p in permutations(source.Take(i).Concat(source.Skip(i + 1))))
+                            yield return source.Skip(i).Take(1).Concat(p);
+            }
         }
     }
 }

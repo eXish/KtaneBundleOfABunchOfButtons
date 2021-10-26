@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -39,8 +39,11 @@
     <Compile Include="BlueButtonPuzzle.cs" />
     <Compile Include="Coord.cs" />
     <Compile Include="GridDirection.cs" />
+    <Compile Include="NavyButtonData.cs" />
+    <Compile Include="NavyButtonPuzzle.cs" />
     <Compile Include="Polyomino.cs" />
     <Compile Include="PolyominoPlacement.cs" />
+    <Compile Include="ReduceRequiredSet.cs" />
     <Compile Include="Ut.cs" />
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
@@ -50,6 +53,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /y "$(TargetDir)*.dll" "$(ProjectDir)..\Assets\Plugins\Managed"
-xcopy /y "$(TargetDir)*.dll" "$(GameFolder)mods\SingleSelectablePack"</PostBuildEvent>
+xcopy /y "$(TargetDir)*.dll" "$(GameFolder)mods\BunchOfButtonsPack"</PostBuildEvent>
   </PropertyGroup>
 </Project>
