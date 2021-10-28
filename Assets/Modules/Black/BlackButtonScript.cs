@@ -136,7 +136,7 @@ public class BlackButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} hold for 12 [holds the button for 12 seconds] | !{0} capacitor [Reads the number on the capacitor";
+    private readonly string TwitchHelpMessage = "!{0} hold for 12 [holds the button for 12 seconds] | !{0} capacitor [reads the number on the capacitor]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
