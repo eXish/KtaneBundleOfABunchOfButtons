@@ -30,9 +30,6 @@ namespace BlueButtonLib
         public string Answer { get; private set; }
         public int Size => _sz;
 
-        public int[] XCoordinates { get; private set; }
-        public int[] YCoordinates { get; private set; }
-
         public const int _sz = 4;
 
         public static NavyButtonPuzzle GeneratePuzzle(int seed)
@@ -104,11 +101,7 @@ namespace BlueButtonLib
                         n3candidates.RemoveAll(n3c => sqDists[(i + 3) % sqDists.Length] - n3c >= 4);
                 if (n3candidates.Count > 0)
                     return new NavyButtonPuzzle(latinSquare, givenIx, latinSquare[givenIx], greekLetterIxs, sqDists,
-                        new[] { n0, n1, n2, n3candidates[rnd.Next(0, n3candidates.Count)] }, stencils.Concat(new[] { decoyStencilIx }).ToArray(), word)
-                    {
-                        XCoordinates = coordinates.Select(tup => tup.x).ToArray(),
-                        YCoordinates = coordinates.Select(tup => tup.y).ToArray()
-                    };
+                        new[] { n0, n1, n2, n3candidates[rnd.Next(0, n3candidates.Count)] }, stencils.Concat(new[] { decoyStencilIx }).ToArray(), word);
             }
             throw new InvalidOperationException();
         }

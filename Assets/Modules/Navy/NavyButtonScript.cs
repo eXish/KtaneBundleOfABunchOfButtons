@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using BlueButtonLib;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
@@ -91,7 +92,6 @@ public class NavyButtonScript : MonoBehaviour
         _puzzle = NavyButtonPuzzle.GeneratePuzzle(seed);
 
         Debug.LogFormat(@"[The Navy Button #{0}] Stage 1: Greek letters are: {1}", _moduleId, _puzzle.GreekLetterIxs.Select(ix => "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω"[ix]).Join(" "));
-        Debug.LogFormat(@"<The Navy Button #{0}> Stage 1: Coordinates: {1}", _moduleId, Enumerable.Range(0, _puzzle.XCoordinates.Length).Select(ix => string.Format("({0}, {1})", _puzzle.XCoordinates[ix], _puzzle.YCoordinates[ix])).Join(", "));
         Debug.LogFormat(@"[The Navy Button #{0}] Stage 1: Square distances are: {1}", _moduleId, _puzzle.SquaredDistances.Join(", "));
 
         Debug.LogFormat(@"[The Navy Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _puzzle.Numbers.Join(", "));
@@ -532,5 +532,151 @@ public class NavyButtonScript : MonoBehaviour
         else
             _stage = Stage.Shapes;
         _numTaps = 0;
+    }
+
+
+#pragma warning disable 0414
+    private readonly string TwitchHelpMessage = "!{0} tap [stage 1] | !{0} tap 5 [stage 2: tap 5 times] | !{0} tap red cone/rco, blue cube/bcu [stage 3: wait for the specified sequence of shapes and press the last one specified; colors are r/y/b; shapes are sp/cu/co/pr/cy/py/to] | !{0} tap 1 3 2 3 1 [stage 4: tap when the highlight is in these positions] | !{0} reset";
+#pragma warning restore 0414
+
+    private IEnumerator ProcessTwitchCommand(string command)
+    {
+        if (Regex.IsMatch(command, @"^\s*reset\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.75f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        if (_stage == Stage.GreekLetters && Regex.IsMatch(command, @"^\s*tap\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        Match m;
+        if (_stage == Stage.Numbers && (m = Regex.Match(command, @"^\s*tap\s+([1-9])\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            int val;
+            if (!int.TryParse(m.Groups[1].Value, out val))
+            {
+                yield return "sendtochaterror How many times should I tap it?";
+                yield break;
+            }
+            yield return null;
+            for (; val > 0; val--)
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+            yield break;
+        }
+
+        if (_stage == Stage.Shapes && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+(?:[ryb]|red|yellow|blue)\s*(?:sp(?:here)?|cu(?:be)?|co(?:ne)?|pr(?:ism)?|cy(?:linder)?|py(?:ramid)?|to(?:rus)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            var colors = new[] { "r", "y", "b" };
+            var shapes = new[] { "sp", "cu", "co", "pr", "cy", "py", "to" };
+            var pieces = m.Groups[1].Value.Split(new[] { ' ', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var ixs = new List<int>();
+            for (var i = 0; i < pieces.Length; i++)
+            {
+                pieces[i] = pieces[i].ToLowerInvariant();
+                int cIx, shIx;
+                if (pieces[i].Length == 3 && (cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && (shIx = Array.IndexOf(shapes, pieces[i].Substring(1))) != -1)
+                    ixs.Add(cIx + 3 * shIx);
+                else if ((cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && i < pieces.Length - 1 && (shIx = Array.IndexOf(shapes, pieces[i + 1].Substring(0, 2))) != -1)
+                {
+                    ixs.Add(cIx + 3 * shIx);
+                    i++;
+                }
+                else
+                    yield break;
+            }
+
+            var ix = Enumerable.Range(0, _puzzle.StencilIxs.Length).IndexOf(stencilIx => Enumerable.Range(0, ixs.Count).All(shIx => _puzzle.StencilIxs[(stencilIx + shIx) % _puzzle.StencilIxs.Length] == ixs[shIx]));
+            if (ix == -1)
+            {
+                yield return "sendtochaterror That sequence of shapes is not there.";
+                yield break;
+            }
+            yield return null;
+            while (_shapeHighlight != (ix + ixs.Count - 1) % _puzzle.StencilIxs.Length)
+                yield return null;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.1f);
+            yield break;
+        }
+
+        if (_stage == Stage.Word && (m = Regex.Match(command, @"^\s*tap\s+([,; 123]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            yield return null;
+            foreach (var ch in m.Groups[1].Value)
+            {
+                if (ch < '1' || ch > '3')
+                    continue;
+                while (_wordHighlight != ch - '1')
+                    yield return null;
+                ButtonSelectable.OnInteract();
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.2f);
+            }
+            yield break;
+        }
+    }
+
+    public IEnumerator TwitchHandleForcedSolve()
+    {
+        if (_stage == Stage.GreekLetters)
+        {
+            ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        if (_stage == Stage.Numbers)
+        {
+            for (var val = _puzzle.TapsRequired; val > 0; val--)
+            {
+                ButtonSelectable.OnInteract();
+                yield return new WaitForSeconds(.1f);
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.1f);
+            }
+            yield return new WaitForSeconds(1.4f);
+        }
+
+        if (_stage == Stage.Shapes)
+        {
+            while (_shapeHighlight != 4)
+                yield return true;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        while (_stage == Stage.Word)
+        {
+            var ltr = _puzzle.Answer[_wordProgress] - 'A';
+            var requiredHighlight =
+                _wordSection == 0 ? ltr / 9 :
+                _wordSection <= 3 ? (ltr / 3) % 3 : ltr % 3;
+
+            while (_wordHighlight != requiredHighlight)
+                yield return true;
+            ButtonSelectable.OnInteract();
+            ButtonSelectable.OnInteractEnded();
+            yield return new WaitForSeconds(.2f);
+        }
     }
 }
