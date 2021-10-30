@@ -94,11 +94,32 @@ namespace BlueButtonLib
                 var n1 = givenIx / _sz + sqDists[1 % sqDists.Length];
                 var n2 = latinSquare[givenIx] + sqDists[2 % sqDists.Length];
                 var n3candidates = Enumerable.Range(sqDists[3 % sqDists.Length] + 4, 6).ToList();
-                for (var i = 1; i < sqDists.Length; i++)
-                    if (sqDists[i] - n0 >= 0 && sqDists[i] - n0 < 4
-                            && sqDists[(i + 1) % sqDists.Length] - n1 >= 0 && sqDists[(i + 1) % sqDists.Length] - n1 < 4
-                            && sqDists[(i + 2) % sqDists.Length] - n2 >= 0 && sqDists[(i + 2) % sqDists.Length] - n2 < 4)
-                        n3candidates.RemoveAll(n3c => sqDists[(i + 3) % sqDists.Length] - n3c >= 4);
+
+                // Make sure that other alignments with the sqDists sequence, even cycles of the numbers, do not result in [0-3], [0-3], [0-3], [4-]
+                for (var i = 0; i < sqDists.Length; i++)
+                {
+                    // Note: if i == 0, this is the alignment that we want, hence the i > 0
+                    if (i > 0 && n0 - sqDists[i] >= 0 && n0 - sqDists[i] < 4
+                            && n1 - sqDists[(i + 1) % sqDists.Length] >= 0 && n1 - sqDists[(i + 1) % sqDists.Length] < 4
+                            && n2 - sqDists[(i + 2) % sqDists.Length] >= 0 && n2 - sqDists[(i + 2) % sqDists.Length] < 4)
+                        n3candidates.RemoveAll(n3c => n3c - sqDists[(i + 3) % sqDists.Length] >= 4);
+
+                    if (n0 - sqDists[(i + 1) % sqDists.Length] >= 0 && n0 - sqDists[(i + 1) % sqDists.Length] < 4
+                            && n1 - sqDists[(i + 2) % sqDists.Length] >= 0 && n1 - sqDists[(i + 2) % sqDists.Length] < 4
+                            && n2 - sqDists[(i + 3) % sqDists.Length] >= 4)
+                        n3candidates.RemoveAll(n3c => n3c - sqDists[i] >= 0 && n3c - sqDists[i] < 4);
+
+                    if (n0 - sqDists[(i + 2) % sqDists.Length] >= 0 && n0 - sqDists[(i + 2) % sqDists.Length] < 4
+                            && n1 - sqDists[(i + 3) % sqDists.Length] >= 4
+                            && n2 - sqDists[i] >= 0 && n2 - sqDists[i] < 4)
+                        n3candidates.RemoveAll(n3c => n3c - sqDists[(i + 1) % sqDists.Length] >= 0 && n3c - sqDists[(i + 1) % sqDists.Length] < 4);
+
+                    if (n0 - sqDists[(i + 3) % sqDists.Length] >= 4
+                            && n1 - sqDists[i] >= 0 && n2 - sqDists[i] < 4
+                            && n2 - sqDists[(i + 1) % sqDists.Length] >= 0 && n2 - sqDists[(i + 1) % sqDists.Length] < 4)
+                        n3candidates.RemoveAll(n3c => n3c - sqDists[(i + 2) % sqDists.Length] >= 0 && n3c - sqDists[(i + 2) % sqDists.Length] < 4);
+                }
+
                 if (n3candidates.Count > 0)
                     return new NavyButtonPuzzle(latinSquare, givenIx, latinSquare[givenIx], greekLetterIxs, sqDists,
                         new[] { n0, n1, n2, n3candidates[rnd.Next(0, n3candidates.Count)] }, stencils.Concat(new[] { decoyStencilIx }).ToArray(), word);
