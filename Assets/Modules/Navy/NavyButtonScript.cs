@@ -426,9 +426,9 @@ public class NavyButtonScript : MonoBehaviour
 
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((.1f * Time.time) % width) - .15f, -.025f, 0);
+            scroller.transform.localPosition = new Vector3(-((.08f * Time.time) % width) - .15f, -.025f, 0);
 
-            var pos = (((.1f * Time.time) % width) + .15f) / separation;
+            var pos = (((.08f * Time.time) % width) + .15f) / separation;
             var selected = Mathf.RoundToInt(pos);
 
             // Generated from Maple code; see Blue Button
