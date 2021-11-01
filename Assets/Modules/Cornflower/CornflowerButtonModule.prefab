@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 114896401098373132}
   - component: {fileID: 114341467302025478}
   - component: {fileID: 114140724600385582}
+  - component: {fileID: 114303585189052376}
   m_Layer: 0
   m_Name: CornflowerButtonModule
   m_TagString: Untagged
@@ -1269,6 +1270,7 @@ MonoBehaviour:
   BombInfo: {fileID: 114341467302025478}
   Audio: {fileID: 114896401098373132}
   ButtonSelectable: {fileID: 114491007858599254}
+  BossModule: {fileID: 114303585189052376}
   ButtonCap: {fileID: 1066683324956278}
   MainArrowRotator: {fileID: 4782532912283044}
   ArrowRotators:
@@ -1281,6 +1283,17 @@ MonoBehaviour:
   - {fileID: 23170814816077628}
   - {fileID: 23277323580142436}
   - {fileID: 23469564807177010}
+--- !u!114 &114303585189052376
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1679593273980222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96a2fc4ae3e690a498a0d85a2b5e0b99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114341467302025478
 MonoBehaviour:
   m_ObjectHideFlags: 1

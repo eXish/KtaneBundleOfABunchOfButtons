@@ -3,9 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 using Rnd = UnityEngine.Random;
 
@@ -15,6 +13,8 @@ public class CornflowerButtonScript : MonoBehaviour
     public KMBombInfo BombInfo;
     public KMAudio Audio;
     public KMSelectable ButtonSelectable;
+    public KMBossModule BossModule;
+
     public GameObject ButtonCap;
     public Transform MainArrowRotator;
     public Transform[] ArrowRotators;
@@ -43,8 +43,10 @@ public class CornflowerButtonScript : MonoBehaviour
     private int _selectedArrows;
     private Component _lastHighlighted;
     private bool _initialized;
+    private string[] _ignoreList;
+    private static readonly string[] _defaultIgnoreList = { "Cursor Maze", "Hidden In Plain Sight" };
 
-    private HashSet<Component> _assigned = new HashSet<Component>();
+    private readonly HashSet<Component> _assigned = new HashSet<Component>();
 
     private void Start()
     {
@@ -64,6 +66,8 @@ public class CornflowerButtonScript : MonoBehaviour
         _desiredArrowAngles[1] = _arrowPositions[1] * 360f / 5;
         _desiredArrowAngles[2] = _arrowPositions[2] * 360f / 7;
 
+        _ignoreList = BossModule.GetIgnoredModules(Module, _defaultIgnoreList);
+
         StartCoroutine(Init());
     }
 
@@ -77,6 +81,7 @@ public class CornflowerButtonScript : MonoBehaviour
     {
         yield return null;
 
+        Debug.LogFormat("<The Cornflower Button #{0}> Finding Selectable type", _moduleId);
         var asm = GetComponents<Component>().First(c => HasBaseType(c.GetType(), "Selectable")).GetType().Assembly;
 
         _selectableType = asm.GetType("Selectable");
@@ -88,6 +93,7 @@ public class CornflowerButtonScript : MonoBehaviour
         _onDefocusField = _selectableType.GetField("OnDefocus", BindingFlags.Instance | BindingFlags.Public);
 
         // Find out which face we’re on
+        Debug.LogFormat("<The Cornflower Button #{0}> Finding faces", _moduleId);
         var gameObjs = Enumerable.Range(0, transform.parent.childCount).Select(ix => transform.parent.GetChild(ix)).ToArray();
         var frontFaceRot = gameObjs.First(g => g.name == "FrontFace").localRotation;
         var rearFaceRot = gameObjs.First(g => g.name == "RearFace").localRotation;
@@ -100,6 +106,9 @@ public class CornflowerButtonScript : MonoBehaviour
                 return null;
             var comps = t.GetComponents<Component>();
             if (!comps.Any(c => c != null && HasBaseType(c.GetType(), "BombComponent")))
+                return null;
+            var m = comps.OfType<KMBombModule>().FirstOrDefault();
+            if (m != null && _ignoreList.Contains(m.ModuleDisplayName))
                 return null;
             return comps.FirstOrDefault(c => c != null && HasBaseType(c.GetType(), "Selectable"));
         }).Where(c => c != null).ToArray();
