@@ -99,9 +99,9 @@ public class CornflowerButtonScript : MonoBehaviour
             if (t.gameObject == gameObject || (Quaternion.Angle(frontFaceRot, t.localRotation) < Quaternion.Angle(rearFaceRot, t.localRotation)) != onFrontFace)
                 return null;
             var comps = t.GetComponents<Component>();
-            if (!comps.Any(c => HasBaseType(c.GetType(), "BombComponent")))
+            if (!comps.Any(c => c != null && HasBaseType(c.GetType(), "BombComponent")))
                 return null;
-            return comps.FirstOrDefault(c => HasBaseType(c.GetType(), "Selectable"));
+            return comps.FirstOrDefault(c => c != null && HasBaseType(c.GetType(), "Selectable"));
         }).Where(c => c != null).ToArray();
         var alarmClock = ((MonoBehaviour) FindObjectOfType(_alarmClockType)).gameObject.GetComponent(_selectableType);
 
