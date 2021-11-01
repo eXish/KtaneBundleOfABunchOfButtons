@@ -1,4 +1,4 @@
-﻿namespace SingleSelectablePack
+﻿namespace BunchOfButtons
 {
     public enum StatusLightState
     {
