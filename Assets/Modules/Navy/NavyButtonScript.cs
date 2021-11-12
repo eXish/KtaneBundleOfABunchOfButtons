@@ -67,13 +67,20 @@ public class NavyButtonScript : MonoBehaviour
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 1", _moduleId);
         ButtonSelectable.OnInteract += ButtonPress;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 2", _moduleId);
         ButtonSelectable.OnInteractEnded += ButtonRelease;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 3", _moduleId);
 
         _maskMaterials = MaskShaderManager.MakeMaterials();
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 4", _moduleId);
         _maskMaterials.Text.mainTexture = WordResultText.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 5", _moduleId);
         _maskMaterials.DiffuseText.mainTexture = WordResultText.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 6", _moduleId);
         Mask.sharedMaterial = _maskMaterials.Mask;
+        Debug.LogFormat(@"<The Navy Button #{0}> Debug: 7", _moduleId);
 
         GeneratePuzzle();
         _stage = Stage.GreekLetters;
