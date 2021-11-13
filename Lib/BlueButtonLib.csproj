@@ -31,16 +31,22 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="ValueTupleBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\ValueTupleBridge.0.1.5\lib\net35\ValueTupleBridge.dll</HintPath>
+    <Reference Include="ValueTupleBridge">
+      <HintPath>..\Assets\Plugins\Managed\ValueTupleBridge.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlueButtonPuzzle.cs" />
+    <Compile Include="CardinalDirection.cs" />
+    <Compile Include="CeruleanButtonPuzzle.cs" />
     <Compile Include="Coord.cs" />
+    <Compile Include="Cube.cs" />
+    <Compile Include="EndViewConstraint.cs" />
     <Compile Include="GridDirection.cs" />
+    <Compile Include="BlueLatinSquare.cs" />
     <Compile Include="NavyButtonData.cs" />
     <Compile Include="NavyButtonPuzzle.cs" />
+    <Compile Include="OrderedPair.cs" />
     <Compile Include="Polyomino.cs" />
     <Compile Include="PolyominoPlacement.cs" />
     <Compile Include="ReduceRequiredSet.cs" />
@@ -52,7 +58,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetDir)*.dll" "$(ProjectDir)..\Assets\Plugins\Managed"
-xcopy /y "$(TargetDir)*.dll" "$(GameFolder)mods\BunchOfButtonsPack"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetDir)*.dll" "$(ProjectDir)..\Assets\Plugins\Managed"</PostBuildEvent>
   </PropertyGroup>
 </Project>
