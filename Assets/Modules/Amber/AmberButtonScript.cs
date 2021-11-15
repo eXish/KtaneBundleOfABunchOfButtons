@@ -15,17 +15,16 @@ public class AmberButtonScript : MonoBehaviour
     public GameObject ButtonCap;
 
     private static int _moduleIdCounter = 1;
-    private int[] _order = { 0, 1, 2, 3, 4, 5 };
+    private readonly int[] _order = { 0, 1, 2, 3, 4, 5 };
     private int _moduleId, _lastTimerSeconds, _current, _typed;
     private int _toCycle = 4;
     private string _serialNumber, _input;
-    private string _base36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private bool[] _done = new bool[2];
+    private readonly bool[] _done = new bool[2];
     private bool _moduleSolved, _buttonHeld, _checkHold, _rotated, _isRotating, _typing, _stageAnimating;
 
     private string ToBinary(char y)
     {
-        return Convert.ToString(_base36.IndexOf(y), 2).PadLeft(6, '0').Select(x => x == '0' ? '?' : '¿').Join("");
+        return Convert.ToString("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(y), 2).PadLeft(6, '0').Select(x => x == '0' ? '?' : '¿').Join("");
     }
 
     private void Start()
@@ -41,15 +40,17 @@ public class AmberButtonScript : MonoBehaviour
             _order[4] = _order[5];
             _order[5] = cache;
         }
-        Debug.LogFormat("[The Amber Button #{0}] The displayed serial number characters are {1}.", _moduleId, _serialNumber[_order[0]] + ", " + _serialNumber[_order[1]] + ", " + _serialNumber[_order[2]] + " and " + _serialNumber[_order[3]]);
-        Debug.LogFormat("[The Amber Button #{0}] The two missing characters are {1}, or {2}.", _moduleId, _serialNumber[_order[4]] + " and " + _serialNumber[_order[5]], ToBinary(_serialNumber[_order[4]]) + " and " + ToBinary(_serialNumber[_order[5]]));
+        Debug.LogFormat("[The Amber Button #{0}] The displayed serial number characters are {1}, {2} and {3}.", _moduleId,
+            _serialNumber[_order[0]], _serialNumber[_order[1]], _serialNumber[_order[2]], _serialNumber[_order[3]]);
+        Debug.LogFormat("[The Amber Button #{0}] The two missing characters are {1} and {2}, or {3} and {4}.", _moduleId,
+            _serialNumber[_order[4]], _serialNumber[_order[5]], ToBinary(_serialNumber[_order[4]]), ToBinary(_serialNumber[_order[5]]));
         AmberText.text = "";
         Module.OnActivate += delegate { AmberText.text = ToBinary(_serialNumber[_order[_current]]); };
     }
 
     private void Update()
     {
-        var seconds = (int)BombInfo.GetTime() % 10;
+        var seconds = (int) BombInfo.GetTime() % 10;
         if (seconds != _lastTimerSeconds && !_moduleSolved && !_stageAnimating)
         {
             _lastTimerSeconds = seconds;
@@ -177,7 +178,7 @@ public class AmberButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "Use '!{0} hold tap' to hold the button over a timer tick, then tap it.";
+    private readonly string TwitchHelpMessage = "!{0} hold tap [hold the button over a timer tick, then tap it]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -216,7 +217,6 @@ public class AmberButtonScript : MonoBehaviour
                 cache2 = _rotated ? '?' : '¿';
             }
             ButtonSelectable.OnInteractEnded();
-            yield return true;
             yield return new WaitForSeconds(0.1f);
         }
     }

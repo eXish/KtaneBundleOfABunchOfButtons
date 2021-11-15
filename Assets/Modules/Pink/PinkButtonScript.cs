@@ -214,6 +214,8 @@ public class PinkButtonScript : MonoBehaviour
         {
             if (ch == ' ')
                 continue;
+            if (_solutionProgress == _solution.Length)
+                break;
             if (ch != _solution[_solutionProgress])
             {
                 yield return "multiple strikes";
