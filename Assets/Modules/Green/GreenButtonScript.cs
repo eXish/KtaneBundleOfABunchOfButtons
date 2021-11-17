@@ -153,7 +153,7 @@ public class GreenButtonScript : MonoBehaviour
             if (_words.Contains(word))
             {
                 _moduleSolved = true;
-                Debug.LogFormat("[The Green Button #{0}] You submitted \"{1}\", which which was a valid word. Good job!", _moduleId, word);
+                Debug.LogFormat("[The Green Button #{0}] You submitted \"{1}\", which was a valid word. Good job!", _moduleId, word);
                 Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
                 Module.HandlePass();
             }
