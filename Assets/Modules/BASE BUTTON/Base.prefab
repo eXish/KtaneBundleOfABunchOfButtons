@@ -228,7 +228,6 @@ GameObject:
   - component: {fileID: 114462647377417402}
   - component: {fileID: 114851826596115828}
   - component: {fileID: 114629500169079468}
-  - component: {fileID: 114087286691801884}
   m_Layer: 0
   m_Name: Base
   m_TagString: Untagged
@@ -386,7 +385,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1962260446815250}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.2}
+  m_LocalPosition: {x: 0, y: 0, z: -0.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4733966397014052}
@@ -750,22 +749,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1625075889098522}
   m_Mesh: {fileID: 4300008, guid: 8a29834619be7f5499bcd8e6890c1356, type: 3}
---- !u!114 &114087286691801884
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1962260446815250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f44a6659c236d944aed39db9378b4fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Module: {fileID: 114445151190721914}
-  BombInfo: {fileID: 114851826596115828}
-  Audio: {fileID: 114629500169079468}
-  ButtonSelectable: {fileID: 114303559387390978}
-  ButtonCap: {fileID: 1064130632272964}
 --- !u!114 &114108535298636058
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -849,8 +832,8 @@ MonoBehaviour:
   m_Script: {fileID: -119419473, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ModuleType: Base
-  ModuleDisplayName: Base
+  ModuleType: RainbowButtonModule
+  ModuleDisplayName: The Rainbow Button
   RequiresTimerVisibility: 0
 --- !u!114 &114462647377417402
 MonoBehaviour:
