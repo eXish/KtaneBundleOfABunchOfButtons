@@ -163,18 +163,28 @@ public class OrangeButtonScript : MonoBehaviour
         Match m;
         int v;
 
-        if (!_holding && (m = Regex.Match(command, @"^\s*hold\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
+        if ((m = Regex.Match(command, @"^\s*hold\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
         {
             yield return null;
+            if (_holding)
+            {
+                yield return "sendtochaterror The button is already being held!";
+                yield break;
+            }
             while ((int) Bomb.GetTime() % 10 != v)
                 yield return null;
             ButtonSelectable.OnInteract();
             yield break;
         }
 
-        if (_holding && (m = Regex.Match(command, @"^\s*release\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
+        if ((m = Regex.Match(command, @"^\s*release\s+(\d)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out v))
         {
             yield return null;
+            if (!_holding)
+            {
+                yield return "sendtochaterror The button hasn't been held yet!";
+                yield break;
+            }
             while ((int) Bomb.GetTime() % 10 != v)
                 yield return null;
             ButtonSelectable.OnInteractEnded();
