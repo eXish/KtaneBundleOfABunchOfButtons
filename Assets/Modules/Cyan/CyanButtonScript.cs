@@ -26,6 +26,7 @@ public class CyanButtonScript : MonoBehaviour
     private bool _moduleSolved;
     private bool _buttonVisible = true;
     private Coroutine _timer;
+    private bool TwitchPlaysActive;
 
     private static readonly float[] xPos = { -0.05f, 0f, 0.05f, -0.05f, 0f, 0.05f };
     private static readonly float[] zPos = { 0f, 0f, 0f, -0.05f, -0.05f, -0.05f };
@@ -91,7 +92,7 @@ public class CyanButtonScript : MonoBehaviour
     private IEnumerator StartTimer()
     {
         yield return new WaitForSeconds(1.6f);
-        for (int i = 20; i > 0; i--)
+        for (int i = TwitchPlaysActive ? 30 : 20; i > 0; i--)
         {
             CyanScreenText.text = i.ToString("00");
             yield return new WaitForSeconds(1f);
@@ -238,9 +239,7 @@ public class CyanButtonScript : MonoBehaviour
 
     private KMSelectable[] ProcessTwitchCommand(string command)
     {
-        return _moduleSolved || !Regex.IsMatch(command, @"^\s*(tap|press|submit|click)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
-            ? null
-            : new[] { CyanButtonSelectable };
+        return _moduleSolved || !Regex.IsMatch(command, @"^\s*(tap|press|submit|click)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) ? null : new[] { CyanButtonSelectable };
     }
 
     public IEnumerator TwitchHandleForcedSolve()
@@ -258,7 +257,6 @@ public class CyanButtonScript : MonoBehaviour
             }
             yield return null;
         }
-
         while (!_moduleSolved)
             yield return true;
     }
