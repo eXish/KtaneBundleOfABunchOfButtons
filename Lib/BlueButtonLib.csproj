@@ -36,6 +36,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLSData.cs" />
     <Compile Include="BlueButtonPuzzle.cs" />
     <Compile Include="CardinalDirection.cs" />
     <Compile Include="CeruleanButtonPuzzle.cs" />

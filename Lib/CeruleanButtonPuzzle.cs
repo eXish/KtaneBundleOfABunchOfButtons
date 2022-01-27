@@ -39,6 +39,18 @@ namespace BlueButtonLib
                     _ => throw new ArgumentException()
                 };
             }).ToArray()).ToArray();
+        private static readonly List<((Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>))> _splitters = new List<((Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>))>()
+        {
+            ((c => c.Bottom, c => c.Left), (c => c.Back, c => c.Right), (c => c.Top, c => c.Front)),
+            ((c => c.Bottom, c => c.Left), (c => c.Back, c => c.Top), (c => c.Right, c => c.Front)),
+            ((c => c.Bottom, c => c.Back), (c => c.Front, c => c.Right), (c => c.Top, c => c.Left)),
+            ((c => c.Bottom, c => c.Back), (c => c.Left, c => c.Front), (c => c.Top, c => c.Right)),
+            ((c => c.Bottom, c => c.Right), (c => c.Back, c => c.Left), (c => c.Top, c => c.Front)),
+            ((c => c.Bottom, c => c.Right), (c => c.Back, c => c.Top), (c => c.Left, c => c.Front)),
+            ((c => c.Bottom, c => c.Front), (c => c.Back, c => c.Right), (c => c.Top, c => c.Left)),
+            ((c => c.Bottom, c => c.Front), (c => c.Back, c => c.Left), (c => c.Top, c => c.Right))
+        };
+
 
         public static CeruleanButtonPuzzle GeneratePuzzle(int seed, Action<string> log = null, Action<string> debuglog = null)
         {
@@ -57,19 +69,18 @@ namespace BlueButtonLib
                 return null;
             }
             string answer = _words[rnd.Next(_words.Length)]; // Pick a random solution
-            debuglog("Trying word: " + answer);
-            debuglog("This is attempt " + attempt + ".");
+            debuglog($"Trying word: {answer}");
+            debuglog($"This is attempt {attempt}.");
 
             BlueLatinSquare latinSquare;
-            Cube left = null, right = null;
+            Cube left = null, right = null, leftFinal = null, rightFinal = null;
 
-            for(int i = 0; i < 100; i++) //Try 100 random Latin Squares to see if any work
+            for(int i = 0; i < BlueLatinSquare.AllSquares.Count; i++) //Try all Latin Squares to see if any work
             {
-                int tseed = rnd.Next();
-                debuglog("Trying seed: " + tseed);
-                debuglog("This is inner attempt " + i + ".");
-                latinSquare = BlueLatinSquare.Random(tseed);
+                debuglog($"This is inner attempt {i}.");
+                latinSquare = BlueLatinSquare.AllSquares[i];
                 char letter = answer[0];
+
                 if(_table.Any(kvp => kvp.Key != letter && latinSquare[_table[letter].x, _table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[_table[letter].x + 1, _table[letter].y] == latinSquare[kvp.Value.x + 1, kvp.Value.y]))
                 {
                     debuglog("First letter could not be found uniquely.");
@@ -131,7 +142,54 @@ namespace BlueButtonLib
                         debuglog($"Good(?) wildcards {lfront} and {rfront} found.");
 
                         // Make sure the cube is possible to form
+                        List<(int, int)> patches = Enumerable.Range(0, 16).Where(i => latinSquare[i / 4, i % 4] == 0).Select(i => (latinSquare[(i / 4 + 3) % 4, i % 4], latinSquare[(i / 4 + 2) % 4, i % 4])).ToList();
+                        List<(int, int)> allPatches = patches.SelectMany(t => new (int, int)[] { t, (t.Item2, t.Item1) }).ToList();
+                        ((Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>), (Func<Cube, int>, Func<Cube, int>)) finalSplitterL = ((null, null), (null, null), (null, null)), finalSplitterR = ((null, null), (null, null), (null, null));
+                        foreach(var splitter in _splitters)
+                        {
+                            if(new[] { splitter.Item1, splitter.Item2, splitter.Item3 }.All(t => allPatches.Contains((t.Item1(left), t.Item2(left)))))
+                            {
+                                finalSplitterL = splitter;
+                                goto goodL;
+                            }
+                        }
+                        debuglog("Couldn't find valid splitter. (left side)");
+                        goto badwildcard;
+                    goodL:;
+                        foreach(var splitter in _splitters)
+                        {
+                            if(new[] { splitter.Item1, splitter.Item2, splitter.Item3 }.All(t => allPatches.Contains((t.Item1(right), t.Item2(right)))))
+                            {
+                                finalSplitterR = splitter;
+                                goto goodR;
+                            }
+                        }
+                        debuglog("Couldn't find valid splitter. (right side)");
+                        goto badwildcard;
+                    goodR:;
 
+                        debuglog($"Found valid splitters! {_splitters.IndexOf(finalSplitterL)} & {_splitters.IndexOf(finalSplitterR)}");
+
+                        Cube referenceCube = new Cube(new int[] { 0, 1, 2, 3, 4, 5 });
+                        int[] leftFaces = new int[] { -1, -1, -1, -1, -1, -1 }, rightFaces = new int[] { -1, -1, -1, -1, -1, -1 };
+
+                        foreach(var patch in new[] { finalSplitterL.Item1, finalSplitterL.Item2, finalSplitterL.Item3 })
+                        {
+                            if(patches.Contains((patch.Item1(left), patch.Item2(left))))
+                                leftFaces[patch.Item1(referenceCube)] = patches.IndexOf((patch.Item1(left), patch.Item2(left))) + 4 * patch.Item2(referenceCube);
+                            else
+                                leftFaces[patch.Item2(referenceCube)] = patches.IndexOf((patch.Item2(left), patch.Item1(left))) + 4 * patch.Item1(referenceCube);
+                        }
+                        foreach(var patch in new[] { finalSplitterR.Item1, finalSplitterR.Item2, finalSplitterR.Item3 })
+                        {
+                            if(patches.Contains((patch.Item1(right), patch.Item2(right))))
+                                rightFaces[patch.Item1(referenceCube)] = patches.IndexOf((patch.Item1(right), patch.Item2(right))) + 4 * patch.Item2(referenceCube);
+                            else
+                                rightFaces[patch.Item2(referenceCube)] = patches.IndexOf((patch.Item2(right), patch.Item1(right))) + 4 * patch.Item1(referenceCube);
+                        }
+
+                        leftFinal = new Cube(leftFaces);
+                        rightFinal = new Cube(rightFaces);
 
                         goto answerfound;
                     badwildcard:;
@@ -144,7 +202,10 @@ namespace BlueButtonLib
 
         answerfound:
 
-            return new CeruleanButtonPuzzle(latinSquare, null, left, right, answer);
+            EndViewConstraint[] allConstraints = EndViewConstraint.AllFromBlueLatinSquare(latinSquare);
+            EndViewConstraint[] reducedConstraints = Ut.ReduceRequiredSet(allConstraints, s => EndViewConstraint.IsUnique(s.SetToTest.ToArray()), skipConsistencyTest: true).ToArray();
+
+            return new CeruleanButtonPuzzle(latinSquare, reducedConstraints, leftFinal, rightFinal, answer);
         }
     }
 }

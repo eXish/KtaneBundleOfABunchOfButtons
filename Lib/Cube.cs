@@ -39,5 +39,10 @@ namespace BlueButtonLib
             ZY,
             YZ
         }
+
+        public override string ToString()
+        {
+            return $"(T:{Top} B:{Bottom} L:{Left} R:{Right} B:{Back} F:{Front})";
+        }
     }
 }

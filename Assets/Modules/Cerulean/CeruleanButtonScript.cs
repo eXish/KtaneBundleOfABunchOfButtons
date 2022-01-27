@@ -20,10 +20,15 @@ public class CeruleanButtonScript : MonoBehaviour
             {
                 Debug.LogFormat("[The Cerulean Button #{0}] {1}", _id, s);
             },
+#if UNITY_EDITOR
             s =>
             {
-                Debug.LogFormat("<The Cerulean Button #{0}> {1}", _id, s);
-            });
-        Debug.Log(0);
+                //Debug.LogFormat("<The Cerulean Button #{0}> {1}", _id, s);
+            }
+#else
+            s => { }
+#endif
+        );
+        Debug.LogFormat("[The Cerulean Button #{0}] Answer: {1}, Constraints: {2}, Left Cube: {3}, Right Cube: {4}", _id, c.Answer, c.Constraints.Select(evc => evc.Direction.ToString() + evc.Index + (char)(evc.Letter + 'A' - 1)).Join(" "), c.LeftCube, c.RightCube);
     }
 }
