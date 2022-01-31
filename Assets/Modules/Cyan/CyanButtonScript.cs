@@ -26,6 +26,7 @@ public class CyanButtonScript : MonoBehaviour
     private bool _moduleSolved;
     private bool _buttonVisible = true;
     private Coroutine _timer;
+    private int _timerTime;
     private bool TwitchPlaysActive;
 
     private static readonly float[] xPos = { -0.05f, 0f, 0.05f, -0.05f, 0f, 0.05f };
@@ -36,6 +37,7 @@ public class CyanButtonScript : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         CyanButtonSelectable.OnInteract += CyanButtonPress;
         CyanButtonSelectable.OnInteractEnded += CyanButtonRelease;
+        _timerTime = TwitchPlaysActive ? 30 : 20;
         GenerateButtonSequence();
     }
 
@@ -92,7 +94,7 @@ public class CyanButtonScript : MonoBehaviour
     private IEnumerator StartTimer()
     {
         yield return new WaitForSeconds(1.6f);
-        for (int i = TwitchPlaysActive ? 30 : 20; i > 0; i--)
+        for (int i = _timerTime; i > 0; i--)
         {
             CyanScreenText.text = i.ToString("00");
             yield return new WaitForSeconds(1f);
@@ -244,6 +246,7 @@ public class CyanButtonScript : MonoBehaviour
 
     public IEnumerator TwitchHandleForcedSolve()
     {
+        _timerTime = 5;
         while (!_moduleSolved && _correctPresses.Skip(_currentStage).Any(b => b))
         {
             if (_correctPresses[_currentStage])
