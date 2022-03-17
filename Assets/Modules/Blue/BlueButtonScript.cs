@@ -71,7 +71,7 @@ public class BlueButtonScript : MonoBehaviour
     private Coroutine _pressHandler;
     private MaskMaterials _maskMaterials;
     private int[] _tpOverrideRAB;
-    private string _tpRABBugreport;
+    private bool _tpOverriddenRAB;
 
     enum Stage
     {
@@ -241,7 +241,7 @@ public class BlueButtonScript : MonoBehaviour
             var oBGtR = _tpOverrideRAB[2] > _tpOverrideRAB[0];
             if (oAGtR != aGtR || oBGtR != bGtR)
             {
-                _tpRABBugreport = "sendtochat {0}, there looks to be a bug in the TP handler for The Blue Button. Hopefully I still did the right thing, but either way, please send the logfile to Timwi when you’re done! (Maybe also a clip)";
+                _tpOverriddenRAB = true;
                 aGtR = oAGtR;
                 bGtR = oBGtR;
             }
@@ -923,8 +923,9 @@ public class BlueButtonScript : MonoBehaviour
             yield return new WaitForSeconds(.1f);
             BlueButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(.1f);
-            yield return _tpRABBugreport;
-            _tpRABBugreport = null;
+            if (_tpOverriddenRAB)
+                Debug.LogFormat("<The Blue Button #{0}> TP lag override applied.", _moduleId);
+            _tpOverriddenRAB = false;
             _tpOverrideRAB = null;
             yield break;
         }
