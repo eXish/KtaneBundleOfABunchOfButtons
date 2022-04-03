@@ -155,7 +155,7 @@ public class TealButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} tap 3 1 2 1 [tap button when letters in those positions are highlighted] | !{0} submit";
+    private readonly string TwitchHelpMessage = @"!{0} tap 4 5 3 0 [Press the button when the last digit of the timer is 4, 5, 3 and 0.] |";
 #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
@@ -193,7 +193,7 @@ public class TealButtonScript : MonoBehaviour
             if (_inputs[_currentIx] != _solutions[_currentIx])
             {
                 while ((int)BombInfo.GetTime() % 10 != _solutions[_currentIx] + 1)
-                    yield return null;
+                    yield return true;
                 ButtonSelectable.OnInteract();
                 yield return new WaitForSeconds(0.1f);
                 ButtonSelectable.OnInteractEnded();
@@ -201,7 +201,7 @@ public class TealButtonScript : MonoBehaviour
             }
         }
         while ((int)BombInfo.GetTime() % 10 != 0)
-            yield return null;
+            yield return true;
         ButtonSelectable.OnInteract();
         yield return new WaitForSeconds(0.1f);
         ButtonSelectable.OnInteractEnded();
