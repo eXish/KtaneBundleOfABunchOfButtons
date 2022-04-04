@@ -182,7 +182,7 @@ public class WhiteButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} tap 23 17 5 [tap when the seconds on the timer are these values exactly] | !{0} submit";
+    private readonly string TwitchHelpMessage = "!{0} submit 2 3 1 0 [Hold for 2, 3, 1, and 0 timer ticks.] | !{0} submit 4 [Hold for 4 timer ticks, resets the module.]";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)

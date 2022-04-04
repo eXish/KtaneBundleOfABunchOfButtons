@@ -155,7 +155,7 @@ public class TealButtonScript : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} tap 4 5 3 0 [Press the button when the last digit of the timer is 4, 5, 3 and 0.] |";
+    private readonly string TwitchHelpMessage = @"!{0} press 4 5 3 0 [Press the button when the last digit of the timer is 4, 5, 3 and 0.] |";
 #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
