@@ -204,7 +204,7 @@ public class WhiteButtonScript : MonoBehaviour
         {
             WhiteButtonSelectable.OnInteract();
             int time = (int)BombInfo.GetTime();
-            while (time - list[i] != (int)BombInfo.GetTime())
+            while (Math.Abs(time - (int)BombInfo.GetTime()) != list[i])
                 yield return null;
             WhiteButtonSelectable.OnInteractEnded();
             if (_ignored)
