@@ -92,29 +92,35 @@ public class CornflowerButtonScript : MonoBehaviour
         _onHighlightEndedField = _selectableType.GetField("OnHighlightEnded", BindingFlags.Instance | BindingFlags.Public);
         _onDefocusField = _selectableType.GetField("OnDefocus", BindingFlags.Instance | BindingFlags.Public);
 
+        var gameObjs = Enumerable.Range(0, transform.parent.childCount).Select(ix => transform.parent.GetChild(ix)).ToArray();
+        var alarmClock = ((MonoBehaviour) FindObjectOfType(_alarmClockType)).gameObject.GetComponent(_selectableType);
+        var selectableParents = new List<Component> { alarmClock };
+
         // Find out which face we’re on
         Debug.LogFormat("<The Cornflower Button #{0}> Finding faces", _moduleId);
-        var gameObjs = Enumerable.Range(0, transform.parent.childCount).Select(ix => transform.parent.GetChild(ix)).ToArray();
-        var frontFaceRot = gameObjs.First(g => g.name == "FrontFace").localRotation;
-        var rearFaceRot = gameObjs.First(g => g.name == "RearFace").localRotation;
-        var onFrontFace = Quaternion.Angle(frontFaceRot, transform.localRotation) < Quaternion.Angle(rearFaceRot, transform.localRotation);
-
-        // Find all the other modules on the same face
-        var selectableParents = gameObjs.Select(t =>
+        var faces = transform.parent.gameObject.GetComponentsInChildren<KMBombFace>(true);
+        if (faces.Length >= 2)
         {
-            if (t.gameObject == gameObject || (Quaternion.Angle(frontFaceRot, t.localRotation) < Quaternion.Angle(rearFaceRot, t.localRotation)) != onFrontFace)
-                return null;
-            var comps = t.GetComponents<Component>();
-            if (!comps.Any(c => c != null && HasBaseType(c.GetType(), "BombComponent")))
-                return null;
-            var m = comps.OfType<KMBombModule>().FirstOrDefault();
-            if (m != null && _ignoreList.Contains(m.ModuleDisplayName))
-                return null;
-            return comps.FirstOrDefault(c => c != null && HasBaseType(c.GetType(), "Selectable"));
-        }).Where(c => c != null).ToArray();
-        var alarmClock = ((MonoBehaviour) FindObjectOfType(_alarmClockType)).gameObject.GetComponent(_selectableType);
+            var frontFaceRot = faces[0].transform.localRotation;
+            var rearFaceRot = faces[1].transform.localRotation;
+            var onFrontFace = Quaternion.Angle(frontFaceRot, transform.localRotation) < Quaternion.Angle(rearFaceRot, transform.localRotation);
 
-        foreach (var parent in selectableParents.Concat(new[] { alarmClock }))
+            // Find all the other modules on the same face
+            selectableParents.AddRange(gameObjs.Select(t =>
+            {
+                if (t.gameObject == gameObject || (Quaternion.Angle(frontFaceRot, t.localRotation) < Quaternion.Angle(rearFaceRot, t.localRotation)) != onFrontFace)
+                    return null;
+                var comps = t.GetComponents<Component>();
+                if (!comps.Any(c => c != null && HasBaseType(c.GetType(), "BombComponent")))
+                    return null;
+                var m = comps.OfType<KMBombModule>().FirstOrDefault();
+                if (m != null && _ignoreList.Contains(m.ModuleDisplayName))
+                    return null;
+                return comps.FirstOrDefault(c => c != null && HasBaseType(c.GetType(), "Selectable"));
+            }).Where(c => c != null));
+        }
+
+        foreach (var parent in selectableParents)
         {
             AssignDelegate(parent, _onDefocusField, HandleDefocus(parent));
             RediscoverSelectables(parent);
@@ -164,7 +170,6 @@ public class CornflowerButtonScript : MonoBehaviour
     private float childAngle(Component child)
     {
         var otherPoint = transform.InverseTransformPoint(childPos(child));
-        var oldY = otherPoint.y;
         otherPoint.y = 0;
         return Vector3.SignedAngle(Vector3.forward, otherPoint, Vector3.up);
     }
