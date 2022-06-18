@@ -1301,7 +1301,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: TealButtonModule
   ModuleDisplayName: The Teal Button
-  RequiresTimerVisibility: 0
+  RequiresTimerVisibility: 1
 --- !u!114 &114629248889334494
 MonoBehaviour:
   m_ObjectHideFlags: 1
