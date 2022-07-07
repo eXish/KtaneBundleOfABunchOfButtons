@@ -82,9 +82,9 @@ public class WhiteButtonScript : MonoBehaviour
             return;
         if (_timerTickCheck != null)
             StopCoroutine(_timerTickCheck);
-        if (_holdCount >= 4)
+        if (_holdCount >= 5)
         {
-            Debug.LogFormat("[The White Button #{0}] Held the button for at least 4 timer ticks. Issuing a reset.", _moduleId);
+            Debug.LogFormat("[The White Button #{0}] Held the button for at least 5 timer ticks. Issuing a reset.", _moduleId);
             _isAnimating = true;
             StartCoroutine(Reset());
             return;
