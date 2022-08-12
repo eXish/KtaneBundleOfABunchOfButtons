@@ -97,7 +97,7 @@ namespace BlueButtonLib
                 var arrows = new (Coord coord, int dir)[4][];
                 var letterData = allLetterData.ToList();
 
-                while (arrows.Contains(null))
+                while (arrows.Any(a => a == null))
                 {
                     int candidateIx;
 
