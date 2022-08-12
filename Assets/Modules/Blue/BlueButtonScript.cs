@@ -416,27 +416,27 @@ public class BlueButtonScript : MonoBehaviour
                 restart;
                 v1 := t -> -a*t+C1;
                 v2 := t -> a*t+C2;
-                v3 := unapply(diff(arctan(t/s)*180/3.1415926535897932384626433832795+180, t), t);
+                v3 := t -> 57.29577951/s*(1+t^2/s^2);
                 d1 := t -> -1/2*a*t^2 + C1*t + C4;
                 d2 := t -> 1/2*a*t^2 + C2*t + C5;
                 d3 := t -> arctan(t/s)*180/3.1415926535897932384626433832795+180;
-                q := -.4;
                 r := -.3;
                 s := 1.0 / 208 * 190;
                 solve({
                   v1(-1/2) = v3(1/2),
                   v1(q) = v2(q),
+                  v2(r) = v3(r),
                   d1(-1/2) = d3(1/2),
                   d1(q) = d2(q),
                   d2(r) = d3(r)
-                }, { C1, C2, C4, C5, a });
+                }, { C1, C2, C4, C5, a, q });
             */
             var t = pos - selected;
-            const float q = -.4f, r = -.3f, C2 = 1744.129529f, a = 5652.886846f, C5 = 430.6776816f, C1 = -2778.179948f, C4 = -473.7842137f;
+            const float r = -.3f, C1 = -3017.612937f, C2 = 1928.966946f, a = 6198.259105f, q = -.3990297758f, C4 = -525.3291758f, C5 = 461.5871550f;
             var calcAngle =
-                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :
-                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :
-                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;
+                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :      // = d1(t)
+                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :       // = d2(t)
+                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;   // = d3(t)
 
             ColorsSpotlight.transform.localEulerAngles = new Vector3(40, calcAngle, 0);
             _colorHighlight = selected % _colorStageColors.Length;
