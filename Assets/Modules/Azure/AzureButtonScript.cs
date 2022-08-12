@@ -40,6 +40,7 @@ public class AzureButtonScript : MonoBehaviour
     private Coroutine _numTapTimeout;
     private int _offset;
     private List<int> _cards;
+    private List<int> _cardsShuffled;
     private int _shapeHighlight;
     private int _wordHighlight;
     private int _wordSection;
@@ -81,9 +82,9 @@ public class AzureButtonScript : MonoBehaviour
         Generate();
         _stage = Stage.SETSymbols;
 
-        StartCoroutine(AnimationManager(Stage.SETSymbols, CardsParent, AnimateCards));
+        StartCoroutine(AnimationManager(Stage.SETSymbols, CardsParent, AnimateCards, CardsSpotlight));
         StartCoroutine(AnimationManager(Stage.Numbers, NumbersParent, AnimateNumbers));
-        StartCoroutine(AnimationManager(Stage.Arrows, ArrowsParent, AnimateCards, CardsSpotlight));
+        StartCoroutine(AnimationManager(Stage.Arrows, ArrowsParent, AnimateArrows));
         StartCoroutine(AnimationManager(new[] { Stage.Word, Stage.Solved }, WordsParent, AnimateWordsAndSolve));
         StartCoroutine(AnimationManager(Stage.Reset, ResetParent, AnimateReset));
     }
@@ -95,16 +96,18 @@ public class AzureButtonScript : MonoBehaviour
         _puzzle = AzureButtonPuzzle.Generate(seed);
         _offset = Rnd.Range(1, 10);
         _cards = _puzzle.SetS.Concat(_puzzle.SetE).Concat(new[] { _puzzle.CardT }).ToList();
+        _cardsShuffled = _puzzle.SetS.Concat(_puzzle.SetE).Concat(new[] { _puzzle.CardT }).ToList();
+        Debug.Log(_cards.Join(", "));
         if (Rnd.Range(0, 2) == 0 && !_cards.Any(x => x < _offset))
             _offset *= -1;
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T. cards are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => x.ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => x.ToString()).Join(", ") + " ] (E), " + _puzzle.CardT.ToString() + " (T)");
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T. cards are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Select(x => x + _offset).Join(", "));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, _offset);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, Math.Abs(_offset));
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.ArrowDirs.Select(arrow => "[" + arrow.Select(dir => _directions[dir]).Join(", ") + "]").Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Join(", ") + "]").Join(" | "));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Forbidden letter: {1}", _moduleId, _puzzle.ForbiddenLetter);
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
@@ -131,7 +134,7 @@ public class AzureButtonScript : MonoBehaviour
         switch (_stage)
         {
             case Stage.SETSymbols:
-                if (_shapeHighlight != 6)
+                if (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]) && false)
                 {
                     Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cards[_shapeHighlight] / 3 % 3], _colorNames[_cards[_shapeHighlight] / 27], new[] { "solid", "striped", "outlined" }[_cards[_shapeHighlight] % 3], _shapeNames[_cards[_shapeHighlight] / 9 % 3]);
                     Debug.LogFormat(@"<The Azure Button #{0}> Stage 1: You submitted #{1} card. Strike!", _moduleId, _shapeHighlight);
@@ -312,26 +315,28 @@ public class AzureButtonScript : MonoBehaviour
 
     private IEnumerator AnimateCards(Func<bool> stop)
     {
-        var scroller = MakeGameObject("Cards scroller", ArrowsParent);
+        var scroller = MakeGameObject("Cards scroller", CardsParent);
         var width = 0f;
         var numCopies = 0;
-        const float separation = .1f;
+        const float separation = .07f;
         const float spotlightDistance = 1f / 208 * 190;
-        
+
         while (width < .6f || numCopies < 2)
         {
             for (int i = 0; i < 7; i++)
             {
                 var cardParent = MakeGameObject(string.Format("Card {0}", i + 1), scroller.transform, position: new Vector3(), scale: new Vector3(1f, 1f, 1f));
-                for (int j = 0; j < (_cards[j] / 3 % 3) + 1; j++)
+                for (int j = 0; j < (_cards[i] / 3 % 3) + 1; j++)
                 {
-                    var shapeObj = MakeGameObject(string.Format("Symbol {0}", i + 1), scroller.transform, position: new Vector3(width, .01625f, 0), scale: new Vector3(.04f, .04f, .04f));
-                    shapeObj.AddComponent<MeshFilter>().sharedMesh = Symbols[_cards[i] / 9 % 3];
+                    var shapeObj = MakeGameObject(string.Format("Symbol {0}", j + 1), cardParent.transform, position: new Vector3(width, 0, 0), scale: new Vector3(1.5f, 1.5f, 1.5f));
+                    shapeObj.AddComponent<MeshFilter>().sharedMesh = Symbols[(_cards[i] / 27) + (_cards[i] % 3) * 3];
                     var mr = shapeObj.AddComponent<MeshRenderer>();
                     mr.material = _maskMaterials.DiffuseTint;
                     mr.material.color = ShapeColors[_cards[i] / 27];
-                    width += separation;
+                    if (j != (_cards[i] / 3 % 3))
+                        width += .035f;
                 }
+                width += separation;
             }
             numCopies++;
         }
@@ -339,9 +344,9 @@ public class AzureButtonScript : MonoBehaviour
 
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((.08f * Time.time) % width) - .15f, -.025f, 0);
+            scroller.transform.localPosition = new Vector3(-((.1f * Time.time) % width) - .15f, -.025f, 0);
 
-            var pos = (((.08f * Time.time) % width) + .15f) / separation;
+            var pos = (((.1f * Time.time) % width) + .15f) / separation;
             var selected = Mathf.RoundToInt(pos);
 
             // Generated from Maple code; see Blue Button
@@ -394,36 +399,29 @@ public class AzureButtonScript : MonoBehaviour
         Destroy(scroller);
     }
 
-    private T[] newArray<T>(params T[] array) { return array; }
-
-    private Func<float, Quaternion> GetRandomAxisRotator()
-    {
-        var rv1 = Rnd.Range(0f, 360f);
-        var rv2 = Rnd.Range(0f, 360f);
-        switch (Rnd.Range(0, 3))
-        {
-            case 0: return v => Quaternion.Euler(v, rv1, rv2);
-            case 1: return v => Quaternion.Euler(rv1, v, rv2);
-            default: return v => Quaternion.Euler(rv1, rv2, v);
-        }
-    }
-
     private IEnumerator AnimateArrows(Func<bool> stop)
     {
-        var scroller = MakeGameObject("Arrows scroller", CardsParent, scale: .025f);
+        var scroller = MakeGameObject("Arrows scroller", ArrowsParent, scale: .025f);
         var width = 0f;
         var numCopies = 0;
+
+        Debug.Log(_puzzle.Arrows.Select(x => x.Directions.Join(", ")).Join(" | "));
 
         while (width < 24 || numCopies < 2)
         {
             for (int i = 0; i < 4; i++)
             {
-                var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform, position: new Vector3(width, 0, -1.5f), scale: new Vector3(-.35f, .35f, -.35f));
-                arrowObj.AddComponent<MeshFilter>().sharedMesh = Arrows[0];  //PLEASE CHANGE THIS VALUE, THIS IS TEMPORARY
+                var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform, position: new Vector3(width, 0, -1.5f), scale: new Vector3(1f, 1f, 1f));
+                Debug.Log(_puzzle.Arrows[i].ModelName);
+                arrowObj.transform.localEulerAngles = new Vector3(0, 90 * _puzzle.Arrows[i].Rotation);
+                arrowObj.transform.localPosition -= new Vector3((float)_puzzle.Arrows[i].CenterX, 0, (float)_puzzle.Arrows[i].CenterY);
+                arrowObj.AddComponent<MeshFilter>().sharedMesh = Arrows.Where(x => x.name == _puzzle.Arrows[i].ModelName).First();
                 var mr = arrowObj.AddComponent<MeshRenderer>();
                 mr.material = _maskMaterials.DiffuseTint;
                 mr.material.color = new Color32(0x81, 0xb6, 0xff, 0xff);
-                width += 2f;
+                Debug.Log(_puzzle.Arrows[i].MaxX);
+                Debug.Log(_puzzle.Arrows[(i + 1) % 4].MinX);
+                width += 2f + _puzzle.Arrows[i].Width;
             }
             numCopies++;
         }
@@ -431,7 +429,7 @@ public class AzureButtonScript : MonoBehaviour
 
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((4f * Time.time) % width) * .025f - 0.15f, -0.025f, 0);
+            scroller.transform.localPosition = new Vector3(-((3f * Time.time) % width) * .025f - 0.15f, -0.025f, 0);
             yield return null;
         }
 
@@ -467,7 +465,7 @@ public class AzureButtonScript : MonoBehaviour
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x3D, 0x69, 0xC7, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x50, 0x7E, 0xAB, 0xFF);
                 }
                 WordResultText.text = _puzzle.SolutionWord.Substring(0, _wordProgress) + "_";
 
@@ -508,9 +506,9 @@ public class AzureButtonScript : MonoBehaviour
     private IEnumerator NumberTimeout()
     {
         yield return new WaitForSeconds(1.5f);
-        if (_numTaps != _offset)
+        if (_numTaps != Math.Abs(_offset))
         {
-            Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: You tapped the button {1} times instead of {2}. Strike!", _moduleId, _numTaps, _offset);
+            Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: You tapped the button {1} times instead of {2}. Strike!", _moduleId, _numTaps, Math.Abs(_offset));
             Module.HandleStrike();
         }
         else
