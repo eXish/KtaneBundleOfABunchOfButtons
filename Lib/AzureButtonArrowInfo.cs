@@ -8,10 +8,6 @@ namespace BlueButtonLib
     {
         public Coord[] Coordinates { get; private set; }
         public int[] Directions { get; private set; }
-        public int MinX { get; private set; }
-        public int MaxX { get; private set; }
-        public int MinY { get; private set; }
-        public int MaxY { get; private set; }
         public int Rotation { get; private set; }
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -23,10 +19,6 @@ namespace BlueButtonLib
         {
             Coordinates = coordinates;
             Directions = directions;
-            MinX = minX;
-            MaxX = maxX;
-            MinY = minY;
-            MaxY = maxY;
 
             var rotation = directions[0] / 2;
             var w = maxX - minX;
