@@ -9,27 +9,23 @@ namespace BlueButtonLib
         public Coord[] Coordinates { get; private set; }
         public int[] Directions { get; private set; }
         public int Rotation { get; private set; }
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-        public double CenterX { get; private set; }
-        public double CenterY { get; private set; }
+        public float Width { get; private set; }
+        public float Height { get; private set; }
+        public float CenterX { get; private set; }
+        public float CenterY { get; private set; }
         public string ModelName { get; private set; }
 
-        public AzureButtonArrowInfo(Coord[] coordinates, int[] directions, int minX, int maxX, int minY, int maxY)
+        public AzureButtonArrowInfo(Coord[] coordinates, int[] directions, float minX, float maxX, float minY, float maxY)
         {
             Coordinates = coordinates;
             Directions = directions;
 
             var rotation = directions[0] / 2;
-            var w = maxX - minX;
-            var h = maxY - minY;
-            Width = rotation switch { 0 => w, 1 => h, 2 => w, _ => h };
-            Height = rotation switch { 0 => h, 1 => w, 2 => h, _ => w };
-            var cx = (minX + maxX) / 2d;
-            var cy = (minY + maxY) / 2d;
-            CenterX = rotation switch { 0 => cx, 1 => cy, 2 => -cx, _ => -cy };
-            CenterY = rotation switch { 0 => cy, 1 => -cx, 2 => -cy, _ => cx };
-            Rotation = -90 * rotation;
+            Width = maxX - minX;
+            Height = maxY - minY;
+            CenterX = (minX + maxX) / 2f;
+            CenterY = (minY + maxY) / 2f;
+            Rotation = 90 * rotation;
             ModelName = $"Arrow-{directions.Select(d => (8 + d - 2 * rotation) % 8).JoinString()}";
         }
 
@@ -43,7 +39,7 @@ namespace BlueButtonLib
             var dxs = new[] { 0, 1, 1, 1, 0, -1, -1, -1 };
             var dys = new[] { -1, -1, 0, 1, 1, 1, 0, -1 };
 
-            IEnumerable<AzureButtonArrowInfo> generateArrows(Coord[] coordsSofar, int[] dirsSofar, int minX, int maxX, int minY, int maxY, int x, int y)
+            IEnumerable<AzureButtonArrowInfo> generateArrows(Coord[] coordsSofar, int[] dirsSofar, float minX, float maxX, float minY, float maxY, int x, int y)
             {
                 if (coordsSofar.Length == MaxArrowLength)
                 {
@@ -70,7 +66,7 @@ namespace BlueButtonLib
                             yield return result;
                 }
             }
-            AllArrows = generateArrows(new Coord[0], new int[0], 0, 0, 0, 0, 0, 0).ToArray();
+            AllArrows = generateArrows(new Coord[0], new int[0], -.5f, .5f, -.5f, .5f, 0, 0).ToArray();
         }
 
         /// <summary>

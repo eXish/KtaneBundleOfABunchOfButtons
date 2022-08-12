@@ -185,7 +185,7 @@ public class AzureButtonScript : MonoBehaviour
                 }
                 else
                 {
-                    var nextLetter = (char)('A' + ((_wordSection - 4) * 3 + _wordHighlight));
+                    var nextLetter = (char) ('A' + ((_wordSection - 4) * 3 + _wordHighlight));
                     if (nextLetter != _puzzle.SolutionWord[_wordProgress])
                     {
                         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
@@ -401,27 +401,26 @@ public class AzureButtonScript : MonoBehaviour
 
     private IEnumerator AnimateArrows(Func<bool> stop)
     {
+        const float scale = 1.3f;
+
         var scroller = MakeGameObject("Arrows scroller", ArrowsParent, scale: .025f);
         var width = 0f;
         var numCopies = 0;
-
-        Debug.Log(_puzzle.Arrows.Select(x => x.Directions.Join(", ")).Join(" | "));
 
         while (width < 24 || numCopies < 2)
         {
             for (int i = 0; i < 4; i++)
             {
-                var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform, position: new Vector3(width, 0, -1.5f), scale: new Vector3(1f, 1f, 1f));
-                Debug.Log(_puzzle.Arrows[i].ModelName);
-                arrowObj.transform.localEulerAngles = new Vector3(0, 90 * _puzzle.Arrows[i].Rotation);
-                arrowObj.transform.localPosition -= new Vector3((float)_puzzle.Arrows[i].CenterX, 0, (float)_puzzle.Arrows[i].CenterY);
+                width += _puzzle.Arrows[i].Width * scale / 2f;
+                var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform,
+                    position: new Vector3(width - _puzzle.Arrows[i].CenterX * scale, 0, _puzzle.Arrows[i].CenterY * scale),
+                    rotation: Quaternion.Euler(0, _puzzle.Arrows[i].Rotation, 0),
+                    scale: new Vector3(scale, scale, scale));
                 arrowObj.AddComponent<MeshFilter>().sharedMesh = Arrows.Where(x => x.name == _puzzle.Arrows[i].ModelName).First();
                 var mr = arrowObj.AddComponent<MeshRenderer>();
                 mr.material = _maskMaterials.DiffuseTint;
                 mr.material.color = new Color32(0x81, 0xb6, 0xff, 0xff);
-                Debug.Log(_puzzle.Arrows[i].MaxX);
-                Debug.Log(_puzzle.Arrows[(i + 1) % 4].MinX);
-                width += 2f + _puzzle.Arrows[i].Width;
+                width += _puzzle.Arrows[i].Width * scale / 2f + 1f;
             }
             numCopies++;
         }
@@ -461,11 +460,11 @@ public class AzureButtonScript : MonoBehaviour
             }
             else
             {
-                _wordHighlight = (int)((Time.time % 1.8f) / 1.8f * 3);
+                _wordHighlight = (int) ((Time.time % 1.8f) / 1.8f * 3);
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x50, 0x7E, 0xAB, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x50, 0x7E, 0xAB, 0xFF);
                 }
                 WordResultText.text = _puzzle.SolutionWord.Substring(0, _wordProgress) + "_";
 
@@ -478,12 +477,12 @@ public class AzureButtonScript : MonoBehaviour
                 else if (_wordSection <= 3)
                 {
                     for (var triplet = 0; triplet < 3; triplet++)
-                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char)('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
+                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char) ('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
                 }
                 else
                 {
                     for (var ltr = 0; ltr < 3; ltr++)
-                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char)('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
+                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char) ('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
                 }
 
                 yield return null;
