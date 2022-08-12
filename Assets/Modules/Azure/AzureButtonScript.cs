@@ -136,7 +136,7 @@ public class AzureButtonScript : MonoBehaviour
         switch (_stage)
         {
             case Stage.SETSymbols:
-                if (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]) && false)
+                if (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]))
                 {
                     Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cards[_shapeHighlight] / 3 % 3], _colorNames[_cards[_shapeHighlight] / 27], new[] { "solid", "striped", "outlined" }[_cards[_shapeHighlight] % 3], _shapeNames[_cards[_shapeHighlight] / 9 % 3]);
                     Debug.LogFormat(@"<The Azure Button #{0}> Stage 1: You submitted card #{1}. Strike!", _moduleId, _shapeHighlight);
@@ -322,24 +322,30 @@ public class AzureButtonScript : MonoBehaviour
         var numCopies = 0;
         const float separation = .035f;
         const float spotlightDistance = 1f / 208 * 190;
+        var symbols = new List<List<List<GameObject>>>();
 
         while (width < .6f || numCopies < 2)
         {
+            var bunch = new List<List<GameObject>>();
             for (int i = 0; i < 7; i++)
             {
+                var cardObjs = new List<GameObject>();
                 var cardParent = MakeGameObject(string.Format("Card {0}", i + 1), scroller.transform, position: new Vector3(), scale: new Vector3(1f, 1f, 1f));
                 for (int j = 0; j < (_cardsShuffled[i] / 3 % 3) + 1; j++)
                 {
-                    var shapeObj = MakeGameObject(string.Format("Symbol {0}", j + 1), cardParent.transform, position: new Vector3(width, 0, 0), scale: new Vector3(1.5f, 1.5f, 1.5f));
+                    var shapeObj = MakeGameObject(string.Format("Symbol {0}", j + 1), cardParent.transform, position: new Vector3(width, 0, 0), scale: new Vector3(1.35f, 1.35f, 1.35f));
+                    cardObjs.Add(shapeObj);
                     shapeObj.AddComponent<MeshFilter>().sharedMesh = Symbols[(_cardsShuffled[i] / 27) + (_cardsShuffled[i] % 3) * 3];
                     var mr = shapeObj.AddComponent<MeshRenderer>();
                     mr.material = _maskMaterials.DiffuseTint;
                     mr.material.color = ShapeColors[_cardsShuffled[i] / 9 % 3];
                     width += separation;
                 }
+                bunch.Add(cardObjs);
                 width += separation;
             }
             numCopies++;
+            symbols.Add(bunch);
         }
         width /= numCopies;
 
@@ -357,6 +363,22 @@ public class AzureButtonScript : MonoBehaviour
         while (!stop())
         {
             scroller.transform.localPosition = new Vector3(-((.05f * Time.time) % width) - .15f, -.025f, 0);
+
+            const float bobIntensity = 0.01f;
+            const float bobSpeed = 3.5f;
+            const float rotationSpeed = 90f;
+            foreach (var bunch in symbols)
+            {
+                for (int symbolIx = 0; symbolIx < bunch.Count; symbolIx++)
+                {
+                    List<GameObject> card = bunch[symbolIx];
+                    for (int cardIx = 0; cardIx < card.Count; cardIx++)
+                    {
+                        card[cardIx].transform.localEulerAngles = new Vector3(0, 0, Time.time * rotationSpeed + cardIx * 60);
+                        card[cardIx].transform.localPosition = new Vector3(card[cardIx].transform.localPosition.x, 0.005f, Mathf.Sin(card[cardIx].transform.localPosition.x / width * 4 * Mathf.PI + Time.time * bobSpeed) * bobIntensity);
+                    }
+                }
+            }
 
             var pos = ((((.05f * Time.time) % width) + .15f) / (separation / 2)) % vw;
             var selected = poses.IndexOf(p => p > pos);

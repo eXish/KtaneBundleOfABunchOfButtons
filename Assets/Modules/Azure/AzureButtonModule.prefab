@@ -43,7 +43,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1141619662391602
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,7 +176,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1540409959573128
 GameObject:
   m_ObjectHideFlags: 1
@@ -1893,9 +1893,9 @@ MonoBehaviour:
   WordResultText: {fileID: 102903206314447422}
   ResetText: {fileID: 102747900204046654}
   ShapeColors:
-  - {r: 1, g: 0, b: 0, a: 1}
-  - {r: 0.4965515, g: 0, b: 1, a: 1}
-  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 0.7794118, g: 0.0916955, b: 0.0916955, a: 1}
+  - {r: 1, g: 1, b: 0.27205884, a: 1}
+  - {r: 0.06466261, g: 0.06466261, b: 0.6764706, a: 1}
   CardsSpotlight: {fileID: 108724857767962276}
 --- !u!114 &114629500169079468
 MonoBehaviour:
