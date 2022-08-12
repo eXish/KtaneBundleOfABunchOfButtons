@@ -594,7 +594,7 @@ solve({{
         }
 
         Match m;
-        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+(?:[ryb]|red|yellow|blue)\s*(?:sp(?:here)?|cu(?:be)?|co(?:ne)?|pr(?:ism)?|cy(?:linder)?|py(?:ramid)?|to(?:rus)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+[1-3](?:[rpg]|red|purple|green)\s*(?:so(?:lid)?|st(?:riped)?|ou(?:tlined)?)\s*(?:ca(?:psules?)?|du(?:mbbells?)?|di(?:amonds?)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
             var colors = new[] { "r", "p", "g" };
             var shadings = new[] { "so", "st", "ou" };
