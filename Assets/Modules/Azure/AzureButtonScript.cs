@@ -52,8 +52,6 @@ public class AzureButtonScript : MonoBehaviour
     private Coroutine _pressHandler;
     private MaskMaterials _maskMaterials;
 
-    private static readonly float[] _widths =/*widths-start*/new[] { 8.988f, 7.296f, 6.636f, 7.224f, 7.116f, 6.96f, 9.156f, 8.124f, 4.14f, 8.472f, 8.376f, 10.752f, 8.916f, 6.804f, 8.124f, 9.036f, 6.96f, 6.84f, 7.596f, 8.316f, 9.48f, 8.544f, 11.16f, 8.64f, 7.104f, 6.276f, 6.72f, 6.228f, 5.532f, 5.64f, 6.192f, 6.228f, 3.492f, 7.428f, 6.804f, 6.696f, 6.756f, 5.256f, 6.228f, 7.296f, 6.216f, 6.996f, 5.7f, 6.72f, 7.932f, 7.044f, 7.74f, 8.472f }/*widths-end*/;
-
     private static readonly string[] _colorNames = { "red", "yellow", "blue" };
     private static readonly string[] _shadings = { "solid", "striped", "outlined" };
     private static readonly string[] _shapeNames = { "capsule", "dumbbell", "diamond" };
@@ -97,19 +95,18 @@ public class AzureButtonScript : MonoBehaviour
         _puzzle = AzureButtonPuzzle.Generate(seed);
         _offset = Rnd.Range(1, 10);
         _cards = _puzzle.SetS.Concat(_puzzle.SetE).Concat(new[] { _puzzle.CardT }).ToList();
-        _cardsShuffled = _cards.Shuffle();
-        Debug.Log(_cards.Join(", "));
+        _cardsShuffled = _cards.ToList().Shuffle();
         if (Rnd.Range(0, 2) == 0 && !_cards.Any(x => x < _offset))
             _offset *= -1;
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: Shuffled cards are: {1}", _moduleId, "[ " + _cardsShuffled.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ]");
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Where((x, ix) => ix != 6).Select(x => x + _offset).Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Take(6).Select(x => x + _offset).Join(", "));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, Math.Abs(_offset));
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Join(", ") + "]").Join(" | "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Select(d => _directions[d]).Join(", ") + "]").Join(" | "));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Forbidden letter: {1}", _moduleId, _puzzle.ForbiddenLetter);
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
@@ -138,7 +135,7 @@ public class AzureButtonScript : MonoBehaviour
             case Stage.SETSymbols:
                 if (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]))
                 {
-                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cards[_shapeHighlight] / 3 % 3], _colorNames[_cards[_shapeHighlight] / 27], new[] { "solid", "striped", "outlined" }[_cards[_shapeHighlight] % 3], _shapeNames[_cards[_shapeHighlight] / 9 % 3]);
+                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cardsShuffled[_shapeHighlight] / 3 % 3], _colorNames[_cardsShuffled[_shapeHighlight] / 27], _shadings[_cardsShuffled[_shapeHighlight] % 3], _shapeNames[_cardsShuffled[_shapeHighlight] / 9 % 3]);
                     Debug.LogFormat(@"<The Azure Button #{0}> Stage 1: You submitted card #{1}. Strike!", _moduleId, _shapeHighlight);
                     Module.HandleStrike();
                 }
