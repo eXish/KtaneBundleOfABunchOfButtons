@@ -1,9 +1,9 @@
+using BlueButtonLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlueButtonLib;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -15,29 +15,31 @@ public class AzureButtonScript : MonoBehaviour
     public KMSelectable ButtonSelectable;
     public GameObject ButtonCap;
 
-    public Transform GreekLetterParent;
+    public Transform CardsParent;
     public Transform NumbersParent;
-    public Transform ShapesParent;
+    public Transform ArrowsParent;
     public Transform WordsParent;
     public Transform ResetParent;
 
     // Objects for instantiating/animating
     public MaskShaderManager MaskShaderManager;
     public MeshRenderer Mask;
-    public Mesh[] GreekLetters;
+    public Mesh[] Symbols;
+    public Mesh[] Arrows;
     public TextMesh NumberTemplate;
     public TextMesh[] WordTexts;
     public TextMesh WordResultText;
     public TextMesh ResetText;
-    public Mesh[] Shapes;
     public Color[] ShapeColors;
-    public Light ShapesSpotlight;
+    public Light CardsSpotlight;
 
     // Solving process
-    private NavyButtonPuzzle _puzzle;
+    private AzureButtonPuzzle _puzzle;
     private Stage _stage;
     private int _numTaps;
     private Coroutine _numTapTimeout;
+    private int _offset;
+    private List<int> _cards;
     private int _shapeHighlight;
     private int _wordHighlight;
     private int _wordSection;
@@ -53,12 +55,13 @@ public class AzureButtonScript : MonoBehaviour
 
     private static readonly string[] _colorNames = { "red", "yellow", "blue" };
     private static readonly string[] _shapeNames = { "sphere", "cube", "cone", "prism", "cylinder", "pyramid", "torus" };
+    private static readonly string[] _directions = { "north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west" };
 
     enum Stage
     {
-        GreekLetters,
+        SETSymbols,
         Numbers,
-        Shapes,
+        Arrows,
         Word,
         Reset,
         Solved
@@ -75,49 +78,36 @@ public class AzureButtonScript : MonoBehaviour
         _maskMaterials.DiffuseText.mainTexture = WordResultText.GetComponent<MeshRenderer>().sharedMaterial.mainTexture;
         Mask.sharedMaterial = _maskMaterials.Mask;
 
-        GeneratePuzzle();
-        _stage = Stage.GreekLetters;
+        Generate();
+        _stage = Stage.SETSymbols;
 
-        StartCoroutine(AnimationManager(Stage.GreekLetters, GreekLetterParent, AnimateGreekLetters));
+        StartCoroutine(AnimationManager(Stage.SETSymbols, CardsParent, AnimateCards));
         StartCoroutine(AnimationManager(Stage.Numbers, NumbersParent, AnimateNumbers));
-        StartCoroutine(AnimationManager(Stage.Shapes, ShapesParent, AnimateShapes, ShapesSpotlight));
+        StartCoroutine(AnimationManager(Stage.Arrows, ArrowsParent, AnimateCards, CardsSpotlight));
         StartCoroutine(AnimationManager(new[] { Stage.Word, Stage.Solved }, WordsParent, AnimateWordsAndSolve));
         StartCoroutine(AnimationManager(Stage.Reset, ResetParent, AnimateReset));
     }
 
-    private void GeneratePuzzle()
+    private void Generate()
     {
         var seed = Rnd.Range(0, int.MaxValue);
-        Debug.LogFormat("<The Navy Button #{0}> Seed: {1}", _moduleId, seed);
-        _puzzle = NavyButtonPuzzle.GeneratePuzzle(seed);
+        Debug.LogFormat("<The Azure Button #{0}> Seed: {1}", _moduleId, seed);
+        _puzzle = AzureButtonPuzzle.Generate(seed);
+        _offset = Rnd.Range(1, 10);
+        _cards = _puzzle.SetS.Concat(_puzzle.SetE).Concat(new[] { _puzzle.CardT }).ToList();
+        if (Rnd.Range(0, 2) == 0 && !_cards.Any(x => x < _offset))
+            _offset *= -1;
 
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 1: Greek letters are: {1}", _moduleId, _puzzle.GreekLetterIxs.Select(ix => "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω"[ix]).Join(" "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 1: Square distances are: {1}", _moduleId, _puzzle.SquaredDistances.Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T. cards are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => x.ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => x.ToString()).Join(", ") + " ] (E), " + _puzzle.CardT.ToString() + " (T)");
 
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _puzzle.Numbers.Join(", "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 2: Differences: {1}", _moduleId, Enumerable.Range(0, _puzzle.Numbers.Length).Select(ix => _puzzle.Numbers[ix] - _puzzle.SquaredDistances[ix % _puzzle.SquaredDistances.Length]).Join(", "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 2: Given is at col {1}, row {2}, value {3}", _moduleId, _puzzle.GivenIndex % 4, _puzzle.GivenIndex / 4, _puzzle.GivenValue);
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 2: Tap the button {1} times.", _moduleId, _puzzle.TapsRequired);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Select(x => x + _offset).Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, _offset);
 
-        var rawGrid = @". A . B . C .;M   N   O   P;. D . E . F .;Q   R   S   T;. G . H . I .;U   V   W   X;. J . K . L .".Replace(";", "\n")
-            .Select(ch => ch >= 'A' && ch <= 'X' ? _puzzle.GreekLetterIxs.Contains(ch - 'A') ? (ch <= 'L' ? '>' : '∨') : _puzzle.GreekLetterIxs.Contains(ch - 'A' + 24) ? (ch <= 'L' ? '<' : '∧') : ' ' : ch).Join("");
-        var givenIxStr = 4 * (_puzzle.GivenIndex % 4) + 28 * (_puzzle.GivenIndex / 4);
-        var grid = rawGrid.Substring(0, givenIxStr) + _puzzle.GivenValue.ToString() + rawGrid.Substring(givenIxStr + 1);
-        Debug.LogFormat("[The Navy Button #{0}] Puzzle grid:\n{1}", _moduleId, grid);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.ArrowDirs.Select(arrow => "[" + arrow.Select(dir => _directions[dir]).Join(", ") + "]").Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Forbidden letter: {1}", _moduleId, _puzzle.ForbiddenLetter);
 
-        for (var cell = 0; cell < 16; cell++)
-        {
-            givenIxStr = 4 * (cell % 4) + 28 * (cell / 4);
-            grid = grid.Substring(0, givenIxStr) + _puzzle.LatinSquare[cell].ToString() + grid.Substring(givenIxStr + 1);
-        }
-        Debug.LogFormat("[The Navy Button #{0}] Puzzle solution:\n{1}", _moduleId, grid);
-
-        Debug.LogFormat(@"<The Navy Button #{0}> Stage 3: Stencil indexes: {1}", _moduleId, _puzzle.StencilIxs.Join(", "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: Shapes are: {1}", _moduleId,
-            Enumerable.Range(0, 5).Select(ix => string.Format("{0} {1}", _colorNames[_puzzle.StencilIxs[ix] % 3], _shapeNames[_puzzle.StencilIxs[ix] / 3])).Join(", "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: Decoy shape: {1} {2}", _moduleId, _colorNames[_puzzle.StencilIxs[4] % 3], _shapeNames[_puzzle.StencilIxs[4] / 3]);
-
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.Answer);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
     }
 
     private bool ButtonPress()
@@ -140,8 +130,15 @@ public class AzureButtonScript : MonoBehaviour
 
         switch (_stage)
         {
-            case Stage.GreekLetters:
-                _stage = Stage.Numbers;
+            case Stage.SETSymbols:
+                if (_shapeHighlight != 6)
+                {
+                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cards[_shapeHighlight] / 3 % 3], _colorNames[_cards[_shapeHighlight] / 27], new[] { "solid", "striped", "outlined" }[_cards[_shapeHighlight] % 3], _shapeNames[_cards[_shapeHighlight] / 9 % 3]);
+                    Debug.LogFormat(@"<The Azure Button #{0}> Stage 1: You submitted #{1} card. Strike!", _moduleId, _shapeHighlight);
+                    Module.HandleStrike();
+                }
+                else
+                    _stage = Stage.Numbers;
                 break;
 
             case Stage.Numbers:
@@ -151,23 +148,16 @@ public class AzureButtonScript : MonoBehaviour
                 _numTapTimeout = StartCoroutine(NumberTimeout());
                 break;
 
-            case Stage.Shapes:
-                if (_shapeHighlight != 4)
-                {
-                    Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: You submitted the {1} {2}. Strike!", _moduleId, _colorNames[_puzzle.StencilIxs[_shapeHighlight] % 3], _shapeNames[_puzzle.StencilIxs[_shapeHighlight] / 3]);
-                    Debug.LogFormat(@"<The Navy Button #{0}> Stage 3: You submitted #{1} ({2}). Strike!", _moduleId, _shapeHighlight, _puzzle.StencilIxs[_shapeHighlight]);
-                    Module.HandleStrike();
-                }
-                else
-                    _stage = Stage.Word;
+            case Stage.Arrows:
+                _stage = Stage.Word;
                 break;
 
             case Stage.Word:
                 if (_wordSection == 0)
                 {
-                    if (_wordHighlight != (_puzzle.Answer[_wordProgress] - 'A') / 9)
+                    if (_wordHighlight != (_puzzle.SolutionWord[_wordProgress] - 'A') / 9)
                     {
-                        Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
+                        Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
                         Module.HandleStrike();
                     }
                     else
@@ -175,9 +165,9 @@ public class AzureButtonScript : MonoBehaviour
                 }
                 else if (_wordSection <= 3)
                 {
-                    if (_wordHighlight != ((_puzzle.Answer[_wordProgress] - 'A') % 9) / 3)
+                    if (_wordHighlight != ((_puzzle.SolutionWord[_wordProgress] - 'A') % 9) / 3)
                     {
-                        Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
+                        Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You selected section {1} for letter #{2}. Strike!", _moduleId, WordTexts[_wordHighlight].text, _wordProgress + 1);
                         Module.HandleStrike();
                         _wordSection = 0;
                     }
@@ -186,22 +176,22 @@ public class AzureButtonScript : MonoBehaviour
                 }
                 else if (_wordSection + _wordHighlight >= 30)
                 {
-                    Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: You submitted the empty slot after Z. Strike!", _moduleId);
+                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You submitted the empty slot after Z. Strike!", _moduleId);
                     Module.HandleStrike();
                     _wordSection = 0;
                 }
                 else
                 {
-                    var nextLetter = (char) ('A' + ((_wordSection - 4) * 3 + _wordHighlight));
-                    if (nextLetter != _puzzle.Answer[_wordProgress])
+                    var nextLetter = (char)('A' + ((_wordSection - 4) * 3 + _wordHighlight));
+                    if (nextLetter != _puzzle.SolutionWord[_wordProgress])
                     {
-                        Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
+                        Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
                         Module.HandleStrike();
                     }
                     else
                     {
                         _wordProgress++;
-                        if (_wordProgress == _puzzle.Answer.Length)
+                        if (_wordProgress == _puzzle.SolutionWord.Length)
                         {
                             Module.HandlePass();
                             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
@@ -213,7 +203,7 @@ public class AzureButtonScript : MonoBehaviour
                 break;
 
             case Stage.Reset:
-                _stage = Stage.GreekLetters;
+                _stage = Stage.SETSymbols;
                 _wordProgress = 0;
                 break;
         }
@@ -320,22 +310,28 @@ public class AzureButtonScript : MonoBehaviour
         return obj;
     }
 
-    private IEnumerator AnimateGreekLetters(Func<bool> stop)
+    private IEnumerator AnimateCards(Func<bool> stop)
     {
-        var scroller = MakeGameObject("Greek Letters scroller", GreekLetterParent, scale: .025f);
+        var scroller = MakeGameObject("Cards scroller", ArrowsParent);
         var width = 0f;
         var numCopies = 0;
-
-        while (width < 24 || numCopies < 2)
+        const float separation = .1f;
+        const float spotlightDistance = 1f / 208 * 190;
+        
+        while (width < .6f || numCopies < 2)
         {
-            for (int i = 0; i < _puzzle.GreekLetterIxs.Length; i++)
+            for (int i = 0; i < 7; i++)
             {
-                var letterObj = MakeGameObject(string.Format("Letter {0}", i + 1), scroller.transform, position: new Vector3(width, 0, -1.5f), scale: new Vector3(-.35f, .35f, -.35f));
-                letterObj.AddComponent<MeshFilter>().sharedMesh = GreekLetters[_puzzle.GreekLetterIxs[i]];
-                var mr = letterObj.AddComponent<MeshRenderer>();
-                mr.material = _maskMaterials.DiffuseTint;
-                mr.material.color = new Color32(0x81, 0xb6, 0xff, 0xff);
-                width += _widths[_puzzle.GreekLetterIxs[i]] * .35f + 2f;
+                var cardParent = MakeGameObject(string.Format("Card {0}", i + 1), scroller.transform, position: new Vector3(), scale: new Vector3(1f, 1f, 1f));
+                for (int j = 0; j < (_cards[j] / 3 % 3) + 1; j++)
+                {
+                    var shapeObj = MakeGameObject(string.Format("Symbol {0}", i + 1), scroller.transform, position: new Vector3(width, .01625f, 0), scale: new Vector3(.04f, .04f, .04f));
+                    shapeObj.AddComponent<MeshFilter>().sharedMesh = Symbols[_cards[i] / 9 % 3];
+                    var mr = shapeObj.AddComponent<MeshRenderer>();
+                    mr.material = _maskMaterials.DiffuseTint;
+                    mr.material.color = ShapeColors[_cards[i] / 27];
+                    width += separation;
+                }
             }
             numCopies++;
         }
@@ -343,7 +339,22 @@ public class AzureButtonScript : MonoBehaviour
 
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((4f * Time.time) % width) * .025f - 0.15f, -0.025f, 0);
+            scroller.transform.localPosition = new Vector3(-((.08f * Time.time) % width) - .15f, -.025f, 0);
+
+            var pos = (((.08f * Time.time) % width) + .15f) / separation;
+            var selected = Mathf.RoundToInt(pos);
+
+            // Generated from Maple code; see Blue Button
+            var t = pos - selected;
+            const float q = -.4f, r = -.3f, C2 = 1744.129529f, a = 5652.886846f, C5 = 430.6776816f, C1 = -2778.179948f, C4 = -473.7842137f;
+            var calcAngle =
+                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :
+                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :
+                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;
+
+            CardsSpotlight.transform.localEulerAngles = new Vector3(40, calcAngle, 0);
+            _shapeHighlight = selected % 7;
+
             yield return null;
         }
 
@@ -358,7 +369,7 @@ public class AzureButtonScript : MonoBehaviour
 
         while (width < 24 || numCopies < 2)
         {
-            for (int i = 0; i < _puzzle.Numbers.Length; i++)
+            for (int i = 0; i < 6; i++)
             {
                 var equation = Instantiate(NumberTemplate, scroller.transform);
                 equation.GetComponent<MeshRenderer>().sharedMaterial = _maskMaterials.DiffuseText;
@@ -367,7 +378,7 @@ public class AzureButtonScript : MonoBehaviour
                 equation.transform.localEulerAngles = new Vector3(90, 0, 0);
                 equation.transform.localScale = new Vector3(1, 1, 1);
                 equation.gameObject.SetActive(true);
-                equation.text = _puzzle.Numbers[i].ToString();
+                equation.text = (_cards[i] + _offset).ToString();
                 width += 1.5f * equation.text.Length + 2f;
             }
             numCopies++;
@@ -397,28 +408,22 @@ public class AzureButtonScript : MonoBehaviour
         }
     }
 
-    private IEnumerator AnimateShapes(Func<bool> stop)
+    private IEnumerator AnimateArrows(Func<bool> stop)
     {
-        var scroller = MakeGameObject("Shapes scroller", ShapesParent);
+        var scroller = MakeGameObject("Arrows scroller", CardsParent, scale: .025f);
         var width = 0f;
         var numCopies = 0;
-        const float separation = .1f;
-        const float spotlightDistance = 1f / 208 * 190;
 
-        var axesRotators = newArray(GetRandomAxisRotator(), GetRandomAxisRotator(), GetRandomAxisRotator(), GetRandomAxisRotator(), GetRandomAxisRotator());
-        var shapeObjs = new List<Transform>();
-
-        while (width < .6f || numCopies < 2)
+        while (width < 24 || numCopies < 2)
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
-                var shapeObj = MakeGameObject(string.Format("Shape {0}", i + 1), scroller.transform, position: new Vector3(width, .01625f, 0), scale: new Vector3(.04f, .04f, .04f));
-                shapeObj.AddComponent<MeshFilter>().sharedMesh = Shapes[_puzzle.StencilIxs[i] / 3];
-                var mr = shapeObj.AddComponent<MeshRenderer>();
+                var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform, position: new Vector3(width, 0, -1.5f), scale: new Vector3(-.35f, .35f, -.35f));
+                arrowObj.AddComponent<MeshFilter>().sharedMesh = Arrows[0];  //PLEASE CHANGE THIS VALUE, THIS IS TEMPORARY
+                var mr = arrowObj.AddComponent<MeshRenderer>();
                 mr.material = _maskMaterials.DiffuseTint;
-                mr.material.color = ShapeColors[_puzzle.StencilIxs[i] % 3];
-                width += separation;
-                shapeObjs.Add(shapeObj.transform);
+                mr.material.color = new Color32(0x81, 0xb6, 0xff, 0xff);
+                width += 2f;
             }
             numCopies++;
         }
@@ -426,28 +431,7 @@ public class AzureButtonScript : MonoBehaviour
 
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((.08f * Time.time) % width) - .15f, -.025f, 0);
-
-            var pos = (((.08f * Time.time) % width) + .15f) / separation;
-            var selected = Mathf.RoundToInt(pos);
-
-            // Generated from Maple code; see Blue Button
-            var t = pos - selected;
-            const float q = -.4f, r = -.3f, C2 = 1744.129529f, a = 5652.886846f, C5 = 430.6776816f, C1 = -2778.179948f, C4 = -473.7842137f;
-            var calcAngle =
-                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :
-                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :
-                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;
-
-            ShapesSpotlight.transform.localEulerAngles = new Vector3(40, calcAngle, 0);
-            _shapeHighlight = selected % 5;
-
-            var axisAngle = (90f * Time.time) % 360;
-            var angle = (120f * Time.time) % 360;
-
-            for (var i = 0; i < shapeObjs.Count; i++)
-                shapeObjs[i].localRotation = Quaternion.AngleAxis(angle, axesRotators[i % 5](axisAngle) * Vector3.up);
-
+            scroller.transform.localPosition = new Vector3(-((4f * Time.time) % width) * .025f - 0.15f, -0.025f, 0);
             yield return null;
         }
 
@@ -464,7 +448,7 @@ public class AzureButtonScript : MonoBehaviour
         {
             if (_stage == Stage.Solved)
             {
-                WordResultText.text = _puzzle.Answer;
+                WordResultText.text = _puzzle.SolutionWord;
 
                 for (var i = 0; i < 3; i++)
                     WordTexts[i].gameObject.SetActive(false);
@@ -479,13 +463,13 @@ public class AzureButtonScript : MonoBehaviour
             }
             else
             {
-                _wordHighlight = (int) ((Time.time % 1.8f) / 1.8f * 3);
+                _wordHighlight = (int)((Time.time % 1.8f) / 1.8f * 3);
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x3D, 0x69, 0xC7, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x3D, 0x69, 0xC7, 0xFF);
                 }
-                WordResultText.text = _puzzle.Answer.Substring(0, _wordProgress) + "_";
+                WordResultText.text = _puzzle.SolutionWord.Substring(0, _wordProgress) + "_";
 
                 if (_wordSection == 0)
                 {
@@ -496,12 +480,12 @@ public class AzureButtonScript : MonoBehaviour
                 else if (_wordSection <= 3)
                 {
                     for (var triplet = 0; triplet < 3; triplet++)
-                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char) ('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
+                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char)('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
                 }
                 else
                 {
                     for (var ltr = 0; ltr < 3; ltr++)
-                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char) ('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
+                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char)('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
                 }
 
                 yield return null;
@@ -524,19 +508,19 @@ public class AzureButtonScript : MonoBehaviour
     private IEnumerator NumberTimeout()
     {
         yield return new WaitForSeconds(1.5f);
-        if (_numTaps != _puzzle.TapsRequired)
+        if (_numTaps != _offset)
         {
-            Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: You tapped the button {1} times instead of {2}. Strike!", _moduleId, _numTaps, _puzzle.TapsRequired);
+            Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: You tapped the button {1} times instead of {2}. Strike!", _moduleId, _numTaps, _offset);
             Module.HandleStrike();
         }
         else
-            _stage = Stage.Shapes;
+            _stage = Stage.Arrows;
         _numTaps = 0;
     }
 
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} tap [stage 1] | !{0} tap 5 [stage 2: tap 5 times] | !{0} tap red cone/rco, blue cube/bcu [stage 3: wait for the specified sequence of shapes and press the last one specified; colors are r/y/b; shapes are sp/cu/co/pr/cy/py/to] | !{0} tap 1 3 2 3 1 [stage 4: tap when the highlight is in these positions] | !{0} reset";
+    private readonly string TwitchHelpMessage = "!{0} tap three red striped capsules / 3rstca, one purple solid dumbbell / 1psodu [stage 1: wait for the specified sequence of cards and press the last one specified; colors are r/p/g; shadings are so/st/ou; shapes are ca/du/di] | !{0} tap [stage 3] | !{0} tap 5 [stage 2: tap 5 times] | !{0} tap 1 3 2 3 1 [stage 4: tap when the highlight is in these positions] | !{0} reset";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -551,17 +535,44 @@ public class AzureButtonScript : MonoBehaviour
             yield break;
         }
 
-        if (_stage == Stage.GreekLetters && Regex.IsMatch(command, @"^\s*tap\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        Match m;
+        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+(?:[ryb]|red|yellow|blue)\s*(?:sp(?:here)?|cu(?:be)?|co(?:ne)?|pr(?:ism)?|cy(?:linder)?|py(?:ramid)?|to(?:rus)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
+            var colors = new[] { "r", "p", "g" };
+            var shadings = new[] { "so", "st", "ou" };
+            var shapes = new[] { "ca", "du", "di" };
+            var pieces = m.Groups[1].Value.Split(new[] { ' ', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var ixs = new List<int>();
+            for (var i = 0; i < pieces.Length; i++)
+            {
+                pieces[i] = pieces[i].ToLowerInvariant();
+                int cIx, shIx, shaIx, val;
+                if (pieces[i].Length == 6 && int.TryParse(pieces[i].Substring(0, 1), out val) && (cIx = Array.IndexOf(colors, pieces[i].Substring(1, 1))) != -1 && (shIx = Array.IndexOf(shapes, pieces[i].Substring(2, 2))) != -1 && (shaIx = Array.IndexOf(shapes, pieces[i].Substring(4, 2))) != -1)
+                    ixs.Add(27 * shaIx + 9 * cIx + 3 * int.Parse(pieces[i][0].ToString()) + shIx);
+                else if ((cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && i < pieces.Length - 1 && (shIx = Array.IndexOf(shapes, pieces[i + 1].Substring(0, 2))) != -1 && (shaIx = Array.IndexOf(shapes, pieces[i].Substring(4, 2))) != -1)
+                {
+                    ixs.Add(27 * shaIx + 9 * cIx + 3 * int.Parse(pieces[i][0].ToString()) + shIx);
+                    i++;
+                }
+                else
+                    yield break;
+            }
+
+            var ix = Enumerable.Range(0, 7).IndexOf(cardIx => Enumerable.Range(0, ixs.Count).All(shIx => _cards[(cardIx + shIx) % 7] == ixs[shIx]));
+            if (ix == -1)
+            {
+                yield return "sendtochaterror That sequence of cards is not there.";
+                yield break;
+            }
             yield return null;
+            while (_shapeHighlight != (ix + ixs.Count - 1) % 7)
+                yield return null;
             ButtonSelectable.OnInteract();
-            yield return new WaitForSeconds(.1f);
             ButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(.1f);
             yield break;
         }
 
-        Match m;
         if (_stage == Stage.Numbers && (m = Regex.Match(command, @"^\s*tap\s+([1-9])\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
             int val;
@@ -581,37 +592,11 @@ public class AzureButtonScript : MonoBehaviour
             yield break;
         }
 
-        if (_stage == Stage.Shapes && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+(?:[ryb]|red|yellow|blue)\s*(?:sp(?:here)?|cu(?:be)?|co(?:ne)?|pr(?:ism)?|cy(?:linder)?|py(?:ramid)?|to(?:rus)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        if (_stage == Stage.Arrows && Regex.IsMatch(command, @"^\s*tap\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            var colors = new[] { "r", "y", "b" };
-            var shapes = new[] { "sp", "cu", "co", "pr", "cy", "py", "to" };
-            var pieces = m.Groups[1].Value.Split(new[] { ' ', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var ixs = new List<int>();
-            for (var i = 0; i < pieces.Length; i++)
-            {
-                pieces[i] = pieces[i].ToLowerInvariant();
-                int cIx, shIx;
-                if (pieces[i].Length == 3 && (cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && (shIx = Array.IndexOf(shapes, pieces[i].Substring(1))) != -1)
-                    ixs.Add(cIx + 3 * shIx);
-                else if ((cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && i < pieces.Length - 1 && (shIx = Array.IndexOf(shapes, pieces[i + 1].Substring(0, 2))) != -1)
-                {
-                    ixs.Add(cIx + 3 * shIx);
-                    i++;
-                }
-                else
-                    yield break;
-            }
-
-            var ix = Enumerable.Range(0, _puzzle.StencilIxs.Length).IndexOf(stencilIx => Enumerable.Range(0, ixs.Count).All(shIx => _puzzle.StencilIxs[(stencilIx + shIx) % _puzzle.StencilIxs.Length] == ixs[shIx]));
-            if (ix == -1)
-            {
-                yield return "sendtochaterror That sequence of shapes is not there.";
-                yield break;
-            }
             yield return null;
-            while (_shapeHighlight != (ix + ixs.Count - 1) % _puzzle.StencilIxs.Length)
-                yield return null;
             ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
             ButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(.1f);
             yield break;
@@ -636,17 +621,18 @@ public class AzureButtonScript : MonoBehaviour
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        if (_stage == Stage.GreekLetters)
+        if (_stage == Stage.SETSymbols)
         {
+            while (_shapeHighlight != 6)
+                yield return true;
             ButtonSelectable.OnInteract();
-            yield return new WaitForSeconds(.1f);
             ButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(1.5f);
         }
 
         if (_stage == Stage.Numbers)
         {
-            for (var val = _puzzle.TapsRequired; val > 0; val--)
+            for (var val = _offset; val > 0; val--)
             {
                 ButtonSelectable.OnInteract();
                 yield return new WaitForSeconds(.1f);
@@ -656,18 +642,17 @@ public class AzureButtonScript : MonoBehaviour
             yield return new WaitForSeconds(1.4f);
         }
 
-        if (_stage == Stage.Shapes)
+        if (_stage == Stage.Arrows)
         {
-            while (_shapeHighlight != 4)
-                yield return true;
             ButtonSelectable.OnInteract();
+            yield return new WaitForSeconds(.1f);
             ButtonSelectable.OnInteractEnded();
             yield return new WaitForSeconds(1.5f);
         }
 
         while (_stage == Stage.Word)
         {
-            var ltr = _puzzle.Answer[_wordProgress] - 'A';
+            var ltr = _puzzle.SolutionWord[_wordProgress] - 'A';
             var requiredHighlight =
                 _wordSection == 0 ? ltr / 9 :
                 _wordSection <= 3 ? (ltr / 3) % 3 : ltr % 3;

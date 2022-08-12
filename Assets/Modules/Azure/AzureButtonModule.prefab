@@ -38,12 +38,12 @@ GameObject:
   m_Component:
   - component: {fileID: 4852708278631754}
   m_Layer: 0
-  m_Name: GreekLetterParent
+  m_Name: CardsParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1141619662391602
 GameObject:
   m_ObjectHideFlags: 0
@@ -72,7 +72,7 @@ GameObject:
   - component: {fileID: 4269232302743456}
   - component: {fileID: 108724857767962276}
   m_Layer: 0
-  m_Name: ShapesSpotlight
+  m_Name: CardsSpotlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -171,7 +171,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4784297017918724}
   m_Layer: 0
-  m_Name: ShapesParent
+  m_Name: ArrowsParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -575,11 +575,11 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1151245567120296}
-  m_LocalRotation: {x: 0, y: 0.9396927, z: -0.3420201, w: 0}
-  m_LocalPosition: {x: 0, y: 0.05, z: 0.1139}
+  m_LocalRotation: {x: -0, y: 0.9396927, z: -0.3420201, w: 0}
+  m_LocalPosition: {x: 0, y: 0.05, z: 0.11389999}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 4784297017918724}
+  m_Father: {fileID: 4852708278631754}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 40, y: 180, z: 0}
 --- !u!4 &4270060223130412
@@ -790,8 +790,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 4269232302743456}
+  m_Children: []
   m_Father: {fileID: 4244414740722012}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -817,7 +816,8 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 4269232302743456}
   m_Father: {fileID: 4244414740722012}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1430,9 +1430,9 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1704631136778892}
-  m_Text: RESET
+  m_Text: RE-SET
   m_OffsetZ: 0
-  m_CharacterSize: 0.25
+  m_CharacterSize: 0.225
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -1767,70 +1767,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 1962260446815250}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0aac4b2ce7a91c84a8a48b90468fff20, type: 3}
+  m_Script: {fileID: 11500000, guid: cfc4b0e97fc3b2b448f028910c951414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Module: {fileID: 114445151190721914}
   BombInfo: {fileID: 114851826596115828}
   Audio: {fileID: 114629500169079468}
   ButtonSelectable: {fileID: 114303559387390978}
-  ButtonCap: {fileID: 1773969864308074}
-  GreekLetterParent: {fileID: 4852708278631754}
+  ButtonCap: {fileID: 1761118858091654}
+  CardsParent: {fileID: 4852708278631754}
   NumbersParent: {fileID: 4500035913481774}
-  ShapesParent: {fileID: 4784297017918724}
+  ArrowsParent: {fileID: 4784297017918724}
   WordsParent: {fileID: 4680638360063540}
   ResetParent: {fileID: 4188676764671252}
   MaskShaderManager: {fileID: 114631511746438700}
   Mask: {fileID: 23364829761828530}
-  GreekLetters:
-  - {fileID: 4300000, guid: fd032037f0711f043b8b189e50da1068, type: 3}
-  - {fileID: 4300000, guid: fa6c5a9d38af3e44e8f6abd4cbb2d0c9, type: 3}
-  - {fileID: 4300000, guid: e0b5a195cefb9a542844faea7764245a, type: 3}
-  - {fileID: 4300000, guid: 5d90461e356ec3342a676cbb707f3880, type: 3}
-  - {fileID: 4300000, guid: 21230eea8fd4c4744b9bcfc9fd95dc3c, type: 3}
-  - {fileID: 4300000, guid: 957043f15b8357643924e4ccfc5d10ce, type: 3}
-  - {fileID: 4300000, guid: 671863a7610a13f40b651dbe163bc58d, type: 3}
-  - {fileID: 4300000, guid: b6ab3ddf5b0c5c64bae2ad1afcf3a7c8, type: 3}
-  - {fileID: 4300000, guid: 73d61f9ca2c256443bf49b046f487289, type: 3}
-  - {fileID: 4300000, guid: 1643d671c2ac66d4ab3f71560f2d9d8b, type: 3}
-  - {fileID: 4300000, guid: b784a18fecd96684b9b2ed7ec2fe6488, type: 3}
-  - {fileID: 4300000, guid: b9c9905581322fe4ba68f55837432b04, type: 3}
-  - {fileID: 4300000, guid: 1fb2075283407ff47b194d248770a09a, type: 3}
-  - {fileID: 4300000, guid: 2d5b21212edcaa14180d734e7e80907a, type: 3}
-  - {fileID: 4300000, guid: edcde5414ea7ad349a4899d1ce430520, type: 3}
-  - {fileID: 4300000, guid: 972e590cbe296dc4998b9735f0762c1d, type: 3}
-  - {fileID: 4300000, guid: 8274e71a27f45a045a737714e2b67a90, type: 3}
-  - {fileID: 4300000, guid: da2e65ad5f6ed39488520de8d57b7a6d, type: 3}
-  - {fileID: 4300000, guid: 10184b8ea1b884e4f8ce29a3cf7cea4f, type: 3}
-  - {fileID: 4300000, guid: 1e1aca3cc9d79914394957c92db89718, type: 3}
-  - {fileID: 4300000, guid: b8df9039136129948a608888922a1390, type: 3}
-  - {fileID: 4300000, guid: 5a457b60387191f4992bf2e6edf85b8b, type: 3}
-  - {fileID: 4300000, guid: 1db1709633fd6d24f8a8139ed96ccd84, type: 3}
-  - {fileID: 4300000, guid: 74ca7ffae59e94044b1f07ba6b7a231a, type: 3}
-  - {fileID: 4300000, guid: 0b0644ab3c96c9b44b3dc2951f22e483, type: 3}
-  - {fileID: 4300000, guid: 223fd9d1e73473741b51078dd806f87e, type: 3}
-  - {fileID: 4300000, guid: 23397d0004c88dc4a8932ee5a80c85f0, type: 3}
-  - {fileID: 4300000, guid: 2c6fb2b492257c449a8f26c051d1fa74, type: 3}
-  - {fileID: 4300000, guid: 93977d03e1a218247b5fe5c759b1b248, type: 3}
-  - {fileID: 4300000, guid: b8dffc6a6a137ab4c8869583a97c424a, type: 3}
-  - {fileID: 4300000, guid: f50ac0c2c98c3994594ed24735480d27, type: 3}
-  - {fileID: 4300000, guid: 5fbae0fc5d48e7841aad6b1c9c7909c9, type: 3}
-  - {fileID: 4300000, guid: 33d3a044abf91404bb235f02af2ba397, type: 3}
-  - {fileID: 4300000, guid: 954edfe0792e09549ad8049713c2d632, type: 3}
-  - {fileID: 4300000, guid: 596ced9117f865c49887069b0c9b259c, type: 3}
-  - {fileID: 4300000, guid: 6ca55798035141646aa9778f2db2b3ea, type: 3}
-  - {fileID: 4300000, guid: 6785c1d6c449264469e933d1fe766f2a, type: 3}
-  - {fileID: 4300000, guid: d923c311d04a57c47a445f34af79c95e, type: 3}
-  - {fileID: 4300000, guid: c5c366a839bc7ca409744d2a1b217e4c, type: 3}
-  - {fileID: 4300000, guid: 3755e5ee02fde3a47a561cc451cd0af4, type: 3}
-  - {fileID: 4300000, guid: 4679fa4c1506d9046b46de3e7eab333d, type: 3}
-  - {fileID: 4300000, guid: d7d396e2ac04add41a80d03c09fc5a81, type: 3}
-  - {fileID: 4300000, guid: 89172a8832165d94c980194175aeae45, type: 3}
-  - {fileID: 4300000, guid: b212ea70057d0f147a94bbc6ce17403f, type: 3}
-  - {fileID: 4300000, guid: c3208f5bbde080d4e960a1735483a4f0, type: 3}
-  - {fileID: 4300000, guid: cc1d92ec6d830584a87bbe93f103d4d4, type: 3}
-  - {fileID: 4300000, guid: a9b2ed841242f944e9f89446140c404c, type: 3}
-  - {fileID: 4300000, guid: 24694ac2c2dcdaf4e84f461277e6b483, type: 3}
+  Symbols:
+  - {fileID: 4300000, guid: 9bbf458f3f551d841a634f9725d48acd, type: 3}
+  - {fileID: 4300000, guid: 7b69a4e980d1b714e817da4d99ad77e9, type: 3}
+  - {fileID: 4300000, guid: d76b0b28f92d0e0478819e37df914116, type: 3}
+  - {fileID: 4300000, guid: b281bb2c2e324424f90499b831ce0e8e, type: 3}
+  - {fileID: 4300000, guid: 718c0faa9fa89524ab33a8f74fcbb4b1, type: 3}
+  - {fileID: 4300000, guid: f7a81912ecb257843a99d4d98bc2672a, type: 3}
+  - {fileID: 4300000, guid: 0337b8645cb40e64ca4c2464139d53f2, type: 3}
+  - {fileID: 4300000, guid: 36a52328d8e24e84697755d7edb3e128, type: 3}
+  - {fileID: 4300000, guid: 6102cdc24bc9b254994d6efbf2cf6f13, type: 3}
+  Arrows: []
   NumberTemplate: {fileID: 102958034816107452}
   WordTexts:
   - {fileID: 102907829746615454}
@@ -1838,19 +1800,8 @@ MonoBehaviour:
   - {fileID: 102371277631443182}
   WordResultText: {fileID: 102903206314447422}
   ResetText: {fileID: 102747900204046654}
-  Shapes:
-  - {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-  - {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  - {fileID: 4300000, guid: cdbae5c2e02b1f647a5113794e1b9e9b, type: 3}
-  - {fileID: 4300000, guid: e5d203c9c1bf35e488eaf9d1f588b646, type: 3}
-  - {fileID: 4300000, guid: f4e6611513a85f94a8a5b23882f1f635, type: 3}
-  - {fileID: 4300000, guid: e09df28219736d044bf664e690c5c517, type: 3}
-  - {fileID: 4300000, guid: 054161440f653c34bb4e18d7ae7f029a, type: 3}
-  ShapeColors:
-  - {r: 0.5441177, g: 0.10002163, b: 0.10002163, a: 1}
-  - {r: 0.54615724, g: 0.5514706, b: 0.16625215, a: 1}
-  - {r: 0.1544118, g: 0.30020288, b: 1, a: 1}
-  ShapesSpotlight: {fileID: 108724857767962276}
+  ShapeColors: []
+  CardsSpotlight: {fileID: 108724857767962276}
 --- !u!114 &114629500169079468
 MonoBehaviour:
   m_ObjectHideFlags: 1
