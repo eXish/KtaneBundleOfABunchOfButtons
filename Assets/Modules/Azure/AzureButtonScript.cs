@@ -1,9 +1,9 @@
-using BlueButtonLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using BlueButtonLib;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -102,7 +102,8 @@ public class AzureButtonScript : MonoBehaviour
         if (Rnd.Range(0, 2) == 0 && !_cards.Any(x => x < _offset))
             _offset *= -1;
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T. cards are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: Shuffled cards are: {1}", _moduleId, "[ " + _cardsShuffled.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ]");
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Where((x, ix) => ix != 6).Select(x => x + _offset).Join(", "));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
@@ -319,7 +320,7 @@ public class AzureButtonScript : MonoBehaviour
         var scroller = MakeGameObject("Cards scroller", CardsParent);
         var width = 0f;
         var numCopies = 0;
-        const float separation = .07f;
+        const float separation = .035f;
         const float spotlightDistance = 1f / 208 * 190;
 
         while (width < .6f || numCopies < 2)
@@ -334,8 +335,7 @@ public class AzureButtonScript : MonoBehaviour
                     var mr = shapeObj.AddComponent<MeshRenderer>();
                     mr.material = _maskMaterials.DiffuseTint;
                     mr.material.color = ShapeColors[_cardsShuffled[i] / 9 % 3];
-                    if (j != (_cardsShuffled[i] / 3 % 3))
-                        width += .035f;
+                    width += separation;
                 }
                 width += separation;
             }
@@ -343,16 +343,76 @@ public class AzureButtonScript : MonoBehaviour
         }
         width /= numCopies;
 
+        var poses = new List<int>();
+        var mids = new List<int>();
+        var vw = 0;
+        for (var i = 0; i < 7; i++)
+        {
+            var cardWidth = (_cardsShuffled[i] / 3 % 3) * 2;
+            poses.Add(vw + cardWidth + 1);
+            mids.Add(vw + cardWidth / 2);
+            vw += cardWidth + 4;
+        }
+
         while (!stop())
         {
-            scroller.transform.localPosition = new Vector3(-((.1f * Time.time) % width) - .15f, -.025f, 0);
+            scroller.transform.localPosition = new Vector3(-((.05f * Time.time) % width) - .15f, -.025f, 0);
 
-            var pos = (((.1f * Time.time) % width) + .15f) / separation;
-            var selected = Mathf.RoundToInt(pos);
+            var pos = ((((.05f * Time.time) % width) + .15f) / (separation / 2)) % vw;
+            var selected = poses.IndexOf(p => p > pos);
+            if (selected == -1)
+            {
+                selected = 0;
+                pos -= vw;
+            }
+            var curSize = mids[selected] - (selected == 0 ? poses.Last() - vw : poses[selected - 1]) - 2;
+            var prevSize = poses[(selected + poses.Count - 1) % poses.Count] - mids[(selected + mids.Count - 1) % mids.Count];
 
-            // Generated from Maple code; see Blue Button
-            var t = pos - selected;
-            const float q = -.4f, r = -.3f, C2 = 1744.129529f, a = 5652.886846f, C5 = 430.6776816f, C1 = -2778.179948f, C4 = -473.7842137f;
+            /*
+            Code to generate Maple code to calculate and generate the following coefficients:
+
+            for (var prev = 1; prev <= 3; prev++)
+                for (var next = 1; next <= 3; next++)
+                {
+                    Console.WriteLine($"{prev}, {next}");
+                    Clipboard.SetText($@"restart;
+minT := {(-2 - next) / 6d};
+prevMaxT := {prev / 6d};
+r := minT + .2;
+v1 := t -> -a*t+C1;
+v2 := t -> a*t+C2;
+v3 := t -> 57.29577951/s*(1+t^2/s^2);
+d1 := t -> -1/2*a*t^2 + C1*t + C4;
+d2 := t -> 1/2*a*t^2 + C2*t + C5;
+d3 := t -> arctan(t/s)*180/3.1415926535897932384626433832795+180;
+s := 1.0 / 208 * 190;
+solve({{
+    v1(minT) = v3(prevMaxT),
+    v1(q) = v2(q),
+    v2(r) = v3(r),
+    d1(minT) = d3(prevMaxT),
+    d1(q) = d2(q),
+    d2(r) = d3(r)
+}}, {{ C1, C2, C4, C5, a, q }});");
+                    Console.ReadLine();
+                }
+
+            */
+
+            var t = (pos - mids[selected % mids.Count]) / 6;
+            float r = (-2 - curSize) / 6f + .2f;
+
+            float C2, a, C5, C1, C4, q;
+            if (prevSize == 1 && curSize == 1) { a = 4195.290843f; q = -.4005574492f; C1 = -2032.833530f; C5 = 371.4535832f; C4 = -301.6651846f; C2 = 1328.076467f; }
+            else if (prevSize == 1 && curSize == 2) { C2 = 2496.528317f; C5 = 753.9171885f; C1 = -3388.665089f; q = -.5680452329f; a = 5180.215470f; C4 = -917.6108407f; }
+            else if (prevSize == 1 && curSize == 3) { C2 = 3948.368536f; a = 6087.620064f; q = -.7356383340f; C4 = -1869.406832f; C1 = -5008.204829f; C5 = 1424.992522f; }
+            else if (prevSize == 2 && curSize == 1) { C1 = -2543.202539f; a = 5228.557404f; C4 = -417.9839471f; C5 = 417.9505785f; C2 = 1638.056436f; q = -.3998482422f; }
+            else if (prevSize == 2 && curSize == 2) { C4 = -1133.207043f; C2 = 2978.435907f; C5 = 866.3622929f; C1 = -4070.840231f; a = 6212.874591f; q = -.5673119612f; }
+            else if (prevSize == 2 && curSize == 3) { a = 7119.439346f; C5 = 1631.929611f; C1 = -5861.789959f; C2 = 4601.854081f; C4 = -2212.749768f; q = -.7348643293f; }
+            else if (prevSize == 3 && curSize == 1) { C1 = -3017.612937f; a = 6198.259105f; C2 = 1928.966946f; C5 = 461.5871550f; C4 = -525.3291758f; q = -.3990297758f; }
+            else if (prevSize == 3 && curSize == 2) { C5 = 971.8638654f; C2 = 3430.585503f; a = 7181.766584f; q = -.5664980323f; C1 = -4706.327773f; C4 = -1332.908815f; }
+            else { a = 8087.299740f; q = -.7340356204f; C5 = 1826.039390f; C2 = 5214.832330f; C4 = -2531.464770f; C1 = -6657.899834f; }
+
             var calcAngle =
                 t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :
                 t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :
