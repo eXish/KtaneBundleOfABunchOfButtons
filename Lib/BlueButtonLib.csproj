@@ -36,6 +36,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureButtonArrowInfo.cs" />
     <Compile Include="BlueButtonPuzzle.cs" />
     <Compile Include="Coord.cs" />
     <Compile Include="GridDirection.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="Polyomino.cs" />
     <Compile Include="PolyominoPlacement.cs" />
     <Compile Include="ReduceRequiredSet.cs" />
+    <Compile Include="AzureButtonPuzzle.cs" />
     <Compile Include="Ut.cs" />
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>

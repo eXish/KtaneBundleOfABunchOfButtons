@@ -433,11 +433,11 @@ public class NavyButtonScript : MonoBehaviour
 
             // Generated from Maple code; see Blue Button
             var t = pos - selected;
-            const float q = -.4f, r = -.3f, C2 = 1744.129529f, a = 5652.886846f, C5 = 430.6776816f, C1 = -2778.179948f, C4 = -473.7842137f;
+            const float r = -.3f, C1 = -3017.612937f, C2 = 1928.966946f, a = 6198.259105f, q = -.3990297758f, C4 = -525.3291758f, C5 = 461.5871550f;
             var calcAngle =
-                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :
-                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :
-                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;
+                t < q ? -.5f * a * Mathf.Pow(t, 2) + C1 * t + C4 :      // = d1(t)
+                t < r ? .5f * a * Mathf.Pow(t, 2) + C2 * t + C5 :       // = d2(t)
+                180 + Mathf.Atan2(t, spotlightDistance) * 180 / Mathf.PI;   // = d3(t)
 
             ShapesSpotlight.transform.localEulerAngles = new Vector3(40, calcAngle, 0);
             _shapeHighlight = selected % 5;
