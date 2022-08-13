@@ -100,10 +100,11 @@ public class AzureButtonScript : MonoBehaviour
         if (Rnd.Range(0, 2) == 0 && !_cards.Any(x => x < _offset))
             _offset *= -1;
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: Shuffled cards are: {1}", _moduleId, "[ " + _cardsShuffled.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ]");
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: Shuffled cards are: [ {1} ]", _moduleId, _cardsShuffled.Select(x => StringifyCard(x)).Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: [ {1} ] (S), [ {2} ] (E), {3} (T)", _moduleId, _puzzle.SetS.Select(x => StringifyCard(x)).Join(", "),  _puzzle.SetE.Select(x => StringifyCard(x)).Join(", "), StringifyCard(_puzzle.CardT));
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Take(6).Select(x => x + _offset).Join(", "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Card ternary digits are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, Math.Abs(_offset));
 
@@ -113,6 +114,11 @@ public class AzureButtonScript : MonoBehaviour
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown (first is the decoy): {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Select(d => _directions[d]).Join(", ") + "]").Join(" | "));
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
+    }
+
+    private static string StringifyCard(int x)
+    {
+        return new[] { ((x / 3 % 3) + 1).ToString(), _colorNames[x / 9 % 3], _shadings[x % 3], _shapeNames[x / 27] + (x / 3 % 3 == 0 ? "" : "s") }.Join(" ");
     }
 
     private bool ButtonPress()
@@ -138,7 +144,7 @@ public class AzureButtonScript : MonoBehaviour
             case Stage.SETSymbols:
                 if (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]))
                 {
-                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1} {2} {3} {4}. Strike!", _moduleId, new[] { "one", "two", "three" }[_cardsShuffled[_shapeHighlight] / 3 % 3], _colorNames[_cardsShuffled[_shapeHighlight] / 27], _shadings[_cardsShuffled[_shapeHighlight] % 3], _shapeNames[_cardsShuffled[_shapeHighlight] / 9 % 3]);
+                    Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: You submitted the {1}. Strike!", _moduleId, StringifyCard(_cardsShuffled[_shapeHighlight]));
                     Debug.LogFormat(@"<The Azure Button #{0}> Stage 1: You submitted card #{1}. Strike!", _moduleId, _shapeHighlight);
                     Module.HandleStrike();
                 }
