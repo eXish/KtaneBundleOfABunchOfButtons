@@ -1,9 +1,9 @@
+using BlueButtonLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BlueButtonLib;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -45,6 +45,7 @@ public class AzureButtonScript : MonoBehaviour
     private int _wordHighlight;
     private int _wordSection;
     private int _wordProgress;
+    private bool _solved;
 
     // Internals
     private static int _moduleIdCounter = 1;
@@ -184,7 +185,7 @@ public class AzureButtonScript : MonoBehaviour
                 }
                 else
                 {
-                    var nextLetter = (char) ('A' + ((_wordSection - 4) * 3 + _wordHighlight));
+                    var nextLetter = (char)('A' + ((_wordSection - 4) * 3 + _wordHighlight));
                     if (nextLetter != _puzzle.SolutionWord[_wordProgress])
                     {
                         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
@@ -196,6 +197,7 @@ public class AzureButtonScript : MonoBehaviour
                         if (_wordProgress == _puzzle.SolutionWord.Length)
                         {
                             Module.HandlePass();
+                            _solved = true;
                             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
                             _stage = Stage.Solved;
                         }
@@ -499,7 +501,7 @@ solve({{
                 arrowObj.AddComponent<MeshFilter>().sharedMesh = Arrows.Where(x => x.name == _puzzle.Arrows[i].ModelName).First();
                 var mr = arrowObj.AddComponent<MeshRenderer>();
                 mr.material = _maskMaterials.DiffuseTint;
-                mr.material.color = new Color32(0x81, 0xb6, 0xff, 0xff);
+                mr.material.color = new Color32(0x81, 0xc0, 0xff, 0xff);
                 width += _puzzle.Arrows[i].Width * scale / 2f + 1f;
             }
             numCopies++;
@@ -540,11 +542,11 @@ solve({{
             }
             else
             {
-                _wordHighlight = (int) ((Time.time % 1.8f) / 1.8f * 3);
+                _wordHighlight = (int)((Time.time % 1.8f) / 1.8f * 3);
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x50, 0x7E, 0xAB, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x50, 0x7E, 0xAB, 0xFF);
                 }
                 WordResultText.text = _puzzle.SolutionWord.Substring(0, _wordProgress) + "_";
 
@@ -557,12 +559,12 @@ solve({{
                 else if (_wordSection <= 3)
                 {
                     for (var triplet = 0; triplet < 3; triplet++)
-                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char) ('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
+                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char)('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
                 }
                 else
                 {
                     for (var ltr = 0; ltr < 3; ltr++)
-                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char) ('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
+                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char)('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
                 }
 
                 yield return null;
@@ -698,47 +700,51 @@ solve({{
 
     public IEnumerator TwitchHandleForcedSolve()
     {
-        if (_stage == Stage.SETSymbols)
+        while (!_solved)
         {
-            while (_shapeHighlight != 6)
-                yield return true;
-            ButtonSelectable.OnInteract();
-            ButtonSelectable.OnInteractEnded();
-            yield return new WaitForSeconds(1.5f);
-        }
+            if (_stage == Stage.SETSymbols)
+            {
+                while (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]))
+                    yield return true;
+                ButtonSelectable.OnInteract();
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(1.5f);
+            }
 
-        if (_stage == Stage.Numbers)
-        {
-            for (var val = _offset; val > 0; val--)
+            if (_stage == Stage.Numbers)
+            {
+                for (var val = _offset; val > 0; val--)
+                {
+                    ButtonSelectable.OnInteract();
+                    yield return new WaitForSeconds(.1f);
+                    ButtonSelectable.OnInteractEnded();
+                    yield return new WaitForSeconds(.1f);
+                }
+                yield return new WaitForSeconds(1.4f);
+            }
+
+            if (_stage == Stage.Arrows)
             {
                 ButtonSelectable.OnInteract();
                 yield return new WaitForSeconds(.1f);
                 ButtonSelectable.OnInteractEnded();
-                yield return new WaitForSeconds(.1f);
+                yield return new WaitForSeconds(1.5f);
             }
-            yield return new WaitForSeconds(1.4f);
-        }
 
-        if (_stage == Stage.Arrows)
-        {
-            ButtonSelectable.OnInteract();
-            yield return new WaitForSeconds(.1f);
-            ButtonSelectable.OnInteractEnded();
-            yield return new WaitForSeconds(1.5f);
-        }
+            while (_stage == Stage.Word)
+            {
+                var ltr = _puzzle.SolutionWord[_wordProgress] - 'A';
+                var requiredHighlight =
+                    _wordSection == 0 ? ltr / 9 :
+                    _wordSection <= 3 ? (ltr / 3) % 3 : ltr % 3;
 
-        while (_stage == Stage.Word)
-        {
-            var ltr = _puzzle.SolutionWord[_wordProgress] - 'A';
-            var requiredHighlight =
-                _wordSection == 0 ? ltr / 9 :
-                _wordSection <= 3 ? (ltr / 3) % 3 : ltr % 3;
-
-            while (_wordHighlight != requiredHighlight)
-                yield return true;
-            ButtonSelectable.OnInteract();
-            ButtonSelectable.OnInteractEnded();
-            yield return new WaitForSeconds(.2f);
+                while (_wordHighlight != requiredHighlight)
+                    yield return true;
+                ButtonSelectable.OnInteract();
+                ButtonSelectable.OnInteractEnded();
+                yield return new WaitForSeconds(.2f);
+            }
+            yield return true;
         }
     }
 }

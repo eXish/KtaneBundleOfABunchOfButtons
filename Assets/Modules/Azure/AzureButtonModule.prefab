@@ -1783,15 +1783,15 @@ MonoBehaviour:
   MaskShaderManager: {fileID: 114631511746438700}
   Mask: {fileID: 23364829761828530}
   Symbols:
-  - {fileID: 4300000, guid: 9bbf458f3f551d841a634f9725d48acd, type: 3}
   - {fileID: 4300000, guid: 7b69a4e980d1b714e817da4d99ad77e9, type: 3}
   - {fileID: 4300000, guid: d76b0b28f92d0e0478819e37df914116, type: 3}
-  - {fileID: 4300000, guid: b281bb2c2e324424f90499b831ce0e8e, type: 3}
+  - {fileID: 4300000, guid: 9bbf458f3f551d841a634f9725d48acd, type: 3}
   - {fileID: 4300000, guid: 718c0faa9fa89524ab33a8f74fcbb4b1, type: 3}
   - {fileID: 4300000, guid: f7a81912ecb257843a99d4d98bc2672a, type: 3}
-  - {fileID: 4300000, guid: 0337b8645cb40e64ca4c2464139d53f2, type: 3}
+  - {fileID: 4300000, guid: b281bb2c2e324424f90499b831ce0e8e, type: 3}
   - {fileID: 4300000, guid: 36a52328d8e24e84697755d7edb3e128, type: 3}
   - {fileID: 4300000, guid: 6102cdc24bc9b254994d6efbf2cf6f13, type: 3}
+  - {fileID: 4300000, guid: 0337b8645cb40e64ca4c2464139d53f2, type: 3}
   Arrows:
   - {fileID: 4300000, guid: 14aa7ea6e9f7690419cdca2a93f8585a, type: 3}
   - {fileID: 4300000, guid: 5aca3417f9d2ecb4b99efed8820cfd10, type: 3}
