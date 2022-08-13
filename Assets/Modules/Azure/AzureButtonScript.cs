@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
@@ -56,7 +57,6 @@ public class AzureButtonScript : MonoBehaviour
     private static readonly string[] _colorNames = { "red", "yellow", "blue" };
     private static readonly string[] _shadings = { "solid", "striped", "outlined" };
     private static readonly string[] _shapeNames = { "capsule", "dumbbell", "diamond" };
-    private static readonly string[] _directions = { "north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west" };
 
     enum Stage
     {
@@ -101,19 +101,83 @@ public class AzureButtonScript : MonoBehaviour
             _offset *= -1;
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: Shuffled cards are: [ {1} ]", _moduleId, _cardsShuffled.Select(x => StringifyCard(x)).Join(", "));
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: [ {1} ] (S), [ {2} ] (E), {3} (T)", _moduleId, _puzzle.SetS.Select(x => StringifyCard(x)).Join(", "),  _puzzle.SetE.Select(x => StringifyCard(x)).Join(", "), StringifyCard(_puzzle.CardT));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 1: S.E.T.s are: [ {1} ] (S), [ {2} ] (E), {3} (T)", _moduleId, _puzzle.SetS.Select(x => StringifyCard(x)).Join(", "), _puzzle.SetE.Select(x => StringifyCard(x)).Join(", "), StringifyCard(_puzzle.CardT));
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Numbers shown: {1}", _moduleId, _cards.Take(6).Select(x => x + _offset).Join(", "));
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Card ternary digits are: {1}", _moduleId, "[ " + _puzzle.SetS.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (S), [ " + _puzzle.SetE.Select(x => (x / 27).ToString() + (x / 9 % 3).ToString() + (x / 3 % 3).ToString() + (x % 3).ToString()).Join(", ") + " ] (E), " + (_puzzle.CardT / 27).ToString() + (_puzzle.CardT / 9 % 3).ToString() + (_puzzle.CardT / 3 % 3).ToString() + (_puzzle.CardT % 3).ToString() + " (T)");
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Card ternary digits are: [ {1} ] (S), [ {2} ] (E), {3} (T)", _moduleId,
+            _puzzle.SetS.Select(x => ternary(x, 4)).Join(", "), _puzzle.SetE.Select(x => ternary(x, 4)).Join(", "), ternary(_puzzle.CardT, 4));
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, Math.Abs(_offset));
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Grid:", _moduleId);
-        for (var row = 0; row < 4; row++)
-            Debug.LogFormat(@"[The Azure Button #{0}] {1}", _moduleId, Enumerable.Range(0, 4).Select(x => _puzzle.Grid[x + 4 * row]).Join(" "));
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown (first is the decoy): {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Select(d => _directions[d]).Join(", ") + "]").Join(" | "));
+        var offsets = new[] { _puzzle.DecoyArrowPosition, 0, 1, 2, 3 };
+        Func<int, string> getGridSvg = new Func<int, string>(gridIx =>
+            string.Format("<g fill='#0f0' fill-opacity='.2'>{1}</g><path stroke-width='.1' d='M0 0h4v4h-4z' /><path stroke-width='.05' d='M1 0v4M2 0v4M3 0v4M0 1h4M0 2h4M0 3h4' /><g fill='#ccc' stroke='none'>{0}</g>",
+                Enumerable.Range(0, 16).Select(cell => string.Format("<text{3} x='{1}' y='{2}'>{0}</text>", _puzzle.Grid[cell], (cell % 4) + .5, (cell / 4) + .8, _puzzle.Arrows[gridIx].Coordinates.Any(c => c.AddWrap(offsets[gridIx], offsets[gridIx]).Index == cell) ? " fill='#080'" : "")).Join(""),
+                _puzzle.Arrows[gridIx].Coordinates.Select(c => c.AddWrap(offsets[gridIx], offsets[gridIx])).Select(c => string.Format("<rect x='{0}' y='{1}' width='1' height='1'/>", c.X, c.Y)).Join("")));
+
+        var arrowsSvg = new StringBuilder();
+        var dxs = new[] { 0, 1, 1, 1, 0, -1, -1, -1 };
+        var dys = new[] { -1, -1, 0, 1, 1, 1, 0, -1 };
+        for (var gridIx = 0; gridIx < _puzzle.Arrows.Length; gridIx++)
+        {
+            var arrow = _puzzle.Arrows[gridIx];
+            var d1 = arrow.Directions[0];
+            var path = string.Format("M {0} {1} {2} {3} l", Math.Cos((d1 + 6) * Math.PI / 4) * .4, Math.Sin((d1 + 6) * Math.PI / 4) * .4, dxs[d1], dys[d1]);
+            var dots = new StringBuilder();
+            for (var i = 1; i < arrow.Directions.Length; i++)
+            {
+                path += string.Format(" {0} {1}", dxs[arrow.Directions[i]], dys[arrow.Directions[i]]);
+                dots.AppendFormat("<circle r='.1' cx='{0}' cy='{1}' />", arrow.Directions.Take(i).Sum(d => dxs[d]), arrow.Directions.Take(i).Sum(d => dys[d]));
+            }
+            arrowsSvg.AppendFormat(
+                "<g fill='none' stroke='black' stroke-width='.05' transform='translate({0}, 0)'>" +
+                    "{1}" +
+                    "<g clip-path='url(#grid-clip-{9})'>" +
+                        "<g transform='translate({7}, {7})'>" +
+                            "<g id='arr-{9}-{10}'>" +
+                                "<circle r='.4' />" +
+                                "<path d='{2}' />" +
+                                "<path d='M-.15 .3 0 0 .15 .3' transform='translate({3}, {4}) rotate({5})'/>" +
+                                "<g fill='black' stroke='none'>{6}</g>" +
+                            "</g>" +
+                            "<use href='#arr-{9}-{10}' transform='translate(-4, -4)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(-4, 0)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(-4, 4)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(0, -4)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(0, 4)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(4, -4)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(4, 0)' />" +
+                            "<use href='#arr-{9}-{10}' transform='translate(4, 4)' />" +
+                        "</g>" +
+                    "</g>" +
+                    "<g font-size='.7' fill='black' stroke='none'>{8}</g>" +
+                "</g>",
+                4.5 * gridIx,  // horizontal position
+                getGridSvg(gridIx),    // grid
+                path,   // arrow line
+                arrow.Directions.Sum(d => dxs[d]), arrow.Directions.Sum(d => dys[d]), 45 * arrow.Directions.Last(), // arrow head
+                dots,   // dots on the arrow
+                offsets[gridIx] + .5,  // position of the arrow
+                gridIx == 0 ? "<text x='2' y='4.8'>(decoy)</text>" : string.Format("<text x='2' y='4.8'>{0} = {1}</text>", ternary(_puzzle.SolutionWord[gridIx - 1] - 'A' + 1, 3), _puzzle.SolutionWord[gridIx - 1]), // bottom label
+                _moduleId, gridIx  // SVG object ID
+            );
+        }
+
+        Debug.LogFormat(@"[The Azure Button #{0}]=svg[Stage 3: Grid and arrows:]<svg xmlns='http://www.w3.org/2000/svg' viewBox='-.2 -.2 22.4 5.4' text-anchor='middle' font-size='.9'><defs><clipPath id='grid-clip-{0}'><rect x='0' y='0' width='4' height='4' /></clipPath></defs>{1}</svg>",
+            _moduleId, arrowsSvg);
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
+    }
+
+    private static string ternary(int n, int numDigits)
+    {
+        var s = "";
+        for (var i = 0; i < numDigits; i++)
+        {
+            s = (n % 3) + s;
+            n /= 3;
+        }
+        return s;
     }
 
     private static string StringifyCard(int x)
