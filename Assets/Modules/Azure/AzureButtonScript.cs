@@ -187,7 +187,7 @@ public class AzureButtonScript : MonoBehaviour
                 }
                 else
                 {
-                    var nextLetter = (char)('A' + ((_wordSection - 4) * 3 + _wordHighlight));
+                    var nextLetter = (char) ('A' + ((_wordSection - 4) * 3 + _wordHighlight));
                     if (nextLetter != _puzzle.SolutionWord[_wordProgress])
                     {
                         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: You submitted {1} for letter #{2}. Strike!", _moduleId, nextLetter, _wordProgress + 1);
@@ -544,11 +544,11 @@ solve({{
             }
             else
             {
-                _wordHighlight = (int)((Time.time % 1.8f) / 1.8f * 3);
+                _wordHighlight = (int) ((Time.time % 1.8f) / 1.8f * 3);
                 for (var i = 0; i < 3; i++)
                 {
                     WordTexts[i].gameObject.SetActive(true);
-                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color)new Color32(0x50, 0x7E, 0xAB, 0xFF);
+                    WordTexts[i].color = i == _wordHighlight ? Color.white : (Color) new Color32(0x50, 0x7E, 0xAB, 0xFF);
                 }
                 WordResultText.text = _puzzle.SolutionWord.Substring(0, _wordProgress) + "_";
 
@@ -561,12 +561,12 @@ solve({{
                 else if (_wordSection <= 3)
                 {
                     for (var triplet = 0; triplet < 3; triplet++)
-                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char)('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
+                        WordTexts[triplet].text = _wordSection == 3 && triplet == 2 ? "YZ" : Enumerable.Range(0, 3).Select(ltr => (char) ('A' + (_wordSection - 1) * 9 + 3 * triplet + ltr)).Join("");
                 }
                 else
                 {
                     for (var ltr = 0; ltr < 3; ltr++)
-                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char)('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
+                        WordTexts[ltr].text = _wordSection == 12 && ltr == 2 ? "" : ((char) ('A' + ((_wordSection - 4) * 3 + ltr))).ToString();
                 }
 
                 yield return null;
@@ -601,7 +601,7 @@ solve({{
 
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} tap three red striped capsules / 3rstca, one purple solid dumbbell / 1psodu [stage 1: wait for the specified sequence of cards and press the last one specified; colors are r/p/g; shadings are so/st/ou; shapes are ca/du/di] | !{0} tap [stage 3] | !{0} tap 5 [stage 2: tap 5 times] | !{0} tap 1 3 2 3 1 [stage 4: tap when the highlight is in these positions] | !{0} reset";
+    private readonly string TwitchHelpMessage = "!{0} tap 3 red striped capsules / 3rstca / 1 purple solid dumbbell / 1psodu [stage 1: tap when the specified card is highlighted; colors are r/y/b; shadings are so/st/ou; shapes are ca/du/di] | !{0} tap 5 [stage 2: tap 5 times] | !{0} tap [stage 3] | !{0} tap 1 3 2 3 1 [stage 4: tap when the highlight is in these positions] | !{0} reset";
 #pragma warning restore 0414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -617,36 +617,25 @@ solve({{
         }
 
         Match m;
-        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+[1-3]\s*(?:[ryb]|red|yellow|blue)\s*(?:so(?:lid)?|st(?:riped)?|ou(?:tlined)?)\s*(?:ca(?:psules?)?|du(?:mbbells?)?|di(?:amonds?)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap\s*
+            (?<n>[1-3])\s*
+            (?:(?<r>red|r)|(?<y>yellow|y)|blue|b)\s*
+            (?:(?<so>so(?:lid)?)|(?<st>st(?:riped)?)|ou(?:tlined)?)\s*
+            (?:(?<ca>ca(?:psules?)?)|(?<du>du(?:mbbells?)?)|di(?:amonds?)?)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace)).Success)
         {
-            var colors = new[] { "r", "y", "b" };
-            var shadings = new[] { "so", "st", "ou" };
-            var shapes = new[] { "ca", "du", "di" };
-            var pieces = m.Groups[1].Value.Split(new[] { ' ', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var ixs = new List<int>();
-            for (var i = 0; i < pieces.Length; i++)
-            {
-                pieces[i] = pieces[i].ToLowerInvariant();
-                int cIx, shIx, shaIx, val;
-                if (pieces[i].Length == 6 && int.TryParse(pieces[i].Substring(0, 1), out val) && (cIx = Array.IndexOf(colors, pieces[i].Substring(1, 1))) != -1 && (shIx = Array.IndexOf(shapes, pieces[i].Substring(2, 2))) != -1 && (shaIx = Array.IndexOf(shapes, pieces[i].Substring(4, 2))) != -1)
-                    ixs.Add(27 * shaIx + 9 * cIx + 3 * int.Parse(pieces[i][0].ToString()) + shIx);
-                else if ((cIx = Array.IndexOf(colors, pieces[i].Substring(0, 1))) != -1 && i < pieces.Length - 1 && (shIx = Array.IndexOf(shapes, pieces[i + 1].Substring(0, 2))) != -1 && (shaIx = Array.IndexOf(shapes, pieces[i].Substring(4, 2))) != -1)
-                {
-                    ixs.Add(27 * shaIx + 9 * cIx + 3 * int.Parse(pieces[i][0].ToString()) + shIx);
-                    i++;
-                }
-                else
-                    yield break;
-            }
+            var targetCard = 27 * (m.Groups["ca"].Success ? 0 : m.Groups["du"].Success ? 1 : 2) +
+                9 * (m.Groups["r"].Success ? 0 : m.Groups["y"].Success ? 1 : 2) +
+                3 * (int.Parse(m.Groups["n"].Value) - 1) +
+                (m.Groups["so"].Success ? 0 : m.Groups["st"].Success ? 1 : 2);
 
-            var ix = Enumerable.Range(0, 7).IndexOf(cardIx => Enumerable.Range(0, ixs.Count).All(shIx => _cards[(cardIx + shIx) % 7] == ixs[shIx]));
+            var ix = _cardsShuffled.IndexOf(targetCard);
             if (ix == -1)
             {
-                yield return "sendtochaterror That sequence of cards is not there.";
+                yield return "sendtochaterror That card is not there.";
                 yield break;
             }
             yield return null;
-            while (_shapeHighlight != (ix + ixs.Count - 1) % 7)
+            while (_shapeHighlight != ix)
                 yield return null;
             ButtonSelectable.OnInteract();
             ButtonSelectable.OnInteractEnded();
@@ -706,7 +695,8 @@ solve({{
         {
             if (_stage == Stage.SETSymbols)
             {
-                while (_shapeHighlight != _cardsShuffled.IndexOf(_cards[6]))
+                var targetCard = _cardsShuffled.IndexOf(_cards[6]);
+                while (_shapeHighlight != targetCard)
                     yield return true;
                 ButtonSelectable.OnInteract();
                 ButtonSelectable.OnInteractEnded();
@@ -715,18 +705,18 @@ solve({{
 
             if (_stage == Stage.Numbers)
             {
-                for (var val = _offset; val > 0; val--)
+                while (_numTaps < Math.Abs(_offset))
                 {
                     ButtonSelectable.OnInteract();
                     yield return new WaitForSeconds(.1f);
                     ButtonSelectable.OnInteractEnded();
                     yield return new WaitForSeconds(.1f);
                 }
-                yield return new WaitForSeconds(1.4f);
             }
 
             if (_stage == Stage.Arrows)
             {
+                yield return new WaitForSeconds(1f);
                 ButtonSelectable.OnInteract();
                 yield return new WaitForSeconds(.1f);
                 ButtonSelectable.OnInteractEnded();
