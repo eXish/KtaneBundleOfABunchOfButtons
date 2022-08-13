@@ -107,8 +107,10 @@ public class AzureButtonScript : MonoBehaviour
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Offset: {1}", _moduleId, _offset);
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 2: Tap the button {1} time(s).", _moduleId, Math.Abs(_offset));
 
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown: {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Select(d => _directions[d]).Join(", ") + "]").Join(" | "));
-        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Forbidden letter: {1}", _moduleId, _puzzle.ForbiddenLetter);
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Grid:", _moduleId);
+        for (var row = 0; row < 4; row++)
+            Debug.LogFormat(@"[The Azure Button #{0}] {1}", _moduleId, Enumerable.Range(0, 4).Select(x => _puzzle.Grid[x + 4 * row]).Join(" "));
+        Debug.LogFormat(@"[The Azure Button #{0}] Stage 3: Arrows shown (first is the decoy): {1}", _moduleId, _puzzle.Arrows.Select(arrow => "[" + arrow.Directions.Select(d => _directions[d]).Join(", ") + "]").Join(" | "));
 
         Debug.LogFormat(@"[The Azure Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.SolutionWord);
     }
@@ -491,7 +493,7 @@ solve({{
 
         while (width < 24 || numCopies < 2)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _puzzle.Arrows.Length; i++)
             {
                 width += _puzzle.Arrows[i].Width * scale / 2f;
                 var arrowObj = MakeGameObject(string.Format("Arrow {0}", i + 1), scroller.transform,

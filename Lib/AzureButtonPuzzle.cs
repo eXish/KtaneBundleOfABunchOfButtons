@@ -12,7 +12,6 @@ namespace BlueButtonLib
         public int CardT;
         public int[] Grid;
         public string SolutionWord;
-        public char ForbiddenLetter;
         public AzureButtonArrowInfo[] Arrows;
 
         private static readonly int[] _powersOf3 = { 1, 3, 9, 27 };
@@ -38,70 +37,34 @@ namespace BlueButtonLib
             // Pick a random solution word
             var sol = _wordList[rnd.Next(0, _wordList.Length)];
 
-            // For each letter in the solution word, find which arrows spell out that letter
-            var allArrows = sol.Select((ltr, ltrIx) => AzureButtonArrowInfo.AllArrows.Where(ar => Enumerable.Range(0, AzureButtonArrowInfo.MaxArrowLength).All(arIx => grid[ar.Coordinates[arIx].AddWrap(ltrIx, ltrIx).Index] == ((ltr - 'A' + 1) / _powersOf3[2 - arIx]) % 3)).ToArray()).ToArray();
-            var allLetterData = sol
-                .SelectMany((ltr, solLtrIx) => allArrows[solLtrIx].Select(ar => (solLtrIx, arrowInfo: ar, ltrs: Enumerable.Range(1, 3).Select(disp => (char) (ar.Coordinates.Select(c => grid[c.AddWrap(solLtrIx + disp, solLtrIx + disp).Index]).Aggregate(0, (p, n) => p * 3 + n) + 'A' - 1)).JoinString())))
-                .Where(tup => !tup.ltrs.Contains('@'))
-                .ToArray();
+            // Find all letters that can potentially form 000 from any diagonal square
+            var zeroArrows = AzureButtonArrowInfo.AllArrows.Where(ar => Enumerable.Range(0, 4).Any(pos => ar.Coordinates.All(c => grid[c.AddWrap(pos, pos).Index] == 0))).ToArray();
+            if (zeroArrows.Length == 0)
+                goto tryAgain;
+            var arrows = new AzureButtonArrowInfo[5];
+            arrows[0] = zeroArrows[rnd.Next(0, zeroArrows.Length)];
 
-            // Go through the possible taboo letters to find one that works
-            foreach (var tabooLetter in Enumerable.Range(0, 26).Select(x => (char) ('A' + x)).Where(x => !sol.Contains(x)).ToArray().Shuffle(rnd))
+            for (var ltrIx = 0; ltrIx < 4; ltrIx++)
             {
-                var tabooFilled = new bool[3];
-                var arrows = new AzureButtonArrowInfo[4];
-                var letterData = allLetterData.ToList();
-
-                while (arrows.Any(a => a == null))
-                {
-                    int candidateIx;
-
-                    if (tabooFilled.Contains(false))
-                    {
-                        // Pick an arrow that produces the taboo letter on one of the wrong positions
-                        var candidateIxs = letterData.SelectIndexWhere(tup => Enumerable.Range(0, tup.ltrs.Length).Any(ix => !tabooFilled[ix] && tup.ltrs[ix] == tabooLetter)).ToArray();
-                        if (candidateIxs.Length == 0)
-                            goto busted;
-                        candidateIx = candidateIxs[rnd.Next(0, candidateIxs.Length)];
-                    }
-                    else
-                    {
-                        // We’ve already got our taboo letters — pick any remaining arrow
-                        if (letterData.Count == 0)
-                            goto busted;
-                        candidateIx = rnd.Next(0, letterData.Count);
-                    }
-
-                    var (solLtrIx, arrowInfo, ltrs) = letterData[candidateIx];
-                    for (var i = 0; i < ltrs.Length; i++)
-                        if (ltrs[i] == tabooLetter)
-                            tabooFilled[i] = true;
-                    arrows[solLtrIx] = arrowInfo;
-                    letterData.RemoveAll(tup => tup.solLtrIx == solLtrIx);
-                }
-
-                // Make sure that no other letter accidentally occurs exactly three times
-                var otherWords = new List<string>();
-                for (var disp = 0; disp < 4; disp++)
-                    otherWords.Add(arrows.Select((ar, arIx) => (char) (ar.Coordinates.Select(c => grid[c.AddWrap(arIx + disp, arIx + disp).Index]).Aggregate(0, (p, n) => 3 * p + n) + 'A' - 1)).JoinString());
-                for (var solLtrIx = 0; solLtrIx < sol.Length; solLtrIx++)
-                    if (otherWords.Count(w => w.Contains(sol[solLtrIx])) == 3)
-                        goto busted;
-
-                return new AzureButtonPuzzle
-                {
-                    SetE = setE,
-                    SetS = setS,
-                    CardT = cardT,
-                    Grid = grid,
-                    SolutionWord = sol,
-                    ForbiddenLetter = tabooLetter,
-                    Arrows = arrows
-                };
-
-                busted:;
+                // Pick a random arrow that isn’t a duplicate
+                var candidates = AzureButtonArrowInfo.AllArrows
+                    .Where(ar => Enumerable.Range(0, AzureButtonArrowInfo.MaxArrowLength).All(arIx => grid[ar.Coordinates[arIx].AddWrap(ltrIx, ltrIx).Index] == ((sol[ltrIx] - 'A' + 1) / _powersOf3[2 - arIx]) % 3) &&
+                        !arrows.Contains(ar))
+                    .ToArray();
+                if (candidates.Length == 0)
+                    goto tryAgain;
+                arrows[ltrIx + 1] = candidates[rnd.Next(0, candidates.Length)];
             }
-            goto tryAgain;
+
+            return new AzureButtonPuzzle
+            {
+                SetE = setE,
+                SetS = setS,
+                CardT = cardT,
+                Grid = grid,
+                SolutionWord = sol,
+                Arrows = arrows
+            };
         }
 
         private static int trit(int card, int characteristic) => (card / _powersOf3[3 - characteristic]) % 3;
