@@ -617,9 +617,9 @@ solve({{
         }
 
         Match m;
-        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+[1-3](?:[rpg]|red|purple|green)\s*(?:so(?:lid)?|st(?:riped)?|ou(?:tlined)?)\s*(?:ca(?:psules?)?|du(?:mbbells?)?|di(?:amonds?)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        if (_stage == Stage.SETSymbols && (m = Regex.Match(command, @"^\s*tap((?:[\s,;]+[1-3]\s*(?:[ryb]|red|yellow|blue)\s*(?:so(?:lid)?|st(?:riped)?|ou(?:tlined)?)\s*(?:ca(?:psules?)?|du(?:mbbells?)?|di(?:amonds?)?))+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
-            var colors = new[] { "r", "p", "g" };
+            var colors = new[] { "r", "y", "b" };
             var shadings = new[] { "so", "st", "ou" };
             var shapes = new[] { "ca", "du", "di" };
             var pieces = m.Groups[1].Value.Split(new[] { ' ', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
