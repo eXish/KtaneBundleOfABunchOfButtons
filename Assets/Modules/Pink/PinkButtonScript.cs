@@ -252,6 +252,9 @@ public class PinkButtonScript : MonoBehaviour
 
     public IEnumerator TwitchHandleForcedSolve()
     {
+        while (PinkButtonText.text != "GO")
+            yield return null;
+        yield return new WaitForSeconds(0.1f);
         var lastHeld = false;
         while (!_moduleSolved)
         {
