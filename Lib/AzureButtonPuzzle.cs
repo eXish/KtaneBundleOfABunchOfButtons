@@ -38,8 +38,10 @@ namespace BlueButtonLib
             // Pick a random solution word
             var sol = _wordList[rnd.Next(0, _wordList.Length)];
 
-            // Find all letters that can potentially form 000 from any diagonal square
-            var decoyArrows = AzureButtonArrowInfo.AllArrows.Where(ar => Enumerable.Range(0, 4).Any(pos => ar.Coordinates.All(c => grid[c.AddWrap(pos, pos).Index] == 0))).ToArray();
+            // Find all arrows that can potentially form 000 from any diagonal square
+            var decoyArrows = AzureButtonArrowInfo.AllArrows
+                .Where(ar => Enumerable.Range(0, 4).Any(pos => ar.Coordinates.All(c => grid[c.AddWrap(pos, pos).Index] == 0)))
+                .ToArray();
             if (decoyArrows.Length == 0)
                 goto tryAgain;
             var arrows = new AzureButtonArrowInfo[5];
@@ -49,8 +51,11 @@ namespace BlueButtonLib
             {
                 // Pick a random arrow that isn’t a duplicate
                 var candidates = AzureButtonArrowInfo.AllArrows
-                    .Where(ar => Enumerable.Range(0, AzureButtonArrowInfo.MaxArrowLength).All(arIx => grid[ar.Coordinates[arIx].AddWrap(ltrIx, ltrIx).Index] == ((sol[ltrIx] - 'A' + 1) / _powersOf3[2 - arIx]) % 3) &&
-                        !arrows.Contains(ar))
+                    .Where(ar =>
+                        Enumerable.Range(0, AzureButtonArrowInfo.MaxArrowLength)
+                            .All(arIx => grid[ar.Coordinates[arIx].AddWrap(ltrIx, ltrIx).Index] == ((sol[ltrIx] - 'A' + 1) / _powersOf3[2 - arIx]) % 3) &&
+                        !arrows.Contains(ar) &&
+                        !decoyArrows.Contains(ar))
                     .ToArray();
                 if (candidates.Length == 0)
                     goto tryAgain;
