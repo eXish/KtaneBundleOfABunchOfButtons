@@ -114,8 +114,7 @@ public class NavyButtonScript : MonoBehaviour
 
         Debug.LogFormat(@"<The Navy Button #{0}> Stage 3: Stencil indexes: {1}", _moduleId, _puzzle.StencilIxs.Join(", "));
         Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: Shapes are: {1}", _moduleId,
-            Enumerable.Range(0, 5).Select(ix => string.Format("{0} {1}", _colorNames[_puzzle.StencilIxs[ix] % 3], _shapeNames[_puzzle.StencilIxs[ix] / 3])).Join(", "));
-        Debug.LogFormat(@"[The Navy Button #{0}] Stage 3: Decoy shape: {1} {2}", _moduleId, _colorNames[_puzzle.StencilIxs[4] % 3], _shapeNames[_puzzle.StencilIxs[4] / 3]);
+            Enumerable.Range(0, 5).Select(ix => string.Format("{0} {1} ({2})", _colorNames[_puzzle.StencilIxs[ix] % 3], _shapeNames[_puzzle.StencilIxs[ix] / 3], ix == 4 ? "decoy" : (ix + 1).ToString())).Join(", "));
 
         Debug.LogFormat(@"[The Navy Button #{0}] Stage 4: Answer is {1}", _moduleId, _puzzle.Answer);
     }
