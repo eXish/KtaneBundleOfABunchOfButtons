@@ -17,7 +17,42 @@ MonoBehaviour:
   description: 'This is a module bundle. It has a bunch of buttons.
 
 
-    Made by Quinn Wuest, Timwi, Cooldoom5, & GhostSalt'
+    Made by Quinn Wuest, Timwi, Cooldoom5, & GhostSalt
+
+
+    The Amber Button - [url=https://ktane.timwi.de/HTML/The%20Amber%20Button.html]manual[/url]
+
+    The Azure Button - [url=https://ktane.timwi.de/HTML/The%20Azure%20Button.html]manual[/url]
+
+    The Black Button - [url=https://ktane.timwi.de/HTML/The%20Black%20Button.html]manual[/url]
+
+    The Blue Button - [url=https://ktane.timwi.de/HTML/The%20Blue%20Button.html]manual[/url]
+
+    The Cornflower Button - [url=https://ktane.timwi.de/HTML/The%20Cornflower%20Button.html]manual[/url]
+
+    The Cyan Button - [url=https://ktane.timwi.de/HTML/The%20Cyan%20Button.html]manual[/url]
+
+    The Glitched Button - [url=https://ktane.timwi.de/HTML/The%20Glitched%20Button.html]manual[/url]
+
+    The Gray Button - [url=https://ktane.timwi.de/HTML/The%20Gray%20Button.html]manual[/url]
+
+    The Green Button - [url=https://ktane.timwi.de/HTML/The%20Green%20Button.html]manual[/url]
+
+    The Navy Button - [url=https://ktane.timwi.de/HTML/The%20Navy%20Button.html]manual[/url]
+
+    The Orange Button - [url=https://ktane.timwi.de/HTML/The%20Orange%20Button.html]manual[/url]
+
+    The Pink Button - [url=https://ktane.timwi.de/HTML/The%20Pink%20Button.html]manual[/url]
+
+    The Purple Button - [url=https://ktane.timwi.de/HTML/The%20Purple%20Button.html]manual[/url]
+
+    The Red Button - [url=https://ktane.timwi.de/HTML/The%20Red%20Button.html]manual[/url]
+
+    The Teal Button - [url=https://ktane.timwi.de/HTML/The%20Teal%20Button.html]manual[/url]
+
+    The White Button - [url=https://ktane.timwi.de/HTML/The%20White%20Button.html]manual[/url]
+
+    The Yellow Button - [url=https://ktane.timwi.de/HTML/The%20Yellow%20Button.html]manual[/url]'
   version: 1.0
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: c8383910154661f4dad5f0132285f3da, type: 3}
+  previewImage: {fileID: 2800000, guid: 6f25a045044158a4793cf308521dad2f, type: 3}
