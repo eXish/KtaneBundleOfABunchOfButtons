@@ -41,6 +41,7 @@
     <Compile Include="Coord.cs" />
     <Compile Include="GridDirection.cs" />
     <Compile Include="NavyButtonData.cs" />
+    <Compile Include="SapphireButtonPuzzle.cs" />
     <Compile Include="NavyButtonPuzzle.cs" />
     <Compile Include="Polyomino.cs" />
     <Compile Include="PolyominoPlacement.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="AzureButtonPuzzle.cs" />
     <Compile Include="Ut.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="WordLists.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
