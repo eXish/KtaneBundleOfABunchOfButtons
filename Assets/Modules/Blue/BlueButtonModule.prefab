@@ -570,8 +570,8 @@ GameObject:
   - component: {fileID: 114462647377417402}
   - component: {fileID: 114851826596115828}
   - component: {fileID: 114629500169079468}
-  - component: {fileID: 114188111084264542}
   - component: {fileID: 114605853814931052}
+  - component: {fileID: 114188111084264542}
   m_Layer: 0
   m_Name: BlueButtonModule
   m_TagString: Untagged

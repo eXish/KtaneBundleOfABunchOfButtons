@@ -450,7 +450,6 @@ GameObject:
   - component: {fileID: 114629500169079468}
   - component: {fileID: 114631511746438700}
   - component: {fileID: 114547522693066158}
-  - component: {fileID: 114507110535414140}
   m_Layer: 0
   m_Name: AzureButtonModule
   m_TagString: Untagged
@@ -1718,21 +1717,6 @@ MonoBehaviour:
   AllowSelectionWrapY: 0
   ForceSelectionHighlight: 0
   ForceInteractionHighlight: 0
---- !u!114 &114507110535414140
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1962260446815250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e73f2972f8e2b94197f1d3526200677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaskShader: {fileID: 4800000, guid: dfaea355a5b8edb4088d52742b6d6a05, type: 3}
-  DiffuseTintShader: {fileID: 4800000, guid: 1060b65ada401f2499945f1f42e199b3, type: 3}
-  TextShader: {fileID: 4800000, guid: 5c3ac252c02a6384c915a5a552f881f4, type: 3}
-  DiffuseTextShader: {fileID: 4800000, guid: a476fc8290dd79847a16d1040aa478d2, type: 3}
 --- !u!114 &114527109108016462
 MonoBehaviour:
   m_ObjectHideFlags: 1
